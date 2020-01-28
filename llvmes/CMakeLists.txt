@@ -21,6 +21,12 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 add_definitions(${LLVM_DEFINITIONS})
 
-target_link_libraries(${PROJECT_NAME} INTERFACE
-    LLVM
-)
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} INTERFACE
+        ${LLVM_AVAILABLE_LIBS}
+    )
+else()
+    target_link_libraries(${PROJECT_NAME} INTERFACE
+        LLVM
+    )
+endif()
