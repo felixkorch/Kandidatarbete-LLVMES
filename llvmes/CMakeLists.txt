@@ -22,5 +22,5 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 add_definitions(${LLVM_DEFINITIONS})
 
 target_link_libraries(${PROJECT_NAME} INTERFACE
-    ${LLVM_AVAILABLE_LIBS}
+    LLVM
 )
