@@ -112,7 +112,6 @@ Function* createPlusFiveFn(Module* module, LLVMContext& context, IRBuilder<>& bu
 	return plusFiveFn;
 }
 
-
 int main()
 {
 	llvm_shutdown_obj shutdown; // obj that calls llvm_shutdown on destroy

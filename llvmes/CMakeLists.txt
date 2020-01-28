@@ -1,4 +1,5 @@
-﻿cmake_minimum_required (VERSION 3.8)
+﻿project ("llvmes")
+cmake_minimum_required (VERSION 3.8)
 
 find_package(LLVM REQUIRED CONFIG)
 
@@ -16,7 +17,7 @@ set(SOURCEFILES
 add_library (${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE
     ${LLVM_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/src
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
 )
 add_definitions(${LLVM_DEFINITIONS})
 
