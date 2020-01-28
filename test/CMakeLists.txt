@@ -1,9 +1,10 @@
-set(LLVM_TESTS
+set(LLVM_TEST
     # list of test-files
+    ReadROM
 )
-set(LLVM_TEST_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/test/LLVM)
+set(LLVM_TEST_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/test)
 
-foreach (test ${LLVM_TESTS})
+foreach (test ${LLVM_TEST})
     set(LLVM_TEST_TARGET ${test})
 
     add_executable(${LLVM_TEST_TARGET} ${test}.cpp)

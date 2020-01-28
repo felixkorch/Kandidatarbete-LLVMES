@@ -1,5 +1,7 @@
 #include "llvmes/QuickSetup.h"
 
+using namespace llvm;
+
 Function* createFn1(Module* module, LLVMContext& context, IRBuilder<>& builder)
 {
 	FunctionCallee callee = module->getOrInsertFunction("add", builder.getInt32Ty(), builder.getInt32Ty());
@@ -46,7 +48,7 @@ Function* createFn2(Module* module, LLVMContext& context, IRBuilder<>& builder)
 
 int main()
 {
-	QuickSetup qs;
+	llvmes::QuickSetup qs;
 	createFn2(qs.module.get(), qs.context, qs.builder);
 	qs.module->print(llvm::errs(), nullptr);
 }

@@ -1,5 +1,7 @@
 #include "llvmes/QuickSetup.h"
 
+using namespace llvm;
+
 GlobalVariable* createGlobalVar(int size, const std::string& name, Module* module, IRBuilder<>& builder)
 {
 	Constant* globalInitValue = Constant::getIntegerValue(builder.getInt8Ty(), APInt(size, 0));
@@ -31,7 +33,7 @@ Function* LDA(Module* module, LLVMContext& context, IRBuilder<>& builder, int n)
 
 int main()
 {
-	QuickSetup qs;
+	llvmes::QuickSetup qs;
 	GlobalVariable* registerX = createGlobalVar(8, "registerX", qs.module.get(), qs.builder);
 	GlobalVariable* registerY = createGlobalVar(8, "registerY", qs.module.get(), qs.builder);
 	GlobalVariable* registerA = createGlobalVar(8, "registerA", qs.module.get(), qs.builder);
