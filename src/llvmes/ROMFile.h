@@ -23,13 +23,13 @@ namespace llvmes {
         {}
 
         /// Initialize by copying from a source.
-        ROMFile(std::uint8_t* source, std::size_t length)
+        ROMFile(char* source, std::size_t length)
             : data(length)
         {
             std::copy(source, source + length, data.begin());
         }
 
-        unsigned int mapperCode() const
+        int mapperCode() const
         {
             return (data[7] & 0xF0) | (data[6] >> 4);
         }
@@ -68,36 +68,28 @@ namespace llvmes {
             return std::next(beginCHRROM(), data[5] * 0x2000);
         }
 
-        bool isInitialized()
+        bool empty() const
         {
             return data.size() > 0;
         }
 
-    };
-
-    struct MapperType {
-        const ROMFile& ROMRef;
-        MapperType(const ROMFile& ROMRef)
-            : ROMRef(ROMRef)
-        {}
-    };
-
-    inline std::ostream& operator<<(std::ostream& stream, const MapperType& mapperType)
-    {
-        const ROMFile& rom = mapperType.ROMRef;
-        switch (rom.mapperCode()) {
-        case 0: return stream << ((rom.endPRGROM() - rom.beginPRGROM() > 0x4000) ? "NROM 256" : "NROM128"); break;
-        case 1: return stream << "MMC1"; break;
-        case 2: return stream << "UxROM"; break;
-        case 4: return stream << "MMC3"; break;
-        default: return stream << "Unknown mapper"; break;
+        const std::string mapperName() const
+        {
+            switch (mapperCode()) {
+            case 0: return ((endPRGROM() - beginPRGROM() > 0x4000) ? "NROM256" : "NROM128");
+            case 1: return "MMC1";
+            case 2: return "UxROM";
+            case 4: return "MMC3";
+            default: return "Unknown mapper";
+            }
         }
-    }
+
+    };
 
     inline std::ostream& operator<<(std::ostream& stream, const ROMFile& rom)
     {
         return stream << "ROM-Layout: {\n"
-            << "    MapperType: " << MapperType(rom) << " ( Code: " << rom.mapperCode() << " ),\n"
+            << "    MapperType: " << rom.mapperName() << " (Code: " << rom.mapperCode() << "),\n"
             << "    PRGROM Size: " << (rom.endPRGROM() - rom.beginPRGROM()) << " B,\n"
             << "    CHRROM Size: " << (rom.endCHRROM() - rom.beginCHRROM()) << " B\n"
             << "}";

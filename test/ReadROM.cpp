@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 	}
 
 	ROMFile rom(argv[1]);
-	if(rom.isInitialized())
+	if(rom.empty())
 		std::cout << rom << std::endl;
 	return 0;
 }
