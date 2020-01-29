@@ -70,7 +70,7 @@ namespace llvmes {
 
         bool empty() const
         {
-            return data.size() > 0;
+            return data.size() == 0;
         }
 
         const std::string mapperName() const
