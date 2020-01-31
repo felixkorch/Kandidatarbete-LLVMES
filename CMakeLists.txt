@@ -2,7 +2,10 @@
 set (CMAKE_CXX_STANDARD 14)
 cmake_minimum_required (VERSION 3.8)
 
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 find_package(LLVM REQUIRED CONFIG)
+find_package(glfw3 3.3 REQUIRED)
+add_subdirectory(dependencies/glad)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
@@ -12,23 +15,35 @@ foreach(lib ${LLVM_AVAILABLE_LIBS})
     message(STATUS ${lib})
 endforeach()
 
-set(SOURCEFILES
+set(SOURCE
+    src/llvmes/Graphics/GLPrimitives/VertexArray.cpp
+    src/llvmes/Graphics/GLPrimitives/VertexBuffer.cpp
+    src/llvmes/Graphics/GLPrimitives/IndexBuffer.cpp
+    src/llvmes/Graphics/Window.cpp
+    src/llvmes/Graphics/Input.cpp
+    src/llvmes/NES/ROMFile.cpp
 )
 
-add_library (${PROJECT_NAME} INTERFACE)
-target_include_directories(${PROJECT_NAME} INTERFACE
+add_library (${PROJECT_NAME} ${SOURCE})
+target_include_directories(${PROJECT_NAME} PUBLIC
     ${LLVM_INCLUDE_DIRS}
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
+    ${GLFW3_INCLUDE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/dependecies/glad/include>
 )
 add_definitions(${LLVM_DEFINITIONS})
 
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} INTERFACE
+    target_link_libraries(${PROJECT_NAME} PUBLIC
         ${LLVM_AVAILABLE_LIBS}
+        ${GLFW3_LIBRARY}
+        glad
     )
 else()
-    target_link_libraries(${PROJECT_NAME} INTERFACE
+    target_link_libraries(${PROJECT_NAME} PUBLIC
         LLVM
+        ${GLFW3_LIBRARY}
+        glad
     )
 endif()
 
