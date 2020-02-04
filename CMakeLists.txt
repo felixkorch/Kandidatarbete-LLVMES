@@ -16,11 +16,14 @@ foreach(lib ${LLVM_AVAILABLE_LIBS})
 endforeach()
 
 set(SOURCE
-    src/llvmes/Graphics/GLPrimitives/VertexArray.cpp
-    src/llvmes/Graphics/GLPrimitives/VertexBuffer.cpp
-    src/llvmes/Graphics/GLPrimitives/IndexBuffer.cpp
+    src/llvmes/Graphics/Primitives/VertexArray.cpp
+    src/llvmes/Graphics/Primitives/VertexBuffer.cpp
+    src/llvmes/Graphics/Primitives/IndexBuffer.cpp
+    src/llvmes/Graphics/Primitives/Texture2D.cpp
     src/llvmes/Graphics/Window.cpp
     src/llvmes/Graphics/Input.cpp
+    src/llvmes/Graphics/Texture.cpp
+    src/llvmes/Graphics/Shader.cpp
     src/llvmes/NES/ROMFile.cpp
 )
 
