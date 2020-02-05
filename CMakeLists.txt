@@ -45,7 +45,9 @@ if(WIN32)
 else()
     target_link_libraries(${PROJECT_NAME} PUBLIC
         LLVM
-        ${GLFW3_LIBRARY}
+        # ${GLFW3_LIBRARY}
+        dl
+        glfw
         glad
     )
 endif()
