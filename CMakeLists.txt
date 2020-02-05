@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.8)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 find_package(LLVM REQUIRED CONFIG)
-find_package(glfw3 3.3 REQUIRED)
+find_package(GLFW 3.3 REQUIRED)
 add_subdirectory(dependencies/glad)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
@@ -39,18 +39,20 @@ add_definitions(${LLVM_DEFINITIONS})
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         ${LLVM_AVAILABLE_LIBS}
-        ${GLFW3_LIBRARY}
+        ${GLFW_LIBRARIES}
         glad
     )
 else()
     target_link_libraries(${PROJECT_NAME} PUBLIC
         LLVM
-        # ${GLFW3_LIBRARY}
+        ${GLFW_LIBRARIES}
         dl
-        glfw
         glad
     )
 endif()
+message("GLFW: ${GLFW_LIBRARIES}")
+message("GLFW: ${GLFW_INCLUDE_DIR}")
+
 
 add_subdirectory ("test")
 add_subdirectory ("playground")
