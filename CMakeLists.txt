@@ -2,6 +2,7 @@
 set (CMAKE_CXX_STANDARD 14)
 cmake_minimum_required (VERSION 3.8)
 
+
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 find_package(LLVM REQUIRED CONFIG)
 find_package(GLFW 3.3 REQUIRED)
@@ -10,6 +11,7 @@ add_subdirectory(dependencies/glad)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 message(STATUS "Include dirs in: ${LLVM_INCLUDE_DIRS}")
+message(STATUS "INCLUDE DIR: ${GLFW3_INCLUDE_DIR}")
 
 foreach(lib ${LLVM_AVAILABLE_LIBS})
     message(STATUS ${lib})
@@ -30,7 +32,7 @@ set(SOURCE
 add_library (${PROJECT_NAME} ${SOURCE})
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${LLVM_INCLUDE_DIRS}
-    ${GLFW3_INCLUDE_DIR}
+    ${GLFW_INCLUDE_DIRS}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/dependecies/glad/include>
 )
