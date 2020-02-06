@@ -57,10 +57,5 @@ namespace llvmes {
 			setData(data.data());
 		}
 
-		std::shared_ptr<Texture2D> Texture2D::create(int width, int height)
-		{
-			return std::shared_ptr<Texture2D>(new Texture2D(width, height));
-		}
-
 	}
 }

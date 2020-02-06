@@ -1,7 +1,7 @@
 #include "llvmes/Graphics/Window.h"
 #include "llvmes/Graphics/Input.h"
 #include "llvmes/Graphics/Keycodes.h"
-#include "llvmes/Graphics/Texture.h"
+#include "llvmes/Graphics/Rectangle.h"
 #include <iostream>
 
 using namespace llvmes::graphics;
@@ -11,15 +11,24 @@ int main()
 	Window window(800, 600, "WindowTest");
 
 	Shader::Err err;
-	auto shader = Shader::createFromString(textureShader, err);
-	if (!shader)
+
+	Shader shader;
+	shader.loadFromString(textureShader, err);
+	if(err.getType() != Shader::Err::Type::NoError)
 		err.print();
 
-	auto shader2 = Shader::createFromString(greyScale, err);
-	if (!shader2)
+	Shader shader2;
+	shader2.loadFromString(greyScale, err);
+	if(err.getType() != Shader::Err::Type::NoError)
 		err.print();
 
-	Texture frame(800, 600, 200, 200, 0, 0);
+	Rectangle frame(800, 600, 200, 200, 0, 0);
+
+	Texture2D texture(200, 200);
+	texture.setColor(70, 90, 150, 200);
+
+	Texture2D texture2(200, 200);
+	texture2.setColor(150, 170, 30, 25);
 
 	float x = 0;
 	float y = 0;
@@ -47,12 +56,10 @@ int main()
 			x += 1;
 		}
 
-		frame.setColor(150, 70, 90, 77);
 		frame.setPosition(x, y);
-		frame.draw(shader);
-		frame.setColor(165, 20, 200, 90);
+		frame.draw(shader, texture);
 		frame.setPosition(200, 200);
-		frame.draw(shader);
+		frame.draw(shader, texture2);
 
 		window.update();
 	}

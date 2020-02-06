@@ -24,7 +24,7 @@ set(SOURCE
     src/llvmes/Graphics/Primitives/Texture2D.cpp
     src/llvmes/Graphics/Window.cpp
     src/llvmes/Graphics/Input.cpp
-    src/llvmes/Graphics/Texture.cpp
+    src/llvmes/Graphics/Rectangle.cpp
     src/llvmes/Graphics/Shader.cpp
     src/llvmes/NES/ROMFile.cpp
 )

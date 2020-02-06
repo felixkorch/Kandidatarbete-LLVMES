@@ -7,7 +7,7 @@
 namespace llvmes {
 	namespace graphics {
 
-		unsigned int Shader::compileShader(unsigned int type, const std::string& source)
+		unsigned int Shader::compileShader(unsigned int type, const std::string& source, Shader::Err& err)
 		{
 			unsigned int id = glCreateShader(type);
 			const char* src = source.c_str();
@@ -30,18 +30,22 @@ namespace llvmes {
 			return id;
 		}
 
-		void Shader::createShader(const std::string& vertexShader, const std::string& fragmentShader)
+		void Shader::createShader(const std::string& vertexShader, const std::string& fragmentShader, Shader::Err& err)
 		{
-			if (vertexShader.empty() || fragmentShader.empty())
-				std::cout << "Vertex or Fragment shader empty." << std::endl;
+			if (vertexShader.empty() || fragmentShader.empty()) {
+				err.setType(Err::Type::EmptyString);
+				err.setErrorMessage("Vertex or Fragment shader empty.");
+			}
 
 			unsigned int program = glCreateProgram();
 
-			if (program == 0)
-				std::cout << "Program couldn't be created." << std::endl;
+			if (program == 0) {
+				err.setType(Err::Type::ProgramNotCreated);
+				err.setErrorMessage("Create Program failed.");
+			}
 
-			unsigned int vs = compileShader(GL_VERTEX_SHADER, vertexShader);
-			unsigned int fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
+			unsigned int vs = compileShader(GL_VERTEX_SHADER, vertexShader, err);
+			unsigned int fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader, err);
 
 			glAttachShader(program, vs);
 			glAttachShader(program, fs);
@@ -54,7 +58,7 @@ namespace llvmes {
 			id = program;
 		}
 
-		Shader::ProgramSource Shader::parseShader(std::stringstream& str)
+		Shader::ProgramSource Shader::parseShader(std::stringstream& str, Shader::Err& err)
 		{
 			enum class ShaderType {
 				NONE = -1, VERTEX = 0, FRAGMENT = 1
@@ -77,7 +81,8 @@ namespace llvmes {
 				}
 				else {
 					if (type == ShaderType::NONE) {
-						std::cout << "Invalid shader format. Needs to contain vertex / fragments directives." << std::endl;
+						err.setType(Err::Type::InvalidShaderFormat);
+						err.setErrorMessage("Invalid shader format. Needs to contain vertex / fragments directives.");
 						return {};
 					}
 					ss[(int)type] << line << '\n';
@@ -87,35 +92,26 @@ namespace llvmes {
 			return { ss[0].str(), ss[1].str() };
 		}
 
-		std::shared_ptr<Shader> Shader::createFromFile(const std::string& path, Shader::Err& err)
+		void Shader::loadFromFile(const std::string& path, Shader::Err& err)
 		{
-			std::shared_ptr<Shader> shader(new Shader);
-
 			std::ifstream stream(path);
 			if (!stream.good()) {
 				err.setType(Err::Type::FileNotFound);
 				err.setErrorMessage("Shader not found given the path:" + path);
-				return nullptr;
 			}
 
 			std::stringstream str;
 			str << stream.rdbuf();
 
-			Shader::ProgramSource source = shader->parseShader(str);
-			shader->createShader(source.VertexSource, source.FragmentSource);
-
-			return shader;
+			Shader::ProgramSource source = parseShader(str, err);
+			createShader(source.VertexSource, source.FragmentSource, err);
 		}
 
-		std::shared_ptr<Shader> Shader::createFromString(const std::string& string, Shader::Err& err)
+		void Shader::loadFromString(const std::string& string, Shader::Err& err)
 		{
-			std::shared_ptr<Shader> shader(new Shader);
-
 			std::stringstream str(string);
-			Shader::ProgramSource source = shader->parseShader(str);
-			shader->createShader(source.VertexSource, source.FragmentSource);
-
-			return shader;
+			Shader::ProgramSource source = parseShader(str, err);
+			createShader(source.VertexSource, source.FragmentSource, err);
 		}
 
 		void Shader::bind() const

@@ -7,16 +7,14 @@ namespace llvmes{
 
 		class VertexArray {
 		public:
+			VertexArray();
 			~VertexArray();
 
-			void addBuffer(const std::shared_ptr<VertexBuffer>& vb, const VertexBufferLayout& layout);
+			void addBuffer(VertexBuffer& vb, const VertexBufferLayout& layout);
 			void bind() const;
 			void unbind() const;
 
-			static std::shared_ptr<VertexArray> create();
-
 		private:
-			VertexArray();
 			VertexArray(VertexArray& other);
 		private:
 			unsigned int id;

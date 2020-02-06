@@ -15,10 +15,10 @@ namespace llvmes {
 			glDeleteVertexArrays(1, &id);
 		}
 
-		void VertexArray::addBuffer(const std::shared_ptr<VertexBuffer>& vb, const VertexBufferLayout& layout)
+		void VertexArray::addBuffer(VertexBuffer& vb, const VertexBufferLayout& layout)
 		{
 			bind();
-			vb->bind();
+			vb.bind();
 			const auto& elements = layout.getElements();
 			std::size_t offset = 0;
 			for (unsigned int i = 0; i < elements.size(); i++) {
@@ -27,8 +27,6 @@ namespace llvmes {
 				glEnableVertexAttribArray(i);
 				offset += element.count * VertexBufferElement::getSizeOfType(element.type);
 			}
-
-			//unbind();
 		}
 
 		void VertexArray::bind() const
@@ -39,11 +37,6 @@ namespace llvmes {
 		void VertexArray::unbind() const
 		{
 			glBindVertexArray(0);
-		}
-
-		std::shared_ptr<VertexArray> VertexArray::create()
-		{
-			return std::shared_ptr<VertexArray>(new VertexArray);
 		}
 
 	}

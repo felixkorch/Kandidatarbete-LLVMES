@@ -6,16 +6,15 @@ namespace llvmes {
 
 		class IndexBuffer {
 		public:
+			IndexBuffer();
 			~IndexBuffer();
 
 			void bind() const;
 			void unbind() const;
-
-			static std::shared_ptr<IndexBuffer> create(const unsigned int* data, unsigned int count);
+			void load(const unsigned int* data, unsigned int count);
 
 		private:
-			IndexBuffer();
-			IndexBuffer(IndexBuffer& other) = delete;
+			IndexBuffer(IndexBuffer& other);
 
 			unsigned int count;
 			unsigned int id;

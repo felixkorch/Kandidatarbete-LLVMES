@@ -7,7 +7,9 @@ namespace llvmes {
 		IndexBuffer::IndexBuffer()
 			: count(0)
 			, id(0)
-		{}
+		{
+			glGenBuffers(1, &id);
+		}
 
 		IndexBuffer::~IndexBuffer()
 		{
@@ -24,14 +26,11 @@ namespace llvmes {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 
-		std::shared_ptr<IndexBuffer> IndexBuffer::create(const unsigned int* data, unsigned int count)
+		void IndexBuffer::load(const unsigned int* data, unsigned int count)
 		{
-			std::shared_ptr<IndexBuffer> ibo = std::shared_ptr<IndexBuffer>(new IndexBuffer);
-			ibo->count = count;
-			glGenBuffers(1, &ibo->id);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo->id);
+			this->count = count;
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(unsigned int), data, GL_STATIC_DRAW);
-			return ibo;
 		}
 
 	}

@@ -26,7 +26,7 @@ namespace llvmes {
 				std::cout << "Failed to create window." << std::endl;
 			}
 
-			/// Setup to get it to work properly.
+			/// Necessary hints, specifically for mac/linux
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);

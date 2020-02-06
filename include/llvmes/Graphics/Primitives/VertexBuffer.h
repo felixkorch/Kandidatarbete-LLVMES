@@ -8,7 +8,7 @@ namespace llvmes {
 
 		class VertexBuffer {
 		public:
-
+			VertexBuffer();
 			~VertexBuffer();
 
 			void bind();
@@ -19,10 +19,7 @@ namespace llvmes {
 			void bindLayout(const VertexBufferLayout& layout);
 			void unbind();
 
-			static std::shared_ptr<VertexBuffer> create();
-
 		private:
-			VertexBuffer();
 			VertexBuffer(VertexBuffer& other);
 		private:
 

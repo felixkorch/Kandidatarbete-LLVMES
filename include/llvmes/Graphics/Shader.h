@@ -20,7 +20,9 @@ namespace llvmes {
 					FileNotFound,
 					EmptyString,
 					InvalidString,
-					NoError
+					NoError,
+					InvalidShaderFormat,
+					ProgramNotCreated
 				};
 
 				Err()
@@ -38,29 +40,26 @@ namespace llvmes {
 				Type type;
 			};
 
-			static std::shared_ptr<Shader> createFromFile(const std::string& path, Shader::Err& err);
-			static std::shared_ptr<Shader> createFromString(const std::string& string, Shader::Err& err);
-
+			Shader() = default;
+			void loadFromFile(const std::string& path, Shader::Err& err);
+			void loadFromString(const std::string& string, Shader::Err& err);
 			void bind() const;
 			void unbind() const;
 
 
 		private:
 
-			/// Makes the class non-constructible
-			Shader() = default;
-
 			/// Makes the class non-copyable
 			Shader(Shader& other);
 
 			/// Parses a string and creates two strings, the vertex and fragment part.
-			Shader::ProgramSource parseShader(std::stringstream& str);
+			Shader::ProgramSource parseShader(std::stringstream& str, Shader::Err& err);
 
 			/// Used by "createShader" to compile the programs
-			unsigned int compileShader(unsigned int type, const std::string& source);
+			unsigned int compileShader(unsigned int type, const std::string& source, Shader::Err& err);
 
 			/// Links the fragment and vertex parts into a shader program
-			void createShader(const std::string& vertexShader, const std::string& fragmentShader);
+			void createShader(const std::string& vertexShader, const std::string& fragmentShader, Shader::Err& err);
 
 		private:
 			unsigned int id;

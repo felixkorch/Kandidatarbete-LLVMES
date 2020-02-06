@@ -35,7 +35,8 @@ namespace llvmes {
 
 		void* VertexBuffer::getInternalPointer() const
 		{
-			//return glMapBufferRange(GL_ARRAY_BUFFER, 0, bufferSize, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+			// This line is equivalent to the line below and works on older versions of OpenGL
+			// return glMapBufferRange(GL_ARRAY_BUFFER, 0, bufferSize, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 			return glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 		}
 
@@ -59,11 +60,6 @@ namespace llvmes {
 		void VertexBuffer::unbind()
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		}
-
-		std::shared_ptr<VertexBuffer> VertexBuffer::create()
-		{
-			return std::shared_ptr<VertexBuffer>(new VertexBuffer);
 		}
 
 	}
