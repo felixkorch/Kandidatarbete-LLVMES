@@ -8,14 +8,17 @@ find_package(LLVM REQUIRED CONFIG)
 find_package(GLFW 3.3 REQUIRED)
 add_subdirectory(dependencies/glad)
 
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-message(STATUS "Include dirs in: ${LLVM_INCLUDE_DIRS}")
-message(STATUS "INCLUDE DIR: ${GLFW3_INCLUDE_DIR}")
+if(VERBOSE)
+    message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+    message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+    message(STATUS "Include dirs in: ${LLVM_INCLUDE_DIRS}")
+    message(STATUS "INCLUDE DIR: ${GLFW3_INCLUDE_DIR}")
 
-foreach(lib ${LLVM_AVAILABLE_LIBS})
-    message(STATUS ${lib})
-endforeach()
+    foreach(lib ${LLVM_AVAILABLE_LIBS})
+        message(STATUS ${lib})
+    endforeach()
+endif()
+
 
 set(SOURCE
     src/llvmes/Graphics/Primitives/VertexArray.cpp
@@ -52,8 +55,11 @@ else()
         glad
     )
 endif()
-message("GLFW: ${GLFW_LIBRARIES}")
-message("GLFW: ${GLFW_INCLUDE_DIR}")
+
+if(VERBOSE)
+    message("GLFW: ${GLFW_LIBRARIES}")
+    message("GLFW: ${GLFW_INCLUDE_DIRS}")
+endif()
 
 
 add_subdirectory ("test")
