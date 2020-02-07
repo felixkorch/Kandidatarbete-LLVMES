@@ -1,10 +1,48 @@
 #!/usr/bin/env python
 import os
+import argparse
+import shutil
+
+DEFAULT_BUILD_DIR = "build"
+DEFAULT_BUILD_TYPE = "Debug"
+DEFAULT_VERBOSE = False
 
 # Always make sure current working directory is set to root of project
-os.chdir(os.path.dirname(os.path.realpath(__file__)))
+working_directory = os.path.dirname(os.path.realpath(__file__))
+os.chdir(working_directory)
 
-ProjectLogo ="""          _____                    _____                    _____          
+# Parse argument flags
+argument_parser = argparse.ArgumentParser(
+    description='Build script for automating the boring parts of CMake')
+# Add desirable arguments
+argument_parser.add_argument("-c", "--clean",
+                             default=False,
+                             action="store_true",
+                             help="Clean build directory. Default is {}, but can be specified with option -d".format(DEFAULT_BUILD_DIR))
+
+argument_parser.add_argument("-b", "--build",
+                             choices=["release", "Release", "debug", "Debug"],
+                             required=False,
+                             type=str,
+                             default=DEFAULT_BUILD_TYPE,
+                             help="Type of build")
+
+argument_parser.add_argument("-d", "--dir",
+                             required=False,
+                             type=str,
+                             default=DEFAULT_BUILD_DIR,
+                             help="Name of build directory")
+
+argument_parser.add_argument("-v", "--verbose",
+                             required=False,
+                             default=False,
+                             action="store_true",
+                             help="Enable verbose output")
+
+
+def print_logo():
+    project_logo = """ 
+          _____                    _____                    _____          
          /\    \                  /\    \                  /\    \         
         /::\____\                /::\    \                /::\    \        
        /::::|   |               /::::\    \              /::::\    \       
@@ -34,12 +72,54 @@ ProjectLogo ="""          _____                    _____                    ____
             / __| |/ / '__| '__| __| / __| |/ / '__| '__| __|
             \__ \   <| |  | |  | |_  \__ \   <| |  | |  | |_ 
             |___/_|\_\_|  |_|   \__| |___/_|\_\_|  |_|   \__|   
-""" ;
+"""
 
-print(ProjectLogo)
-os.system("""
-            cmake -E make_directory build &&
-            cd build &&
-            cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ../ &&
+    print(project_logo)
+
+
+def create_build_dir(dir=DEFAULT_BUILD_DIR):
+    os.system("cmake -E make_directory {}".format(dir))
+
+
+def clean_build_dir(dir=DEFAULT_BUILD_DIR):
+    BUILD_DIR_ABS = os.path.join(working_directory, dir)
+    if(os.path.exists(BUILD_DIR_ABS)):
+        shutil.rmtree(BUILD_DIR_ABS)
+
+
+def generate_build_system(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOSE):
+    os.system(
+        """
+            cd {build_dir} &&
+            cmake -G Ninja -DCMAKE_BUILD_TYPE={build_type} -DVERBOSE={verbose_output} ../
+            """.format(
+            build_dir=dir,
+            build_type=type,
+            verbose_output=verbose
+            ))
+
+
+def build(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOSE):
+    create_build_dir(dir)
+    generate_build_system(type, dir, verbose)
+    os.system(
+        """
+            cd {build_dir} &&
             cmake --build . #--target someTarget --config Release
-        """)
+            """.format(build_dir=BUILD_DIR))
+
+
+args = argument_parser.parse_args()
+BUILD_TYPE = args.build
+BUILD_DIR = args.dir
+CLEAN = args.clean
+VERBOSE = args.verbose
+
+if(CLEAN):
+    clean_build_dir(BUILD_DIR)
+
+
+print_logo()
+
+# release -> Release, debug -> Debug
+build(type=BUILD_TYPE.capitalize(), dir=BUILD_DIR, verbose=VERBOSE)
