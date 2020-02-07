@@ -19,4 +19,4 @@ addons:
      - libglfw3-dev
 
 script:
-  - python build.py
+  - chmod +x autobuild && ./autobuild
