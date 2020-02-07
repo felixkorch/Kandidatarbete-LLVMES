@@ -102,11 +102,17 @@ def generate_build_system(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbos
 def build(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOSE):
     create_build_dir(dir)
     generate_build_system(type, dir, verbose)
+    cmake_flags = "--build ."
+    if(verbose):
+        cmake_flags += " --verbose"
     os.system(
         """
             cd {build_dir} &&
-            cmake --build . #--target someTarget --config Release
-            """.format(build_dir=BUILD_DIR))
+            cmake {flags}
+            """.format(
+                build_dir=BUILD_DIR,
+                flags=cmake_flags
+            ))
 
 
 args = argument_parser.parse_args()
