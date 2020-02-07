@@ -30,6 +30,7 @@ set(SOURCE
     src/llvmes/Graphics/Rectangle.cpp
     src/llvmes/Graphics/Shader.cpp
     src/llvmes/NES/ROMFile.cpp
+    src/llvmes/NES/CPU.cpp
 )
 
 add_library (${PROJECT_NAME} ${SOURCE})
