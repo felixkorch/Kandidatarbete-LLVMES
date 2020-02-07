@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import os
 
+# Always make sure current working directory is set to root of project
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
 ProjectLogo ="""          _____                    _____                    _____          
          /\    \                  /\    \                  /\    \         
         /::\____\                /::\    \                /::\    \        
