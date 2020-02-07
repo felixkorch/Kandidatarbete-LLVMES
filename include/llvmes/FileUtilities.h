@@ -6,7 +6,7 @@
 namespace llvmes {
 	namespace util {
 
-		inline std::vector<char> ReadFile(const std::string& path)
+		inline std::vector<char> readFile(const std::string& path)
 		{
 			std::ifstream in{ path, std::ios::binary };
 			if (in.fail()) {
@@ -16,7 +16,7 @@ namespace llvmes {
 			return std::vector<char>{ std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>() };
 		}
 
-		inline void WriteFile(const std::string& path, const std::vector<char>& source)
+		inline void writeFile(const std::string& path, const std::vector<char>& source)
 		{
 			std::ofstream output{ path, std::ios::binary };
 			output.write(source.data(), source.size());
