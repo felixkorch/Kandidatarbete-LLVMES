@@ -4,16 +4,30 @@
 
 namespace llvmes {
 
-    CPU::CPU(BusRead read, BusWrite write)
+    CPU::CPU()
         : regX(0)
         , regY(0)
         , regA(0)
         , regSP(0xFD)
         , regPC(0)
         , regStatus(0x34)
-        , read(read)
-        , write(write)
-    {}
+        , illegalOpcode(false)
+    {
+        for(auto& it : instructionTable)
+            it = { &CPU::getAddressImplied, &CPU::illegalOP };
+
+        instructionTable[0xA0] = {&CPU::getAddressImmediate, &CPU::opLDY };
+        instructionTable[0xD0] = {&CPU::getAddressImmediate, &CPU::opBNE };
+        instructionTable[0xA2] = {&CPU::getAddressImmediate, &CPU::opLDX };
+        instructionTable[0xE8] = {&CPU::getAddressImplied, &CPU::opINX };
+        instructionTable[0x88] = {&CPU::getAddressImplied, &CPU::opDEY };
+        instructionTable[0x69] = {&CPU::getAddressImmediate, &CPU::opADC };
+        instructionTable[0x78] = {&CPU::getAddressImplied, &CPU::opSEI };
+        instructionTable[0xA9] = {&CPU::getAddressImmediate, &CPU::opLDA };
+        instructionTable[0xAD] = {&CPU::getAddressAbsolute, &CPU::opLDA };
+        instructionTable[0xF0] = {&CPU::getAddressImmediate, &CPU::opBEQ };
+        instructionTable[0xE8] = {&CPU::getAddressImplied, &CPU::opNOP };
+    }
 
     std::uint16_t CPU::read16(std::uint16_t adr) {
         std::uint16_t lowByte = read(adr);
@@ -31,71 +45,36 @@ namespace llvmes {
         return read16(regPC - 2);
     }
 
-	void CPU::execute()
+	void CPU::step()
     {
-        switch(read(regPC++)) {
-            //case 0x00: return opBRK();
-            //case 0x10: return opBPL();
-            //case 0x20: return opJSR();
-            //case 0x30: return opBMI();
-            //case 0x40: return opRTI();
-            //case 0x50: return opBVC();
-            //case 0x60: return opRTS();
-            //case 0x70: return opBVS();
-            //case 0x90: return opBCC();
-            case 0xA0: return opLDY(&CPU::getAddressImmediate);
-            //case 0xB0: return opBCC();
-            //case 0xC0: return opCPY(AddressingMode::Immediate);
-            case 0xD0: return opBRA(regStatus.Z == 0); // BNE
-            //case 0xE0: return opCPX(AddressingMode::Immediate);
-            //case 0x01: return opORA();
-            //case 0x11: return opORA();
-            //case 0x21: return opAND();
-			//case 0x31: return opAND();
-			//case 0x41: return opEOR();
-			//case 0x51: return opEOR();
-			//case 0x61: return opADC();
-			//case 0x71: return opADC();
-			//case 0x81: return opSTA();
-			//case 0x91: return opSTA();
-			//case 0xA1: return opLDA();
-			//case 0xB1: return opLDA();
-			//case 0xC1: return opCMP();
-			//case 0xD1: return opCMP();
-			//case 0xE1: return opSBC();
-			//case 0xF1: return opSBC();
-			case 0xA2: return opLDX(&CPU::getAddressImmediate);
-			case 0xE8: return opINX();
-			case 0x88: return opDEY();
-            case 0x69: return opADC(&CPU::getAddressImmediate);
-            case 0x78: return opSetFlag(FLAG_I);
-            case 0xA9: return opLDA(&CPU::getAddressImmediate);
-            case 0xAD: return opLDA(&CPU::getAddressAbsolute);
-            case 0xF0: return opBRA(regStatus.Z == 1); // BEQ
-            case 0xEA: return opNOP();
-			default:
-				return illegalOP();
-		}
+        // Fetch
+        auto opcode = read(regPC++);
+
+        // Decode
+        auto instr = instructionTable[opcode];
+
+        // Execute
+        instr(this);
     }
 
-    void CPU::illegalOP()
+    void CPU::illegalOP(std::uint16_t)
     {
         std::cout << "Illegal OP!" << std::endl;
-        std::cin.get(); // Debug measure to pause execution in terminal
+        illegalOpcode = true;
     }
 
-    void CPU::opADC(AddressMode getAddress)
+    void CPU::opADC(std::uint16_t adr)
     {
         
     }
     
-    void CPU::opBRK()
+    void CPU::opBRK(std::uint16_t adr)
     {
         // Force Break 
 		regStatus.I = 1;
 	}
 
-    void CPU::opINX()
+    void CPU::opINX(std::uint16_t adr)
     {
         regX++;
         regStatus.Z = regX == 0;
@@ -103,14 +82,14 @@ namespace llvmes {
         std::cout << "INX" << std::endl;
     }
 
-    void CPU::opINY()
+    void CPU::opINY(std::uint16_t adr)
     {
         regY++;
         regStatus.Z = regX == 0;
         regStatus.N = regX & 0x80;
     }
 
-    void CPU::opDEY()
+    void CPU::opDEY(std::uint16_t adr)
     {
         regY--;
         regStatus.Z = regY == 0;
@@ -118,79 +97,84 @@ namespace llvmes {
         std::cout << "DEY, Flag Z: " << regStatus.Z << std::endl;
     }
 
-    void CPU::opDEX()
+    void CPU::opDEX(std::uint16_t adr)
     {
         regX--;
         regStatus.Z = regX == 0;
         regStatus.N = regX & 0x80;
     }
 
-    void CPU::opNOP()
+    void CPU::opNOP(std::uint16_t adr)
     {
         // No operation 
         std::cout << "NOP" << std::endl;
 
 	}
 
-    void CPU::opLDY(AddressMode getAddress)
+    void CPU::opLDY(std::uint16_t adr)
     {
         // Load index Y with memory
-        std::uint16_t address = (this->*getAddress)();
-        std::uint8_t operand = read(address);
+        std::uint8_t operand = read(adr);
         regY = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
 	}
 
-    void CPU::opLDA(AddressMode getAddress)
+    void CPU::opLDA(std::uint16_t adr)
     {
         // Load Accumulator
-        std::uint16_t address = (this->*getAddress)();
-        std::uint8_t operand = read(address);
+        std::uint8_t operand = read(adr);
         regA = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
 	}
 
-    void CPU::opLDX(AddressMode getAddress)
+    void CPU::opLDX(std::uint16_t adr)
     {
         // Load Accumulator
-        std::uint16_t address = (this->*getAddress)();
-        std::uint8_t operand = read(address);
+        std::uint8_t operand = read(adr);
         regX = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
 	}
 
-    void CPU::opJMPIndirect()
+    void CPU::opJMPIndirect(std::uint16_t adr)
     {
 
     }
 
-    void CPU::opBRA(bool condition)
+    void CPU::opBNE(std::uint16_t adr)
     {
-        std::uint16_t address = getAddressImmediate();
-        std::int8_t operand = read(address); // Can be negative
-        if(condition) {
+        std::int8_t operand = read(adr); // Can be negative
+        if(!regStatus.Z) {
             std::cout << "Branch" << std::endl;
             regPC += operand;
         }
     }
 
-    void CPU::opJMPAbsolute()
+    void CPU::opBEQ(std::uint16_t adr)
+    {
+        std::int8_t operand = read(adr); // Can be negative
+        if(regStatus.Z) {
+            std::cout << "Branch" << std::endl;
+            regPC += operand;
+        }
+    }
+
+    void CPU::opJMPAbsolute(std::uint16_t adr)
     {
         std::uint16_t lowByte = read(regPC);
         std::uint16_t highByte = read(regPC + 1);
         regPC = lowByte | (highByte << 8);
     }
 
-    void CPU::opSetFlag(unsigned int flag)
+    void CPU::opSEI(std::uint16_t adr)
     {
-        regStatus = regStatus | flag;
+        regStatus = regStatus | FLAG_I;
     }
-    void CPU::opClearFlag(unsigned int flag)
+    void CPU::opCLI(std::uint16_t adr)
     {
-		regStatus = regStatus & ~flag;
+		regStatus = regStatus & ~FLAG_I;
 	}
 
     void CPU::dump()
@@ -208,4 +192,16 @@ namespace llvmes {
     {
         regPC = read16(RESET_VECTOR);
     }
+
+    std::uint16_t CPU::getAddressImplied()
+    {
+        return 0; // Simply means the instruction doesn't need an operand
+    }
+
+    void CPU::run()
+    {
+        while(!illegalOpcode)
+            step();
+    }
+
 }
