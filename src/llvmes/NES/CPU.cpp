@@ -18,9 +18,7 @@ namespace llvmes {
     void CPU::setExternalMemory(std::vector<std::uint8_t> mem)
     {
         externalMemory = std::move(mem);
-        std::uint16_t lowByte = readMemory(ResetVector);
-        std::uint16_t highByte = readMemory(ResetVector + 1);
-        regPC = lowByte | (highByte << 8);
+        regPC = read16(RESET_VECTOR);
     }
 
     std::uint8_t CPU::readMemory(std::uint16_t address)
@@ -41,18 +39,20 @@ namespace llvmes {
         return externalMemory[address];
     }
 
+    std::uint16_t CPU::read16(std::uint16_t adr) {
+        std::uint16_t lowByte = readMemory(adr);
+        std::uint16_t highByte = readMemory(adr + 1);
+        return lowByte | (highByte << 8);
+    }
+
     std::uint16_t CPU::getAddressImmediate()
     {
         return regPC++;
     }
 
-    std::uint16_t CPU::getAddress(AddressingMode mode)
-    {
-        switch(mode) {
-            case AddressingMode::Immediate: return getAddressImmediate();
-            //case AddressingMode::Absolute: return getAddressAbsolute();
-            default: return getAddressImmediate();
-        }
+    std::uint16_t CPU::getAddressAbsolute() {
+        regPC += 2;
+        return read16(regPC - 2);
     }
 
 	void CPU::Execute()
@@ -67,14 +67,14 @@ namespace llvmes {
             //case 0x60: return opRTS();
             //case 0x70: return opBVS();
             //case 0x90: return opBCC();
-            case 0xA0: return opLDY(AddressingMode::Immediate);
+            case 0xA0: return opLDY(&CPU::getAddressImmediate);
             //case 0xB0: return opBCC();
             //case 0xC0: return opCPY(AddressingMode::Immediate);
             case 0xD0: return opBRA(regStatus.Z == 0); // BNE
-												  //case 0xE0: return opCPX(AddressingMode::Immediate);
-												  //case 0x01: return opORA();
-												  //case 0x11: return opORA();
-												  //case 0x21: return opAND();
+            //case 0xE0: return opCPX(AddressingMode::Immediate);
+            //case 0x01: return opORA();
+            //case 0x11: return opORA();
+            //case 0x21: return opAND();
 			//case 0x31: return opAND();
 			//case 0x41: return opEOR();
 			//case 0x51: return opEOR();
@@ -88,13 +88,13 @@ namespace llvmes {
 			//case 0xD1: return opCMP();
 			//case 0xE1: return opSBC();
 			//case 0xF1: return opSBC();
-			case 0xA2: return opLDX(AddressingMode::Immediate);
+			case 0xA2: return opLDX(&CPU::getAddressImmediate);
 			case 0xE8: return opINX();
 			case 0x88: return opDEY();
-            case 0x69: return opADC(AddressingMode::Immediate);
-            case 0x78: return opSetflag(Flag_I);
-            case 0xA9: return opLDA(AddressingMode::Immediate);
-            case 0xAD: return opLDA(AddressingMode::Absolute); 
+            case 0x69: return opADC(&CPU::getAddressImmediate);
+            case 0x78: return opSetFlag(FLAG_I);
+            case 0xA9: return opLDA(&CPU::getAddressImmediate);
+            case 0xAD: return opLDA(&CPU::getAddressAbsolute);
             case 0xF0: return opBRA(regStatus.Z == 1); // BEQ
             case 0xEA: return opNOP();
 			default:
@@ -108,7 +108,7 @@ namespace llvmes {
         std::cin.get(); // Debug measure to pause execution in terminal
     }
 
-    void CPU::opADC(AddressingMode mode)
+    void CPU::opADC(AddressMode getAddress)
     {
         
     }
@@ -156,30 +156,30 @@ namespace llvmes {
 
 	}
 
-    void CPU::opLDY(AddressingMode mode)
+    void CPU::opLDY(AddressMode getAddress)
     {
         // Load index Y with memory
-        std::uint16_t address = getAddress(mode);
+        std::uint16_t address = (this->*getAddress)();
         std::uint8_t operand = readMemory(address);
         regY = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
 	}
 
-    void CPU::opLDA(AddressingMode mode)
+    void CPU::opLDA(AddressMode getAddress)
     {
         // Load Accumulator
-        std::uint16_t address = getAddress(mode);
+        std::uint16_t address = (this->*getAddress)();
         std::uint8_t operand = readMemory(address);
         regA = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
 	}
 
-    void CPU::opLDX(AddressingMode mode)
+    void CPU::opLDX(AddressMode getAddress)
     {
         // Load Accumulator
-        std::uint16_t address = getAddress(mode);
+        std::uint16_t address = (this->*getAddress)();
         std::uint8_t operand = readMemory(address);
         regX = operand;
         regStatus.Z = operand == 0;
@@ -208,11 +208,11 @@ namespace llvmes {
         regPC = lowByte | (highByte << 8);
     }
 
-    void CPU::opSetflag(unsigned int flag)
+    void CPU::opSetFlag(unsigned int flag)
     {
         regStatus = regStatus | flag;
     }
-    void CPU::opClearflag(unsigned int flag)
+    void CPU::opClearFlag(unsigned int flag)
     {
 		regStatus = regStatus & ~flag;
 	}
