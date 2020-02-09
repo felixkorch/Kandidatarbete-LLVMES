@@ -4,44 +4,20 @@
 
 namespace llvmes {
 
-    CPU::CPU()
+    CPU::CPU(BusRead read, BusWrite write)
         : regX(0)
         , regY(0)
         , regA(0)
         , regSP(0xFD)
         , regPC(0)
         , regStatus(0x34)
-        , internalMemory(0x800)
-    {
-    }
-
-    void CPU::setExternalMemory(std::vector<std::uint8_t> mem)
-    {
-        externalMemory = std::move(mem);
-        regPC = read16(RESET_VECTOR);
-    }
-
-    std::uint8_t CPU::readMemory(std::uint16_t address)
-    {
-        if(address <= 0x1FFF) {
-            // %0x800 is modulus. in the scope of 0x0000 - 0x1fff is one RAM with 3 mirroring
-            return internalMemory[address % 0x800];
-        }
-        if(address <= 0x3FFF) {
-            // TODO: PPU
-        }
-        if(address <= 0x4017) {
-            // TODO: APU / IO
-        }
-        if(address <= 0x401F) {
-            // DISABLED
-        }
-        return externalMemory[address];
-    }
+        , read(read)
+        , write(write)
+    {}
 
     std::uint16_t CPU::read16(std::uint16_t adr) {
-        std::uint16_t lowByte = readMemory(adr);
-        std::uint16_t highByte = readMemory(adr + 1);
+        std::uint16_t lowByte = read(adr);
+        std::uint16_t highByte = read(adr + 1);
         return lowByte | (highByte << 8);
     }
 
@@ -55,9 +31,9 @@ namespace llvmes {
         return read16(regPC - 2);
     }
 
-	void CPU::Execute()
+	void CPU::execute()
     {
-        switch(readMemory(regPC++)) {
+        switch(read(regPC++)) {
             //case 0x00: return opBRK();
             //case 0x10: return opBPL();
             //case 0x20: return opJSR();
@@ -160,7 +136,7 @@ namespace llvmes {
     {
         // Load index Y with memory
         std::uint16_t address = (this->*getAddress)();
-        std::uint8_t operand = readMemory(address);
+        std::uint8_t operand = read(address);
         regY = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
@@ -170,7 +146,7 @@ namespace llvmes {
     {
         // Load Accumulator
         std::uint16_t address = (this->*getAddress)();
-        std::uint8_t operand = readMemory(address);
+        std::uint8_t operand = read(address);
         regA = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
@@ -180,7 +156,7 @@ namespace llvmes {
     {
         // Load Accumulator
         std::uint16_t address = (this->*getAddress)();
-        std::uint8_t operand = readMemory(address);
+        std::uint8_t operand = read(address);
         regX = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
@@ -194,7 +170,7 @@ namespace llvmes {
     void CPU::opBRA(bool condition)
     {
         std::uint16_t address = getAddressImmediate();
-        std::int8_t operand = readMemory(address); // Can be negative
+        std::int8_t operand = read(address); // Can be negative
         if(condition) {
             std::cout << "Branch" << std::endl;
             regPC += operand;
@@ -203,8 +179,8 @@ namespace llvmes {
 
     void CPU::opJMPAbsolute()
     {
-        std::uint16_t lowByte = readMemory(regPC);
-        std::uint16_t highByte = readMemory(regPC + 1);
+        std::uint16_t lowByte = read(regPC);
+        std::uint16_t highByte = read(regPC + 1);
         regPC = lowByte | (highByte << 8);
     }
 
@@ -226,5 +202,10 @@ namespace llvmes {
         "Register SP: " << (unsigned int)regSP << "\n" <<
         "Register PC: " << std::hex << regPC << "\n" <<
         "Flags: " << std::bitset<8>(regStatus) << std::dec << "\n\n";
+    }
+
+    void CPU::reset()
+    {
+        regPC = read16(RESET_VECTOR);
     }
 }

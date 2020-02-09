@@ -6,10 +6,15 @@ namespace llvmes {
 
     class CPU {
     public:
-        CPU();
-        void setExternalMemory(std::vector<std::uint8_t> mem);
-        void Execute();
-        const std::vector<std::uint8_t>& getMemory() const { return internalMemory; }
+        //typedef std::uint8_t (*BusRead)(std::uint16_t);
+        //typedef void (*BusWrite)(std::uint16_t, std::uint8_t);
+        typedef std::function<std::uint8_t(std::uint16_t)> BusRead;
+        typedef std::function<void(std::uint16_t, std::uint8_t)> BusWrite;
+
+        // Publicly exposed functions
+        CPU(BusRead read, BusWrite write);
+        void execute();
+        void reset();
         void dump();
 
 	private:
@@ -32,7 +37,8 @@ namespace llvmes {
         std::uint8_t   regSP;
         std::uint16_t  regPC;
         StatusRegister regStatus;
-        std::vector<std::uint8_t> internalMemory, externalMemory;
+        BusRead read;
+        BusWrite write;
 
         /// This type is a function pointer with [return type: 16bit unsigned, no arguments]
         /// It will return an address
@@ -43,10 +49,8 @@ namespace llvmes {
         std::uint16_t getAddressAbsolute();
 
     private:
-        /// Read/Write Memory
-        std::uint8_t readMemory(std::uint16_t adr);
+        /// Does two consecutively reads at a certain address
         std::uint16_t read16(std::uint16_t adr);
-        std::uint8_t writeMemory(std::uint16_t adr);
 
         /// Declarations of the various instructions.
         void opADC(AddressMode getAddress);
