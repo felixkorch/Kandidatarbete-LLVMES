@@ -31,7 +31,7 @@ set(SOURCE
     src/llvmes/Graphics/Shader.cpp
     src/llvmes/NES/ROMFile.cpp
     src/llvmes/NES/CPU.cpp
-)
+        include/llvmes/NES/Instruction.h)
 
 add_library (${PROJECT_NAME} ${SOURCE})
 target_include_directories(${PROJECT_NAME} PUBLIC

@@ -1,4 +1,6 @@
+#pragma once
 #include "llvmes/NES/StatusRegister.h"
+#include "llvmes/NES/Instruction.h"
 #include <cstdint>
 #include <vector>
 #include <array>
@@ -22,47 +24,6 @@ namespace llvmes {
 
 	private:
 
-        /// This type is a function pointer with [return type: 16bit, no arguments]
-        /// It will return an address
-        typedef std::uint16_t (CPU::*AddressMode)();
-
-        /// This type is a pointer to a function that will execute an instruction [return type: void, adr: 16bit]
-        typedef void (CPU::*Exec)(std::uint16_t);
-
-        /// This class represents an instruction
-        ///
-        /// -AddressMode is a function which will return an address to an operand
-        /// -Exec is a function which will execute an instruction given an address
-        /// Note: Not all instructions need to fetch an operand, but still needs to have the same function declaration
-        /// to be valid in the jump table.
-        struct Instruction {
-            AddressMode mode;
-            Exec exec;
-
-            // A way to simplify the calling syntax, overrides operator "()"
-            Instruction& operator()(CPU* context)
-            {
-                auto adr = (context->*mode)();
-                (context->*exec)(adr);
-                return *this;
-            }
-        };
-
-        struct InstructionTable {
-            std::array<Instruction, 0xFF> instructions;
-
-            Instruction& operator[](std::uint16_t index)
-            {
-                return instructions[index];
-            }
-
-            // Makes the class valid in a range-based for-loop
-            std::array<Instruction, 0xFF>::iterator begin() { return instructions.begin(); }
-            std::array<Instruction, 0xFF>::iterator end() { return instructions.end(); }
-
-        };
-
-
 		constexpr static unsigned int FLAG_C      = (1 << 0);
 		constexpr static unsigned int FLAG_Z      = (1 << 1);
         constexpr static unsigned int FLAG_I      = (1 << 2);
@@ -83,7 +44,7 @@ namespace llvmes {
         std::uint16_t  regPC;
         StatusRegister regStatus;
         InstructionTable instructionTable;
-        bool illegalOpcode;
+        bool illegalOpcode; // Will be true whenever an illegal op gets fetched
 
         /// Get the address using different addressing modes.
         std::uint16_t getAddressImmediate();

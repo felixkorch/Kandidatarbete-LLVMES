@@ -54,7 +54,7 @@ namespace llvmes {
         auto instr = instructionTable[opcode];
 
         // Execute
-        instr(this);
+        instr.execute(this);
     }
 
     void CPU::illegalOP(std::uint16_t)
@@ -79,7 +79,6 @@ namespace llvmes {
         regX++;
         regStatus.Z = regX == 0;
         regStatus.N = regX & 0x80;
-        std::cout << "INX" << std::endl;
     }
 
     void CPU::opINY(std::uint16_t adr)
@@ -94,7 +93,6 @@ namespace llvmes {
         regY--;
         regStatus.Z = regY == 0;
         regStatus.N = regY & 0x80;
-        std::cout << "DEY, Flag Z: " << regStatus.Z << std::endl;
     }
 
     void CPU::opDEX(std::uint16_t adr)
@@ -106,9 +104,7 @@ namespace llvmes {
 
     void CPU::opNOP(std::uint16_t adr)
     {
-        // No operation 
-        std::cout << "NOP" << std::endl;
-
+        // No operation
 	}
 
     void CPU::opLDY(std::uint16_t adr)
@@ -145,20 +141,16 @@ namespace llvmes {
 
     void CPU::opBNE(std::uint16_t adr)
     {
-        std::int8_t operand = read(adr); // Can be negative
-        if(!regStatus.Z) {
-            std::cout << "Branch" << std::endl;
+        std::int8_t operand = read(adr);
+        if(!regStatus.Z)
             regPC += operand;
-        }
     }
 
     void CPU::opBEQ(std::uint16_t adr)
     {
-        std::int8_t operand = read(adr); // Can be negative
-        if(regStatus.Z) {
-            std::cout << "Branch" << std::endl;
+        std::int8_t operand = read(adr);
+        if(regStatus.Z)
             regPC += operand;
-        }
     }
 
     void CPU::opJMPAbsolute(std::uint16_t adr)
