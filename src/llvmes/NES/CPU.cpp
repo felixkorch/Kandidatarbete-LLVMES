@@ -11,6 +11,7 @@ namespace llvmes {
         , regSP(0xFD)
         , regPC(0)
         , regStatus(0x34)
+        , instructionTable(0xFF)
         , illegalOpcode(false)
     {
         for(auto& it : instructionTable)
@@ -29,9 +30,9 @@ namespace llvmes {
         instructionTable[0xE8] = {&CPU::getAddressImplied, &CPU::opNOP };
     }
 
-    std::uint16_t CPU::read16(std::uint16_t adr) {
-        std::uint16_t lowByte = read(adr);
-        std::uint16_t highByte = read(adr + 1);
+    std::uint16_t CPU::read16(std::uint16_t addr) {
+        std::uint16_t lowByte = read(addr);
+        std::uint16_t highByte = read(addr + 1);
         return lowByte | (highByte << 8);
     }
 
@@ -54,7 +55,8 @@ namespace llvmes {
         auto instr = instructionTable[opcode];
 
         // Execute
-        instr.execute(this);
+        std::uint16_t addr = (this->*instr.addr)(); // Fetch the address
+        (this->*instr.op)(addr);                    // Execute the instruction
     }
 
     void CPU::illegalOP(std::uint16_t)
@@ -63,108 +65,108 @@ namespace llvmes {
         illegalOpcode = true;
     }
 
-    void CPU::opADC(std::uint16_t adr)
+    void CPU::opADC(std::uint16_t addr)
     {
         
     }
     
-    void CPU::opBRK(std::uint16_t adr)
+    void CPU::opBRK(std::uint16_t addr)
     {
         // Force Break 
 		regStatus.I = 1;
 	}
 
-    void CPU::opINX(std::uint16_t adr)
+    void CPU::opINX(std::uint16_t addr)
     {
         regX++;
         regStatus.Z = regX == 0;
         regStatus.N = regX & 0x80;
     }
 
-    void CPU::opINY(std::uint16_t adr)
+    void CPU::opINY(std::uint16_t addr)
     {
         regY++;
         regStatus.Z = regX == 0;
         regStatus.N = regX & 0x80;
     }
 
-    void CPU::opDEY(std::uint16_t adr)
+    void CPU::opDEY(std::uint16_t addr)
     {
         regY--;
         regStatus.Z = regY == 0;
         regStatus.N = regY & 0x80;
     }
 
-    void CPU::opDEX(std::uint16_t adr)
+    void CPU::opDEX(std::uint16_t addr)
     {
         regX--;
         regStatus.Z = regX == 0;
         regStatus.N = regX & 0x80;
     }
 
-    void CPU::opNOP(std::uint16_t adr)
+    void CPU::opNOP(std::uint16_t addr)
     {
         // No operation
 	}
 
-    void CPU::opLDY(std::uint16_t adr)
+    void CPU::opLDY(std::uint16_t addr)
     {
         // Load index Y with memory
-        std::uint8_t operand = read(adr);
+        std::uint8_t operand = read(addr);
         regY = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
 	}
 
-    void CPU::opLDA(std::uint16_t adr)
+    void CPU::opLDA(std::uint16_t addr)
     {
         // Load Accumulator
-        std::uint8_t operand = read(adr);
+        std::uint8_t operand = read(addr);
         regA = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
 	}
 
-    void CPU::opLDX(std::uint16_t adr)
+    void CPU::opLDX(std::uint16_t addr)
     {
         // Load Accumulator
-        std::uint8_t operand = read(adr);
+        std::uint8_t operand = read(addr);
         regX = operand;
         regStatus.Z = operand == 0;
         regStatus.N = operand & 0x80;
 	}
 
-    void CPU::opJMPIndirect(std::uint16_t adr)
+    void CPU::opJMPIndirect(std::uint16_t addr)
     {
 
     }
 
-    void CPU::opBNE(std::uint16_t adr)
+    void CPU::opBNE(std::uint16_t addr)
     {
-        std::int8_t operand = read(adr);
+        std::int8_t operand = read(addr);
         if(!regStatus.Z)
             regPC += operand;
     }
 
-    void CPU::opBEQ(std::uint16_t adr)
+    void CPU::opBEQ(std::uint16_t addr)
     {
-        std::int8_t operand = read(adr);
+        std::int8_t operand = read(addr);
         if(regStatus.Z)
             regPC += operand;
     }
 
-    void CPU::opJMPAbsolute(std::uint16_t adr)
+    void CPU::opJMPAbsolute(std::uint16_t addr)
     {
         std::uint16_t lowByte = read(regPC);
         std::uint16_t highByte = read(regPC + 1);
         regPC = lowByte | (highByte << 8);
     }
 
-    void CPU::opSEI(std::uint16_t adr)
+    void CPU::opSEI(std::uint16_t addr)
     {
         regStatus = regStatus | FLAG_I;
     }
-    void CPU::opCLI(std::uint16_t adr)
+    void CPU::opCLI(std::uint16_t addr)
     {
 		regStatus = regStatus & ~FLAG_I;
 	}

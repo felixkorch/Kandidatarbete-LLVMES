@@ -1,6 +1,5 @@
 #pragma once
 #include "llvmes/NES/StatusRegister.h"
-#include "llvmes/NES/Instruction.h"
 #include <cstdint>
 #include <vector>
 #include <array>
@@ -43,8 +42,18 @@ namespace llvmes {
         std::uint8_t   regSP;
         std::uint16_t  regPC;
         StatusRegister regStatus;
-        InstructionTable instructionTable;
-        bool illegalOpcode; // Will be true whenever an illegal op gets fetched
+
+        typedef void(CPU::*OpFunction)(std::uint16_t);
+        typedef std::uint16_t(CPU::*AddrFunction)();
+
+        struct Instruction {
+            AddrFunction addr;
+            OpFunction op;
+        };
+
+        std::vector<Instruction> instructionTable;
+
+        bool illegalOpcode; // Will be set to true whenever an illegal op-code gets fetched
 
         /// Get the address using different addressing modes.
         std::uint16_t getAddressImmediate();
@@ -53,26 +62,26 @@ namespace llvmes {
 
     private:
         /// Does two consecutively reads at a certain address
-        std::uint16_t read16(std::uint16_t adr);
+        std::uint16_t read16(std::uint16_t addr);
 
         /// Declarations of the various instructions.
-        void opADC(std::uint16_t adr);
-        void opJMPIndirect(std::uint16_t adr);
-        void opJMPAbsolute(std::uint16_t adr);
-        void opBNE(std::uint16_t adr);
-        void opBEQ(std::uint16_t adr);
-		void opBRK(std::uint16_t adr);
-		void opLDY(std::uint16_t adr);
-		void opLDA(std::uint16_t adr);
-		void opLDX(std::uint16_t adr);
-        void opINX(std::uint16_t adr);
-        void opINY(std::uint16_t adr);
-        void opDEY(std::uint16_t adr);
-        void opDEX(std::uint16_t adr);
-		void opNOP(std::uint16_t adr);
-		void opSEI(std::uint16_t adr);
-		void opCLI(std::uint16_t adr);
-        void illegalOP(std::uint16_t adr);
+        void opADC(std::uint16_t addr);
+        void opJMPIndirect(std::uint16_t addr);
+        void opJMPAbsolute(std::uint16_t addr);
+        void opBNE(std::uint16_t addr);
+        void opBEQ(std::uint16_t addr);
+		void opBRK(std::uint16_t addr);
+		void opLDY(std::uint16_t addr);
+		void opLDA(std::uint16_t addr);
+		void opLDX(std::uint16_t addr);
+        void opINX(std::uint16_t addr);
+        void opINY(std::uint16_t addr);
+        void opDEY(std::uint16_t addr);
+        void opDEX(std::uint16_t addr);
+		void opNOP(std::uint16_t addr);
+		void opSEI(std::uint16_t addr);
+		void opCLI(std::uint16_t addr);
+        void illegalOP(std::uint16_t addr);
     };
 
 }
