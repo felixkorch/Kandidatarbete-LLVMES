@@ -26,3 +26,5 @@ _deps
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+# CLion
+.idea/
