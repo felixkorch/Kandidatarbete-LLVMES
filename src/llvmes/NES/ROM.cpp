@@ -1,50 +1,50 @@
-#include "llvmes/NES/ROMFile.h"
+#include "llvmes/NES/ROM.h"
 #include "llvmes/FileUtilities.h"
 
 #include <string>
 
 namespace llvmes {
 
-	ROMFile::ROMFile(char* source, std::size_t length)
+    ROM::ROM(char* source, std::size_t length)
 	{
         std::copy(source, source + length, data.begin());
 	}
 
-	ROMFile::ROMFile(const std::string& path)
+    ROM::ROM(const std::string& path)
         : data(util::readFile(path))
 	{}
 
-	ROMFile::const_iterator ROMFile::beginPRGROM() const
+    ROM::const_iterator ROM::beginPRGROM() const
     {
         return std::next(data.cbegin(), 16);
     }
 
-    ROMFile::const_iterator ROMFile::endPRGROM() const
+    ROM::const_iterator ROM::endPRGROM() const
     {
         return std::next(beginPRGROM(), data[4] * 0x4000);
     }
 
-    ROMFile::const_iterator ROMFile::beginCHRROM() const
+    ROM::const_iterator ROM::beginCHRROM() const
     {
         return endPRGROM();
     }
 
-    ROMFile::const_iterator ROMFile::endCHRROM() const
+    ROM::const_iterator ROM::endCHRROM() const
     {
         return std::next(beginCHRROM(), data[5] * 0x2000);
     }
 
-    bool ROMFile::empty() const
+    bool ROM::empty() const
     {
         return data.size() == 0;
     }
 
-	int ROMFile::mapperCode() const
+	int ROM::mapperCode() const
 	{
 		return (data[7] & 0xF0) | (data[6] >> 4);
 	}
 
-    const std::string ROMFile::mapperName() const
+    const std::string ROM::mapperName() const
     {
         switch (mapperCode()) {
         case 0: return ((endPRGROM() - beginPRGROM() > 0x4000) ? "NROM256" : "NROM128");
@@ -55,7 +55,7 @@ namespace llvmes {
         }
     }
 
-    std::ostream& operator<<(std::ostream& stream, const ROMFile& rom)
+    std::ostream& operator<<(std::ostream& stream, const ROM& rom)
     {
         return stream << "ROM-Layout: {\n"
             << "    MapperType: " << rom.mapperName() << " (Code: " << rom.mapperCode() << "),\n"
