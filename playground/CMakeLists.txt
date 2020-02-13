@@ -1,7 +1,5 @@
 ﻿set(PLAYGROUND_FILES
-    Function
-    6502
-    WindowTest
+    ####
 )
 set(LLVM_PLAYGROUND_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/playground)
 

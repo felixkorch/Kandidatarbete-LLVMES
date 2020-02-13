@@ -1,5 +1,5 @@
 #include "llvmes/NES/ROM.h"
-
+#include <fstream>
 namespace llvmes {
 
     ROM::ROM(char* source, std::size_t length)
