@@ -1,6 +1,5 @@
 #include "llvmes/NES/CPU.h"
 #include <string>
-#include <functional>
 
 using namespace llvmes;
 

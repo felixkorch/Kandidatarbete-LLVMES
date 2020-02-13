@@ -13,21 +13,22 @@ namespace llvmes {
         , regStatus(0x34)
         , instructionTable(0xFF)
         , illegalOpcode(false)
+        , fetched(0)
     {
         for(auto& it : instructionTable)
-            it = { &CPU::getAddressImplied, &CPU::illegalOP };
+            it = {&CPU::addressModeImplied, &CPU::illegalOP };
 
-        instructionTable[0xA0] = {&CPU::getAddressImmediate, &CPU::opLDY };
-        instructionTable[0xD0] = {&CPU::getAddressImmediate, &CPU::opBNE };
-        instructionTable[0xA2] = {&CPU::getAddressImmediate, &CPU::opLDX };
-        instructionTable[0xE8] = {&CPU::getAddressImplied, &CPU::opINX };
-        instructionTable[0x88] = {&CPU::getAddressImplied, &CPU::opDEY };
-        instructionTable[0x69] = {&CPU::getAddressImmediate, &CPU::opADC };
-        instructionTable[0x78] = {&CPU::getAddressImplied, &CPU::opSEI };
-        instructionTable[0xA9] = {&CPU::getAddressImmediate, &CPU::opLDA };
-        instructionTable[0xAD] = {&CPU::getAddressAbsolute, &CPU::opLDA };
-        instructionTable[0xF0] = {&CPU::getAddressImmediate, &CPU::opBEQ };
-        instructionTable[0xE8] = {&CPU::getAddressImplied, &CPU::opNOP };
+        instructionTable[0xA0] = {&CPU::addressModeImmediate, &CPU::opLDY, "LDY Imm" };
+        instructionTable[0xD0] = {&CPU::addressModeImmediate, &CPU::opBNE, "BNE" };
+        instructionTable[0xA2] = {&CPU::addressModeImmediate, &CPU::opLDX, "LDX Imm" };
+        instructionTable[0xE8] = {&CPU::addressModeImplied, &CPU::opINX, "INX" };
+        instructionTable[0x88] = {&CPU::addressModeImplied, &CPU::opDEY, "DEY" };
+        instructionTable[0x69] = {&CPU::addressModeImmediate, &CPU::opADC, "ADC Imm" };
+        instructionTable[0x78] = {&CPU::addressModeImplied, &CPU::opSEI, "SEI" };
+        instructionTable[0xA9] = {&CPU::addressModeImmediate, &CPU::opLDA, "LDA Imm" };
+        instructionTable[0xAD] = {&CPU::addressModeAbsolute, &CPU::opLDA, "LDA Abs" };
+        instructionTable[0xF0] = {&CPU::addressModeImmediate, &CPU::opBEQ, "BEQ" };
+        instructionTable[0xEA] = {&CPU::addressModeImplied, &CPU::opNOP, "NOP" };
     }
 
     std::uint16_t CPU::read16(std::uint16_t addr) {
@@ -36,140 +37,182 @@ namespace llvmes {
         return lowByte | (highByte << 8);
     }
 
-    std::uint16_t CPU::getAddressImmediate()
+    /// The operand is immediately following the op-code
+    void CPU::addressModeImmediate()
     {
-        return regPC++;
+        fetched = read(regPC++);
     }
 
-    std::uint16_t CPU::getAddressAbsolute() {
+    /// The address to the operand is the 2 bytes succeeding the op-code
+    void CPU::addressModeAbsolute()
+    {
+        std::uint16_t addr = read16(regPC);
+        fetched = read(addr);
         regPC += 2;
-        return read16(regPC - 2);
+    }
+
+    /// The address to the operand is the 2 bytes succeeding the op-code + value of register X
+    void CPU::addressModeAbsoluteX()
+    {
+        std::uint16_t addr = read16(regPC) + regX;
+        fetched = read(addr);
+        regPC += 2;
+    }
+
+    /// The address to the operand is the 2 bytes succeeding the op-code + value of register Y
+    void CPU::addressModeAbsoluteY()
+    {
+        std::uint16_t addr = read16(regPC) + regY;
+        fetched = read(addr);
+        regPC += 2;
+    }
+
+    /// The address to the operand is the byte succeeding the op-code extended to 16bits
+    void CPU::addressModeZeropage()
+    {
+        std::uint16_t addr = read(regPC++);
+        fetched = read(addr);
+    }
+
+    void CPU::addressModeImplied()
+    {
+        // Simply means the instruction doesn't need an operand
+    }
+
+    void CPU::stackPush(std::uint8_t value)
+    {
+        write(0x0100 | regSP--, value);
+    }
+
+    std::uint8_t CPU::stackPop()
+    {
+        return read(0x0100 | ++regSP);
     }
 
 	void CPU::step()
     {
         // Fetch
-        auto opcode = read(regPC++);
+        std::uint8_t opcode = read(regPC++);
 
         // Decode
-        auto instr = instructionTable[opcode];
+        Instruction& instr = instructionTable[opcode];
+#ifndef NDEBUG
+        // Print the instruction name in debug mode
+        std::cout << instr.name << std::endl;
+#endif
 
         // Execute
-        std::uint16_t addr = (this->*instr.addr)(); // Fetch the address
-        (this->*instr.op)(addr);                    // Execute the instruction
+        (this->*instr.addr)(); // Fetch the operand (if necessary)
+        (this->*instr.op)();   // Execute the instruction
     }
 
-    void CPU::illegalOP(std::uint16_t)
+    void CPU::illegalOP()
     {
-        std::cout << "Illegal OP!" << std::endl;
         illegalOpcode = true;
     }
 
-    void CPU::opADC(std::uint16_t addr)
+    void CPU::opADC()
     {
         
     }
     
-    void CPU::opBRK(std::uint16_t addr)
+    void CPU::opBRK()
     {
         // Force Break 
 		regStatus.I = 1;
 	}
 
-    void CPU::opINX(std::uint16_t addr)
+    void CPU::opINX()
     {
         regX++;
         regStatus.Z = regX == 0;
         regStatus.N = regX & 0x80;
     }
 
-    void CPU::opINY(std::uint16_t addr)
+    void CPU::opINY()
     {
         regY++;
         regStatus.Z = regX == 0;
         regStatus.N = regX & 0x80;
     }
 
-    void CPU::opDEY(std::uint16_t addr)
+    void CPU::opDEY()
     {
         regY--;
         regStatus.Z = regY == 0;
         regStatus.N = regY & 0x80;
     }
 
-    void CPU::opDEX(std::uint16_t addr)
+    void CPU::opDEX()
     {
         regX--;
         regStatus.Z = regX == 0;
         regStatus.N = regX & 0x80;
     }
 
-    void CPU::opNOP(std::uint16_t addr)
+    void CPU::opNOP()
     {
         // No operation
 	}
 
-    void CPU::opLDY(std::uint16_t addr)
+    void CPU::opLDY()
     {
         // Load index Y with memory
-        std::uint8_t operand = read(addr);
-        regY = operand;
-        regStatus.Z = operand == 0;
-        regStatus.N = operand & 0x80;
+        regY = fetched;
+        regStatus.Z = fetched == 0;
+        regStatus.N = fetched & 0x80;
 	}
 
-    void CPU::opLDA(std::uint16_t addr)
+    void CPU::opLDA()
     {
         // Load Accumulator
-        std::uint8_t operand = read(addr);
-        regA = operand;
-        regStatus.Z = operand == 0;
-        regStatus.N = operand & 0x80;
+        regA = fetched;
+        regStatus.Z = fetched == 0;
+        regStatus.N = fetched & 0x80;
 	}
 
-    void CPU::opLDX(std::uint16_t addr)
+    void CPU::opLDX()
     {
         // Load Accumulator
-        std::uint8_t operand = read(addr);
-        regX = operand;
-        regStatus.Z = operand == 0;
-        regStatus.N = operand & 0x80;
+        regX = fetched;
+        regStatus.Z = fetched == 0;
+        regStatus.N = fetched & 0x80;
 	}
 
-    void CPU::opJMPIndirect(std::uint16_t addr)
+    void CPU::opJMPIndirect()
     {
 
     }
 
-    void CPU::opBNE(std::uint16_t addr)
+    void CPU::opBNE()
     {
-        std::int8_t operand = read(addr);
+        std::int8_t operand = fetched;
         if(!regStatus.Z)
             regPC += operand;
     }
 
-    void CPU::opBEQ(std::uint16_t addr)
+    void CPU::opBEQ()
     {
-        std::int8_t operand = read(addr);
+        std::int8_t operand = fetched;
         if(regStatus.Z)
             regPC += operand;
     }
 
-    void CPU::opJMPAbsolute(std::uint16_t addr)
+    void CPU::opJMPAbsolute()
     {
         std::uint16_t lowByte = read(regPC);
         std::uint16_t highByte = read(regPC + 1);
         regPC = lowByte | (highByte << 8);
     }
 
-    void CPU::opSEI(std::uint16_t addr)
+    void CPU::opSEI()
     {
         regStatus = regStatus | FLAG_I;
     }
-    void CPU::opCLI(std::uint16_t addr)
+    void CPU::opCLI()
     {
-		regStatus = regStatus & ~FLAG_I;
-	}
+        regStatus = regStatus & ~FLAG_I;
+    }
 
     void CPU::dump()
     {
@@ -187,15 +230,11 @@ namespace llvmes {
         regPC = read16(RESET_VECTOR);
     }
 
-    std::uint16_t CPU::getAddressImplied()
-    {
-        return 0; // Simply means the instruction doesn't need an operand
-    }
-
     void CPU::run()
     {
         while(!illegalOpcode)
             step();
     }
+
 
 }
