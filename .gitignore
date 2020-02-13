@@ -28,3 +28,4 @@ _deps
 *.code-workspace
 # CLion
 .idea/
+cmake-build-debug/

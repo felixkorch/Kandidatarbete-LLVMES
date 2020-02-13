@@ -26,7 +26,10 @@ namespace llvmes {
         instructionTable[0x69] = {&CPU::addressModeImmediate, &CPU::opADC, "ADC Imm" };
         instructionTable[0x78] = {&CPU::addressModeImplied, &CPU::opSEI, "SEI" };
         instructionTable[0xA9] = {&CPU::addressModeImmediate, &CPU::opLDA, "LDA Imm" };
+        instructionTable[0xA5] = {&CPU::addressModeZeropage, &CPU::opLDA, "LDA Zeropage" };
         instructionTable[0xAD] = {&CPU::addressModeAbsolute, &CPU::opLDA, "LDA Abs" };
+        instructionTable[0xBD] = {&CPU::addressModeAbsoluteX, &CPU::opLDA, "LDA Abs X" };
+        instructionTable[0xB9] = {&CPU::addressModeAbsoluteY, &CPU::opLDA, "LDA Abs Y" };
         instructionTable[0xF0] = {&CPU::addressModeImmediate, &CPU::opBEQ, "BEQ" };
         instructionTable[0xEA] = {&CPU::addressModeImplied, &CPU::opNOP, "NOP" };
     }
