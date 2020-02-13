@@ -1,18 +1,22 @@
 #include "llvmes/NES/ROM.h"
-#include "llvmes/FileUtilities.h"
-
-#include <string>
 
 namespace llvmes {
 
     ROM::ROM(char* source, std::size_t length)
 	{
+        if(source == nullptr)
+            throw "ROM: Source null";
         std::copy(source, source + length, data.begin());
 	}
 
     ROM::ROM(const std::string& path)
-        : data(util::readFile(path))
-	{}
+	{
+        std::ifstream in{ path, std::ios::binary };
+        if (in.fail())
+            throw "ROM: The file doesn't exist";
+        auto temp = std::vector<char>{ std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>() };
+        data = std::move(temp);
+	}
 
     ROM::const_iterator ROM::beginPRGROM() const
     {
