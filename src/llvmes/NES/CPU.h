@@ -45,7 +45,7 @@ namespace llvmes {
         StatusRegister regStatus;
 
         bool illegalOpcode; // Will be set to true whenever an illegal op-code gets fetched
-        std::uint8_t fetched; // Will contain the operand associated with an instruction
+        std::uint16_t address; // Will contain the address associated with an instruction
 
         typedef void(CPU::*OpFunction)();
         typedef void(CPU::*AddrFunction)();
@@ -70,6 +70,7 @@ namespace llvmes {
         void addressModeIndirectX();
         void addressModeIndirectY();
         void addressModeImplied();
+        void addressModeAccumulator();
 
         void stackPush(std::uint8_t value);
         std::uint8_t stackPop();
@@ -78,6 +79,8 @@ namespace llvmes {
         std::uint16_t read16(std::uint16_t addr);
 
         /// Declarations of the various instructions.
+        void opORA();
+        void opLSR();
         void opADC();
         void opJMPIndirect();
         void opJMPAbsolute();
@@ -94,6 +97,26 @@ namespace llvmes {
 		void opNOP();
 		void opSEI();
 		void opCLI();
+		void opPHA();
+		void opPHP();
+		void opPLA();
+		void opPLP();
+		void opROL();
+		void opROR();
+		void opRTI();
+		void opRTS();
+		void opSBC();
+		void opSEC();
+		void opSED();
+		void opSTA();
+		void opSTX();
+		void opSTY();
+		void opTAX();
+		void opTAY();
+		void opTSX();
+		void opTYA();
+		void opTXS();
+		void opTXA();
         void illegalOP();
     };
 
