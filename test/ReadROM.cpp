@@ -1,9 +1,9 @@
-#include "llvmes/NES/ROMFile.h"
+#include "llvmes/NES/ROM.h"
 #include <iostream>
 
 using namespace llvmes;
 
-int main(int argc, char** argv)
+int main(int argc, char** argv) try
 {
 	if (argc == 1) {
 		std::cout << "No path provided." << std::endl;
@@ -14,8 +14,11 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	ROMFile rom(argv[1]);
-	if(!rom.empty())
-		std::cout << rom << std::endl;
-	return 0;
+    ROM rom(argv[1]);
+    std::cout << rom << std::endl;
+
+    return 0;
+
+} catch(const char* msg){
+    std::cerr << msg << std::endl;
 }

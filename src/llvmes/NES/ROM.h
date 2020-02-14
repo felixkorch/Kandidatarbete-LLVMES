@@ -1,24 +1,18 @@
-// ---------------------------------------------------------------------* C++ *-
-// ROMFile.h
-//
-// -----------------------------------------------------------------------------
-
 #pragma once
-#include "llvmes/FileUtilities.h"
 #include <vector>
 #include <string>
 
 namespace llvmes {
 
-    class ROMFile {
+    class ROM {
     public:
         using const_iterator = std::vector<char>::const_iterator;
 
         /// Initialize by reading a file.
-        ROMFile(const std::string& path);
+        ROM(const std::string& path);
 
         /// Initialize by copying from a source.
-        ROMFile(char* source, std::size_t length);
+        ROM(char* source, std::size_t length);
 
         /// Begin iterator of the PRGROM.
         ///
@@ -46,7 +40,7 @@ namespace llvmes {
         const std::string mapperName() const;
         int mapperCode() const;
 
-        friend std::ostream& operator<<(std::ostream& stream, const ROMFile& rom);
+        friend std::ostream& operator<<(std::ostream& stream, const ROM& rom);
     private:
         std::vector<char> data;
     };
