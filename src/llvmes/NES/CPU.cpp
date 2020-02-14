@@ -73,8 +73,50 @@ namespace llvmes {
     /// The address to the operand is the byte succeeding the op-code extended to 16bits
     void CPU::addressModeZeropage()
     {
-        std::uint16_t addr = read(regPC++);
+        std::uint8_t addr = read(regPC++);
         fetched = read(addr);
+    }
+
+    /// Zeropage X-Indexed
+    /// The address to the operand is the byte succeeding the op-code + register X
+    /// If the address gets larger than 0x100(255) the address will wrap and gets back to 0
+    void CPU::addressModeZeropageX()
+    {
+        std::uint8_t addr = ((read(regPC++) + regX) % 0x100);
+        fetched = read(addr);
+    }
+
+    /// Zeropage Y-Indexed
+    /// The address to the operand is the byte succeeding the op-code + register Y
+    /// If the address gets larger than 0x100(255) the address will wrap and gets back to 0
+    void CPU::addressModeZeropageY()
+    {
+        std::uint8_t addr = ((read(regPC++) + regY) % 0x100);
+        fetched = read(addr);
+    }
+
+
+    void CPU::addressModeIndirectX()
+    {
+        // This address is used to index the zeropage
+        std::uint8_t addr = ((read(regPC++) + regX) % 0x100);
+        std::uint8_t low = read(addr);
+        // Wrap if the address gets to 255
+        std::uint8_t high = read(addr + 1) % 0x100;
+        fetched = read(low | (high << 8));
+    }
+
+    void CPU::addressModeIndirectY()
+    {
+        // This address is used to index the zeropage
+        std::uint8_t addr = ((read(regPC++) + regY) % 0x100);
+        std::uint8_t low = read(addr);
+        // Wrap if the address gets to 255
+        std::uint8_t high = read(addr + 1) % 0x100;
+        // Add the contents of Y to get the final address
+        std::uint16_t finalAddr = (low | (high << 8)) + regY;
+        fetched = read(finalAddr);
+
     }
 
     void CPU::addressModeImplied()

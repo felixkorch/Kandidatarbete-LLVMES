@@ -65,6 +65,10 @@ namespace llvmes {
         void addressModeAbsoluteX();
         void addressModeAbsoluteY();
         void addressModeZeropage();
+        void addressModeZeropageX();
+        void addressModeZeropageY();
+        void addressModeIndirectX();
+        void addressModeIndirectY();
         void addressModeImplied();
 
         void stackPush(std::uint8_t value);
