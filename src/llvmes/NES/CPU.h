@@ -47,7 +47,9 @@ namespace llvmes {
         bool illegalOpcode; // Will be set to true whenever an illegal op-code gets fetched
         std::uint16_t address; // Will contain the address associated with an instruction
 
+        // Pointer to a function which will execute an instruction
         typedef void(CPU::*OpFunction)();
+        // Pointer to a function which will fetch an address used in an instruction
         typedef void(CPU::*AddrFunction)();
 
         struct Instruction {
@@ -103,6 +105,8 @@ namespace llvmes {
 		void opPLP();
 		void opROL();
 		void opROR();
+        void opROLAcc();
+		void opRORAcc();
 		void opRTI();
 		void opRTS();
 		void opSBC();
@@ -117,6 +121,9 @@ namespace llvmes {
 		void opTYA();
 		void opTXS();
 		void opTXA();
+		void opCMP();
+		void opCPX();
+		void opCPY();
         void illegalOP();
     };
 

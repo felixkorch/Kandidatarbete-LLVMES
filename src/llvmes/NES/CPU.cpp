@@ -228,6 +228,8 @@ namespace llvmes {
 
         // Decode
         Instruction& instr = instructionTable[opcode];
+
+        // TODO: This preprocessor statement might not work for everyone
 #ifndef NDEBUG
         // Print the instruction name in debug mode
         std::cout << instr.name << std::endl;
@@ -243,9 +245,18 @@ namespace llvmes {
         illegalOpcode = true;
     }
 
+    // A + M + C -> A, C
     void CPU::opADC()
     {
-        
+        std::uint8_t operand = read(address);
+        std::uint32_t result = regA + operand + regStatus.C;
+        // TODO: Explain how overflow is calculated
+        bool overflow = !((regA ^ operand) & 0x80) && ((regA ^ result) & 0x80);
+        regStatus.Z = (result & 0xFF) == 0;
+        regStatus.C = result > 0xFF;
+        regStatus.V = overflow;
+        regStatus.N = result & 0x80;
+        regA = result & 0xFF;
     }
     
     void CPU::opBRK()
@@ -389,6 +400,16 @@ namespace llvmes {
         write(address, regY);
     }
 
+    void CPU::opSTA()
+    {
+        write(address, regA);
+    }
+
+    void CPU::opSTX()
+    {
+        write(address, regX);
+    }
+
     void CPU::opPHA()
     {
 
@@ -410,12 +431,45 @@ namespace llvmes {
 
     void CPU::opROL()
     {
+        std::uint32_t operand = read(address);
+        operand <<= 1;
+        operand = regStatus.C ? operand | 1 : operand & ~1;
+        regStatus.C = operand & 0x0100;
+        write(address, operand & 0xFF);
+        regStatus.Z = (operand & 0xFF) == 0;
+        regStatus.N = (operand & 0xFF) & 0x80;
+    }
 
+    void CPU::opROLAcc()
+    {
+        std::uint32_t operand = regA;
+        operand <<= 1;
+        operand = regStatus.C ? operand | 1 : operand & ~1;
+        regStatus.C = operand & 0x0100;
+        write(address, operand & 0xFF);
+        regStatus.Z = (operand & 0xFF) == 0;
+        regStatus.N = (operand & 0xFF) & 0x80;
+    }
+    void CPU::opRORAcc()
+    {
+        std::uint32_t operand = regA;
+        operand = regStatus.C ? operand | 0x0100 : operand & ~0x0100;
+        regStatus.C = operand & 1;
+        operand >>= 1;
+        write(address, operand & 0xFF);
+        regStatus.Z = (operand & 0xFF) == 0;
+        regStatus.N = (operand & 0xFF) & 0x80;
     }
 
     void CPU::opROR()
     {
-
+        std::uint32_t operand = read(address);
+        operand = regStatus.C ? operand | 0x0100 : operand & ~0x0100;
+        regStatus.C = operand & 1;
+        operand >>= 1;
+        write(address, operand & 0xFF);
+        regStatus.Z = (operand & 0xFF) == 0;
+        regStatus.N = (operand & 0xFF) & 0x80;
     }
 
     void CPU::opRTI()
@@ -428,9 +482,17 @@ namespace llvmes {
 
     }
 
+    // A - M - C -> A
     void CPU::opSBC()
     {
-
+        std::uint8_t operand = read(address);
+        std::uint32_t result = regA - operand - !regStatus.C;
+        bool overflow = ((regA ^ result) & 0x80) && ((regA ^ operand) & 0x80);
+        regStatus.Z = (result & 0xFF) == 0;
+        regStatus.C = result < 0x0100;
+        regStatus.V = overflow;
+        regStatus.N = result & 0x80;
+        regA = result & 0xFF;
     }
 
     void CPU::opSEC()
@@ -441,16 +503,6 @@ namespace llvmes {
     void CPU::opSED()
     {
         regStatus.D = 1;
-    }
-
-    void CPU::opSTA()
-    {
-
-    }
-
-    void CPU::opSTX()
-    {
-
     }
 
     void CPU::opTAX()
@@ -491,6 +543,35 @@ namespace llvmes {
         regY = regA;
         regStatus.Z = regY == 0;
         regStatus.N = regY & 0x80;
+    }
+
+    // A - M
+    void CPU::opCMP()
+    {
+        std::uint8_t operand = read(address);
+        std::uint32_t result = regA - operand;
+        regStatus.Z = regA == operand;
+        regStatus.N = result & 0x80;
+        regStatus.C = result < 0x0100;
+    }
+    // X - M
+    void CPU::opCPX()
+    {
+        std::uint8_t operand = read(address);
+        std::uint32_t result = regX - operand;
+        regStatus.Z = regX == operand;
+        regStatus.N = result & 0x80;
+        regStatus.C = result < 0x0100;
+    }
+
+    // Y - M
+    void CPU::opCPY()
+    {
+        std::uint8_t operand = read(address);
+        std::uint32_t result = regY - operand;
+        regStatus.Z = regY == operand;
+        regStatus.N = result & 0x80;
+        regStatus.C = result < 0x0100;
     }
 
 }
