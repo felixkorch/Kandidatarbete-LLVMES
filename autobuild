@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 import argparse
 import shutil
 
@@ -88,7 +89,7 @@ def clean_build_dir(dir=DEFAULT_BUILD_DIR):
 
 
 def generate_build_system(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOSE):
-    os.system(
+    build_system_status = os.system(
         """
             cd {build_dir} &&
             cmake -G Ninja -DCMAKE_BUILD_TYPE={build_type} -DVERBOSE={verbose_output} ../
@@ -96,7 +97,10 @@ def generate_build_system(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbos
             build_dir=dir,
             build_type=type,
             verbose_output=verbose
-            ))
+        ))
+
+    if(build_system_status != 0):
+        sys.exit(build_system_status)
 
 
 def build(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOSE):
@@ -105,14 +109,17 @@ def build(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOS
     cmake_flags = "--build ."
     if(verbose):
         cmake_flags += " --verbose"
-    os.system(
+    build_status = os.system(
         """
             cd {build_dir} &&
             cmake {flags}
             """.format(
-                build_dir=BUILD_DIR,
-                flags=cmake_flags
-            ))
+            build_dir=BUILD_DIR,
+            flags=cmake_flags
+        ))
+
+    if(build_status != 0):
+        sys.exit(build_status)
 
 
 args = argument_parser.parse_args()
@@ -122,10 +129,13 @@ CLEAN = args.clean
 VERBOSE = args.verbose
 
 if(CLEAN):
-    clean_build_dir(BUILD_DIR)
+    clean_status = clean_build_dir(BUILD_DIR)
+    if(clean_status != 0):
+        sys.exit(clean_status)
 
 
 print_logo()
 
 # release -> Release, debug -> Debug
-build(type=BUILD_TYPE.capitalize(), dir=BUILD_DIR, verbose=VERBOSE)
+build(type=BUILD_TYPE.capitalize(),
+      dir=BUILD_DIR, verbose=VERBOSE)
