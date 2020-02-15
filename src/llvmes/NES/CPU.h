@@ -38,7 +38,6 @@ namespace llvmes {
         constexpr static unsigned int RESET_VECTOR = 0xFFFC; // Address at this location points to the first instruction
         constexpr static unsigned int IRQ_VECTOR   = 0xFFFE;
 
-        // Registers
         std::uint8_t   regX;
         std::uint8_t   regY;
         std::uint8_t   regA;

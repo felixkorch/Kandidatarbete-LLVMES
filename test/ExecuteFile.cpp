@@ -5,7 +5,7 @@
 
 using namespace llvmes;
 
-std::vector<std::uint8_t> memory(0xFFFF, 0);
+std::vector<std::uint8_t> memory(0xFFFF);
 
 std::uint8_t readMemory(std::uint16_t adr)
 {

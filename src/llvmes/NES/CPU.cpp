@@ -22,7 +22,7 @@ namespace llvmes {
 
         instructionTable[0xD0] = {&CPU::addressModeImmediate, &CPU::opBNE, "BNE" };
         instructionTable[0xB0] = {&CPU::addressModeImmediate, &CPU::opBEQ, "BEQ" };
-        instructionTable[0xD0] = {&CPU::addressModeImmediate, &CPU::opBMI, "BMI" };
+        instructionTable[0x30] = {&CPU::addressModeImmediate, &CPU::opBMI, "BMI" };
         instructionTable[0x90] = {&CPU::addressModeImmediate, &CPU::opBCC, "BCC" };
         instructionTable[0xB0] = {&CPU::addressModeImmediate, &CPU::opBCS, "BCS" };
         instructionTable[0x10] = {&CPU::addressModeImmediate, &CPU::opBPL, "BPL" };
@@ -102,7 +102,7 @@ namespace llvmes {
         instructionTable[0xAC] = {&CPU::addressModeAbsolute, &CPU::opLDY, "LDY Abs" };
         instructionTable[0xBC] = {&CPU::addressModeAbsoluteX, &CPU::opLDY, "LDY Abs X" };
 
-        instructionTable[0x4A] = {&CPU::addressModeAbsoluteX, &CPU::opLSR, "LSR Acc" };
+        instructionTable[0x4A] = {&CPU::addressModeAccumulator, &CPU::opLSRAcc, "LSR Acc" };
         instructionTable[0x46] = {&CPU::addressModeZeropage, &CPU::opLSR, "LSR Zeropage" };
         instructionTable[0x56] = {&CPU::addressModeZeropageX, &CPU::opLSR, "LSR Zeropage X" };
         instructionTable[0x4E] = {&CPU::addressModeAbsolute, &CPU::opLSR, "LSR Abs" };
@@ -122,13 +122,13 @@ namespace llvmes {
         instructionTable[0x68] = {&CPU::addressModeImplied, &CPU::opPLA, "PLA" };
         instructionTable[0x28] = {&CPU::addressModeImplied, &CPU::opPLP, "PLP" };
 
-        instructionTable[0x2A] = {&CPU::addressModeImmediate, &CPU::opROL, "ROL Acc" };
+        instructionTable[0x2A] = {&CPU::addressModeImplied, &CPU::opROLAcc, "ROL Acc" };
         instructionTable[0x26] = {&CPU::addressModeZeropage, &CPU::opROL, "ROL Zeropage" };
         instructionTable[0x36] = {&CPU::addressModeZeropageX, &CPU::opROL, "ROL Zeropage X" };
         instructionTable[0x2E] = {&CPU::addressModeAbsolute, &CPU::opROL, "ROL Abs" };
         instructionTable[0x3E] = {&CPU::addressModeAbsoluteX, &CPU::opROL, "ROL Abs X" };
 
-        instructionTable[0x6A] = {&CPU::addressModeImmediate, &CPU::opROR, "ROR Acc" };
+        instructionTable[0x6A] = {&CPU::addressModeImplied, &CPU::opRORAcc, "ROR Acc" };
         instructionTable[0x66] = {&CPU::addressModeZeropage, &CPU::opROR, "ROR Zeropage" };
         instructionTable[0x76] = {&CPU::addressModeZeropageX, &CPU::opROR, "ROR Zeropage X" };
         instructionTable[0x6E] = {&CPU::addressModeAbsolute, &CPU::opROR, "ROR Abs" };
@@ -195,8 +195,6 @@ namespace llvmes {
 
         instructionTable[0xF0] = {&CPU::addressModeImmediate, &CPU::opBEQ, "BEQ" };
         instructionTable[0xEA] = {&CPU::addressModeImplied, &CPU::opNOP, "NOP" };
-
-        // TODO: Fill in the jumptable
     }
 
     void CPU::invokeIRQ()
@@ -342,6 +340,12 @@ namespace llvmes {
 
 	void CPU::step()
     {
+        // Interrupt handling
+        if (nmi)
+            invokeNMI();
+        else if (irq && !regStatus.I)
+            invokeIRQ();
+
         // Fetch
         std::uint8_t opcode = read(regPC++);
 
