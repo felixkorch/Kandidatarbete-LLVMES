@@ -325,8 +325,11 @@ namespace llvmes {
     
     void CPU::opBRK()
     {
-        // Force Break 
-		regStatus.I = 1;
+        stackPush(regPC >> 8);
+        stackPush(regPC & 0xFF);
+        stackPush(regStatus | FLAG_B);
+        regStatus.I = 1;
+        regPC = read16(IRQ_VECTOR);
 	}
 
 	void CPU::opINC()
@@ -570,21 +573,24 @@ namespace llvmes {
 
     void CPU::opPHA()
     {
-
+        stackPush(regA);
     }
 
-    void CPU::opPHP() {
-
+    void CPU::opPHP()
+    {
+        stackPush(regStatus | FLAG_B | FLAG_UNUSED);
     }
 
     void CPU::opPLA()
     {
-
+        regA = stackPop();
+        regStatus.Z = regA == 0;
+        regStatus.N = regA & 0x80;
     }
 
     void CPU::opPLP()
     {
-
+        regStatus = stackPop();
     }
 
     void CPU::opROL()
@@ -632,12 +638,13 @@ namespace llvmes {
 
     void CPU::opRTI()
     {
-
+        regStatus = stackPop();
+        regPC = stackPop() | (stackPop() << 8);
     }
 
     void CPU::opRTS()
     {
-
+        regPC = (stackPop() | (stackPop() << 8)) + 1;
     }
 
     // A - M - C -> A
