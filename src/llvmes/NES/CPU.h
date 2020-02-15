@@ -17,6 +17,8 @@ namespace llvmes {
         void run();
         void reset();
         void dump();
+        void setNMI();
+        void setIRQ();
 
         BusRead read;
         BusWrite write;
@@ -44,6 +46,8 @@ namespace llvmes {
         std::uint16_t  regPC;
         StatusRegister regStatus;
 
+        bool irq, nmi;
+
         bool illegalOpcode; // Will be set to true whenever an illegal op-code gets fetched
         std::uint16_t address; // Will contain the address associated with an instruction
 
@@ -61,6 +65,10 @@ namespace llvmes {
         std::vector<Instruction> instructionTable;
 
     private:
+
+        void invokeIRQ();
+        void invokeNMI();
+
         /// Get the operand using different addressing modes.
         void addressModeImmediate();
         void addressModeAbsolute();

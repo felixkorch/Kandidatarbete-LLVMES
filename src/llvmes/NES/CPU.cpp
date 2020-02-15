@@ -11,6 +11,8 @@ namespace llvmes {
         , regSP(0xFD)
         , regPC(0)
         , regStatus(0x34)
+        , irq(false)
+        , nmi(false)
         , instructionTable(0xFF)
         , illegalOpcode(false)
         , address(0)
@@ -121,7 +123,27 @@ namespace llvmes {
         instructionTable[0xEA] = {&CPU::addressModeImplied, &CPU::opNOP, "NOP" };
     }
 
-    std::uint16_t CPU::read16(std::uint16_t addr) {
+    void CPU::invokeIRQ()
+    {
+        stackPush(regPC >> 8);
+        stackPush(regPC & 0xFF);
+        stackPush(regStatus & ~FLAG_B);
+        regStatus.I = 1;
+        regPC = read16(IRQ_VECTOR);
+    }
+
+    void CPU::invokeNMI()
+    {
+        stackPush(regPC >> 8);
+        stackPush(regPC & 0xFF);
+        stackPush(regStatus & ~FLAG_B);
+        regStatus.I = 1;
+        regPC = read16(NMI_VECTOR);
+        nmi = false;
+    }
+
+    std::uint16_t CPU::read16(std::uint16_t addr)
+    {
         std::uint16_t lowByte = read(addr);
         std::uint16_t highByte = read(addr + 1);
         return lowByte | (highByte << 8);
@@ -178,7 +200,6 @@ namespace llvmes {
         address = addr;
     }
 
-
     /// The two bytes that follow the op-code is an address which contains the LS-Byte of the real
     /// target address. The other byte is located in "target address + 1". Due to an error in the original
     /// design, if the target address is located on a page-boundary, the last byte of the address will be on
@@ -231,6 +252,16 @@ namespace llvmes {
     std::uint8_t CPU::stackPop()
     {
         return read(0x0100 | ++regSP);
+    }
+
+    void CPU::setNMI()
+    {
+        nmi = true;
+    }
+
+    void CPU::setIRQ()
+    {
+        irq = true;
     }
 
 	void CPU::step()
