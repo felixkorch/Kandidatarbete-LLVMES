@@ -5,7 +5,7 @@ namespace llvmes {
     ROM::ROM(char* source, std::size_t length)
 	{
         if(source == nullptr)
-            throw "ROM: Source null";
+            throw std::runtime_error("ROM: Source NULL");
         std::copy(source, source + length, data.begin());
 	}
 
@@ -13,9 +13,8 @@ namespace llvmes {
 	{
         std::ifstream in{ path, std::ios::binary };
         if (in.fail())
-            throw "ROM: The file doesn't exist";
-        auto temp = std::vector<char>{ std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>() };
-        data = std::move(temp);
+            throw std::runtime_error("ROM: The file doesn't exist");
+        data = std::vector<char>{ std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>() };
 	}
 
     ROM::const_iterator ROM::beginPRGROM() const

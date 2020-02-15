@@ -20,12 +20,66 @@ namespace llvmes {
         for(auto& it : instructionTable)
             it = {&CPU::addressModeImplied, &CPU::illegalOP };
 
-        instructionTable[0xA0] = {&CPU::addressModeImmediate, &CPU::opLDY, "LDY Imm" };
         instructionTable[0xD0] = {&CPU::addressModeImmediate, &CPU::opBNE, "BNE" };
-        instructionTable[0xA2] = {&CPU::addressModeImmediate, &CPU::opLDX, "LDX Imm" };
+        instructionTable[0xB0] = {&CPU::addressModeImmediate, &CPU::opBEQ, "BEQ" };
+        instructionTable[0xD0] = {&CPU::addressModeImmediate, &CPU::opBMI, "BMI" };
+        instructionTable[0x90] = {&CPU::addressModeImmediate, &CPU::opBCC, "BCC" };
+        instructionTable[0xB0] = {&CPU::addressModeImmediate, &CPU::opBCS, "BCS" };
+        instructionTable[0x10] = {&CPU::addressModeImmediate, &CPU::opBPL, "BPL" };
+        instructionTable[0x50] = {&CPU::addressModeImmediate, &CPU::opBVC, "BVC" };
+        instructionTable[0x70] = {&CPU::addressModeImmediate, &CPU::opBVS, "BVS" };
+
         instructionTable[0xE8] = {&CPU::addressModeImplied, &CPU::opINX, "INX" };
+        instructionTable[0xC8] = {&CPU::addressModeImplied, &CPU::opINY, "INY" };
         instructionTable[0x88] = {&CPU::addressModeImplied, &CPU::opDEY, "DEY" };
+        instructionTable[0xCA] = {&CPU::addressModeImplied, &CPU::opDEX, "DEX" };
+
+        instructionTable[0xE6] = {&CPU::addressModeZeropage, &CPU::opINC, "INC" };
+        instructionTable[0xF6] = {&CPU::addressModeZeropageX, &CPU::opINC, "INC" };
+        instructionTable[0xEE] = {&CPU::addressModeAbsolute, &CPU::opINC, "INC" };
+        instructionTable[0xFE] = {&CPU::addressModeAbsoluteX, &CPU::opINC, "INC" };
+
+        instructionTable[0x4C] = {&CPU::addressModeAbsolute, &CPU::opJMP, "JMP Abs" };
+        instructionTable[0x6C] = {&CPU::addressModeIndirect, &CPU::opJMP, "JMP Indirect" };
+        instructionTable[0x20] = {&CPU::addressModeAbsolute, &CPU::opJSR, "JSR" };
+
+        instructionTable[0x24] = {&CPU::addressModeZeropage, &CPU::opBIT, "BIT Zeropage" };
+        instructionTable[0x2C] = {&CPU::addressModeAbsolute, &CPU::opBIT, "BIT Abs" };
+
+        instructionTable[0x00] = {&CPU::addressModeImplied, &CPU::opBRK, "BRK" };
+
         instructionTable[0x69] = {&CPU::addressModeImmediate, &CPU::opADC, "ADC Imm" };
+
+        instructionTable[0xC9] = {&CPU::addressModeImmediate, &CPU::opCMP, "CMP Imm" };
+        instructionTable[0xC5] = {&CPU::addressModeZeropage, &CPU::opCMP, "CMP Zeropage" };
+        instructionTable[0xD5] = {&CPU::addressModeZeropageX, &CPU::opCMP, "CMP Zeropage X" };
+        instructionTable[0xCD] = {&CPU::addressModeAbsolute, &CPU::opCMP, "CMP Abs" };
+        instructionTable[0xDD] = {&CPU::addressModeAbsoluteX, &CPU::opCMP, "CMP Abs X" };
+        instructionTable[0xD9] = {&CPU::addressModeAbsoluteY, &CPU::opCMP, "CMP Abs Y" };
+        instructionTable[0xC1] = {&CPU::addressModeIndirectX, &CPU::opCMP, "CMP Indirect X" };
+        instructionTable[0xD1] = {&CPU::addressModeIndirectY, &CPU::opCMP, "CMP Indirect Y" };
+
+        instructionTable[0xE0] = {&CPU::addressModeImmediate, &CPU::opCPX, "CPX" };
+        instructionTable[0xE4] = {&CPU::addressModeZeropage, &CPU::opCPX, "CPX" };
+        instructionTable[0xEC] = {&CPU::addressModeAbsolute, &CPU::opCPX, "CPX" };
+
+        instructionTable[0xC0] = {&CPU::addressModeImmediate, &CPU::opCPY, "CPY" };
+        instructionTable[0xC4] = {&CPU::addressModeZeropage, &CPU::opCPY, "CPY" };
+        instructionTable[0xCC] = {&CPU::addressModeAbsolute, &CPU::opCPY, "CPY" };
+
+        instructionTable[0xC6] = {&CPU::addressModeZeropage, &CPU::opDEC, "DEC" };
+        instructionTable[0xD6] = {&CPU::addressModeZeropageX, &CPU::opDEC, "DEC" };
+        instructionTable[0xCE] = {&CPU::addressModeAbsolute, &CPU::opDEC, "DEC" };
+        instructionTable[0xDE] = {&CPU::addressModeAbsoluteX, &CPU::opDEC, "DEC" };
+
+        instructionTable[0x49] = {&CPU::addressModeImmediate, &CPU::opEOR, "EOR Imm" };
+        instructionTable[0x45] = {&CPU::addressModeZeropage, &CPU::opEOR, "EOR Zeropage" };
+        instructionTable[0x55] = {&CPU::addressModeZeropageX, &CPU::opEOR, "EOR Zeropage X" };
+        instructionTable[0x4D] = {&CPU::addressModeAbsolute, &CPU::opEOR, "EOR Abs" };
+        instructionTable[0x5D] = {&CPU::addressModeAbsoluteX, &CPU::opEOR, "EOR Abs X" };
+        instructionTable[0x59] = {&CPU::addressModeAbsoluteY, &CPU::opEOR, "EOR Abs Y" };
+        instructionTable[0x41] = {&CPU::addressModeIndirectX, &CPU::opEOR, "EOR Indirect X" };
+        instructionTable[0x51] = {&CPU::addressModeIndirectY, &CPU::opEOR, "EOR Indirect Y" };
 
         instructionTable[0xA9] = {&CPU::addressModeImmediate, &CPU::opLDA, "LDA Imm" };
         instructionTable[0xA5] = {&CPU::addressModeZeropage, &CPU::opLDA, "LDA Zeropage" };
@@ -96,6 +150,11 @@ namespace llvmes {
         instructionTable[0xF8] = {&CPU::addressModeImplied, &CPU::opSED, "SED" };
         instructionTable[0x78] = {&CPU::addressModeImplied, &CPU::opSEI, "SEI" };
 
+        instructionTable[0x18] = {&CPU::addressModeImplied, &CPU::opCLC, "CLC" };
+        instructionTable[0xD8] = {&CPU::addressModeImplied, &CPU::opCLD, "CLD" };
+        instructionTable[0x58] = {&CPU::addressModeImplied, &CPU::opCLI, "CLI" };
+        instructionTable[0xB8] = {&CPU::addressModeImplied, &CPU::opCLV, "CLV" };
+
         instructionTable[0x85] = {&CPU::addressModeZeropage, &CPU::opSTA, "STA Zeropage" };
         instructionTable[0x95] = {&CPU::addressModeZeropageX, &CPU::opSTA, "STA Zeropage X" };
         instructionTable[0x8D] = {&CPU::addressModeAbsolute, &CPU::opSTA, "STA Abs" };
@@ -119,8 +178,25 @@ namespace llvmes {
         instructionTable[0x9A] = {&CPU::addressModeImplied, &CPU::opTXS, "TXS" };
         instructionTable[0x98] = {&CPU::addressModeImplied, &CPU::opTYA, "TYA" };
 
+        instructionTable[0x29] = {&CPU::addressModeImmediate, &CPU::opAND, "AND Imm" };
+        instructionTable[0x25] = {&CPU::addressModeZeropage, &CPU::opAND, "AND Zeropage" };
+        instructionTable[0x35] = {&CPU::addressModeZeropageX, &CPU::opAND, "AND Zeropage X" };
+        instructionTable[0x2D] = {&CPU::addressModeAbsolute, &CPU::opAND, "AND Abs" };
+        instructionTable[0x3D] = {&CPU::addressModeAbsoluteX, &CPU::opAND, "AND Abs X" };
+        instructionTable[0x39] = {&CPU::addressModeAbsoluteY, &CPU::opAND, "AND Abs Y" };
+        instructionTable[0x21] = {&CPU::addressModeIndirectX, &CPU::opAND, "AND Indirect X" };
+        instructionTable[0x31] = {&CPU::addressModeIndirectY, &CPU::opAND, "AND Indirect Y" };
+
+        instructionTable[0x0A] = {&CPU::addressModeAccumulator, &CPU::opASLAcc, "ASL Acc" };
+        instructionTable[0x06] = {&CPU::addressModeZeropage, &CPU::opASL, "ASL Zeropage" };
+        instructionTable[0x16] = {&CPU::addressModeZeropageX, &CPU::opASL, "ASL Zeropage X" };
+        instructionTable[0x0E] = {&CPU::addressModeAbsolute, &CPU::opASL, "ASL Abs" };
+        instructionTable[0x1E] = {&CPU::addressModeAbsoluteX, &CPU::opASL, "ASL Abs X" };
+
         instructionTable[0xF0] = {&CPU::addressModeImmediate, &CPU::opBEQ, "BEQ" };
         instructionTable[0xEA] = {&CPU::addressModeImplied, &CPU::opNOP, "NOP" };
+
+        // TODO: Fill in the jumptable
     }
 
     void CPU::invokeIRQ()
@@ -462,6 +538,20 @@ namespace llvmes {
     {
         std::int8_t operand = read(address);
         if(!regStatus.N)
+            regPC += operand;
+    }
+
+    void CPU::opBVC()
+    {
+        std::int8_t operand = read(address);
+        if(!regStatus.C)
+            regPC += operand;
+    }
+
+    void CPU::opBVS()
+    {
+        std::int8_t operand = read(address);
+        if(regStatus.C)
             regPC += operand;
     }
 

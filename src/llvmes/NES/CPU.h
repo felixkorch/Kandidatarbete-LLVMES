@@ -107,6 +107,8 @@ namespace llvmes {
         void opBCC();
         void opBCS();
         void opBPL();
+        void opBVC();
+        void opBVS();
 		void opBRK();
 		void opLDY();
 		void opLDA();
