@@ -1,8 +1,5 @@
 set(LLVM_TEST
     # list of test-files
-    ReadROM
-    ExecuteProgram
-    ExecuteFile
 )
 set(LLVM_TEST_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/test)
 
