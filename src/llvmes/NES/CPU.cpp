@@ -179,6 +179,18 @@ namespace llvmes {
     }
 
 
+    /// The two bytes that follow the op-code is an address which contains the LS-Byte of the real
+    /// target address. The other byte is located in "target address + 1". Due to an error in the original
+    /// design, if the target address is located on a page-boundary, the last byte of the address will be on
+    /// 0xYY00
+    void CPU::addressModeIndirect()
+    {
+        std::uint16_t indirection = read16(regPC);
+        std::uint8_t low = read(indirection);
+        std::uint8_t high = read((0xFF00 & indirection) | ((indirection + 1) % 0x100));
+        address = low | (high << 8);
+    }
+
     void CPU::addressModeIndirectX()
     {
         // This address is used to index the zeropage
@@ -208,7 +220,7 @@ namespace llvmes {
 
     void CPU::addressModeAccumulator()
     {
-
+        // The operand is the contents of the accumulator(regA)
     }
 
     void CPU::stackPush(std::uint8_t value)
@@ -240,6 +252,28 @@ namespace llvmes {
         (this->*instr.op)();   // Execute the instruction
     }
 
+    void CPU::dump()
+    {
+        std::cout <<
+                  "Register X: " << (unsigned int)regX << "\n" <<
+                  "Register Y: " << (unsigned int)regY << "\n" <<
+                  "Register A: " << (unsigned int)regA << "\n" <<
+                  "Register SP: " << (unsigned int)regSP << "\n" <<
+                  "Register PC: " << std::hex << regPC << "\n" <<
+                  "Flags: " << std::bitset<8>(regStatus) << std::dec << "\n\n";
+    }
+
+    void CPU::reset()
+    {
+        regPC = read16(RESET_VECTOR);
+    }
+
+    void CPU::run()
+    {
+        while(!illegalOpcode)
+            step();
+    }
+
     void CPU::illegalOP()
     {
         illegalOpcode = true;
@@ -250,7 +284,6 @@ namespace llvmes {
     {
         std::uint8_t operand = read(address);
         std::uint32_t result = regA + operand + regStatus.C;
-        // TODO: Explain how overflow is calculated
         bool overflow = !((regA ^ operand) & 0x80) && ((regA ^ result) & 0x80);
         regStatus.Z = (result & 0xFF) == 0;
         regStatus.C = result > 0xFF;
@@ -264,6 +297,24 @@ namespace llvmes {
         // Force Break 
 		regStatus.I = 1;
 	}
+
+	void CPU::opINC()
+    {
+        std::uint8_t operand = read(address);
+        operand++;
+        write(address, operand);
+        regStatus.Z = operand == 0;
+        regStatus.N = operand & 0x80;
+    }
+
+    void CPU::opDEC()
+    {
+        std::uint8_t operand = read(address);
+        operand--;
+        write(address, operand);
+        regStatus.Z = operand == 0;
+        regStatus.N = operand & 0x80;
+    }
 
     void CPU::opINX()
     {
@@ -325,9 +376,17 @@ namespace llvmes {
         regStatus.N = operand & 0x80;
 	}
 
-    void CPU::opJMPIndirect()
+    void CPU::opJMP()
     {
+        regPC = address;
+    }
 
+    void CPU::opJSR()
+    {
+        std::uint16_t returnAddress = regPC + 1;
+        stackPush(returnAddress >> 8); // Push PC high
+        stackPush(returnAddress);            // Push PC low
+        regPC = read16(regPC);
     }
 
     void CPU::opBNE()
@@ -344,11 +403,32 @@ namespace llvmes {
             regPC += operand;
     }
 
-    void CPU::opJMPAbsolute()
+    void CPU::opBMI()
     {
-        std::uint16_t lowByte = read(regPC);
-        std::uint16_t highByte = read(regPC + 1);
-        regPC = lowByte | (highByte << 8);
+        std::int8_t operand = read(address);
+        if(regStatus.Z)
+            regPC += operand;
+    }
+
+    void CPU::opBCC()
+    {
+        std::int8_t operand = read(address);
+        if(!regStatus.C)
+            regPC += operand;
+    }
+
+    void CPU::opBCS()
+    {
+        std::int8_t operand = read(address);
+        if(regStatus.C)
+            regPC += operand;
+    }
+
+    void CPU::opBPL()
+    {
+        std::int8_t operand = read(address);
+        if(!regStatus.N)
+            regPC += operand;
     }
 
     void CPU::opSEI()
@@ -360,31 +440,78 @@ namespace llvmes {
         regStatus = regStatus & ~FLAG_I;
     }
 
-    void CPU::dump()
+    void CPU::opCLC()
     {
-        std::cout <<
-        "Register X: " << (unsigned int)regX << "\n" <<
-        "Register Y: " << (unsigned int)regY << "\n" <<
-        "Register A: " << (unsigned int)regA << "\n" <<
-        "Register SP: " << (unsigned int)regSP << "\n" <<
-        "Register PC: " << std::hex << regPC << "\n" <<
-        "Flags: " << std::bitset<8>(regStatus) << std::dec << "\n\n";
+        regStatus = regStatus & ~FLAG_C;
     }
 
-    void CPU::reset()
+    void CPU::opCLD()
     {
-        regPC = read16(RESET_VECTOR);
+        regStatus = regStatus & ~FLAG_D;
     }
 
-    void CPU::run()
+    void CPU::opCLV()
     {
-        while(!illegalOpcode)
-            step();
+        regStatus = regStatus & ~FLAG_V;
+    }
+
+    void CPU::opBIT()
+    {
+        std::uint8_t operand = read(address);
+        regStatus.N = operand & 0x80;
+        regStatus.V = operand & 0x40;
+        regStatus.Z = (operand & regA) == 0;
+    }
+
+    void CPU::opEOR()
+    {
+        std::uint8_t operand = read(address);
+        regA ^= operand;
+        regStatus.Z = regA == 0;
+        regStatus.N = regA & 0x80;
+    }
+
+    void CPU::opAND()
+    {
+        std::uint8_t operand = read(address);
+        regA &= operand;
+        regStatus.Z = regA == 0;
+        regStatus.N = regA & 0x80;
+    }
+
+    void CPU::opASL()
+    {
+        std::uint8_t operand = read(address);
+        regStatus.C = operand & 0x80;
+        operand <<= 1;
+        write(address, operand);
+        regStatus.Z = operand == 0;
+        regStatus.N = operand & 0x80;
+    }
+    void CPU::opASLAcc()
+    {
+        regStatus.C = regA & 0x80;
+        regA <<= 1;
+        regStatus.Z = regA == 0;
+        regStatus.N = regA & 0x80;
     }
 
     void CPU::opLSR()
     {
+        std::uint8_t operand = read(address);
+        regStatus.C = operand & 1;
+        operand >>= 1;
+        write(address, operand);
+        regStatus.Z = operand == 0;
+        regStatus.N = 0;
+    }
 
+    void CPU::opLSRAcc()
+    {
+        regStatus.C = regA & 1;
+        regA >>= 1;
+        regStatus.Z = regA == 0;
+        regStatus.N = 0;
     }
 
     void CPU::opORA()
