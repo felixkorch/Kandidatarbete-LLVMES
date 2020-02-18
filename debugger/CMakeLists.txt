@@ -15,12 +15,17 @@ add_executable(Debugger
         mainwindow.ui
         mainwindow.cpp
         main.cpp
-        )
 
-#qt5_wrap_ui(SOURCES mainwindow.ui) Needed?
+        ext/framelesswindow/darkstyle.cpp
+        ext/framelesswindow/framelesswindow.ui
+        ext/framelesswindow/framelesswindow.cpp
+        ext/framelesswindow/windowdragger.cpp
+        )
 
 target_include_directories(Debugger PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>/ext
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>/ext/framelesswindow
         )
 
 target_link_libraries(Debugger
