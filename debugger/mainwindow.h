@@ -1,6 +1,4 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
-
+#pragma once
 #include <QMainWindow>
 
 #include <llvmes/NES/CPU.h>
@@ -9,8 +7,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
@@ -24,4 +21,3 @@ private:
     llvmes::CPU cpu;
     std::vector<std::uint8_t> memory;
 };
-#endif // MAINWINDOW_H
