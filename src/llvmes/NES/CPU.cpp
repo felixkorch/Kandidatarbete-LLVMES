@@ -193,8 +193,24 @@ namespace llvmes {
         instructionTable[0x0E] = {&CPU::addressModeAbsolute, &CPU::opASL, "ASL Abs" };
         instructionTable[0x1E] = {&CPU::addressModeAbsoluteX, &CPU::opASL, "ASL Abs X" };
 
-        instructionTable[0xF0] = {&CPU::addressModeImmediate, &CPU::opBEQ, "BEQ" };
+        instructionTable[0x61] = {&CPU::addressModeIndirectX, &CPU::opADC,
+                                  "ADC Indirect X"};
+        instructionTable[0x71] = {&CPU::addressModeIndirectY, &CPU::opADC,
+                                  "ADC Indirect Y"};
+        instructionTable[0x65] = {&CPU::addressModeZeropage, &CPU::opADC,
+                                  "ADC Zeropage"};
+        instructionTable[0x75] = {&CPU::addressModeZeropageX, &CPU::opADC,
+                                  "ADC Zeropage Y"};
+        instructionTable[0x6D] = {&CPU::addressModeAbsolute, &CPU::opADC,
+                                  "ADC Abs"};
+        instructionTable[0x7D] = {&CPU::addressModeAbsoluteX, &CPU::opADC,
+                                  "ADC Abs X"};
+        instructionTable[0x79] = {&CPU::addressModeAbsoluteY, &CPU::opADC,
+                                  "ADC Abs Y"};
+        
+
         instructionTable[0xEA] = {&CPU::addressModeImplied, &CPU::opNOP, "NOP" };
+
     }
 
     void CPU::invokeIRQ()
