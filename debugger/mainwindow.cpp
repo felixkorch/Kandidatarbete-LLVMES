@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QIntValidator>
+#include <string>
 
 std::vector<std::uint8_t> program {
         0xA0, 0x0A, // LDY, # 0x0A
@@ -45,6 +46,12 @@ void MainWindow::Reset()
 
 void MainWindow::Step()
 {
+    auto state = cpu.getState();
+    ui->Label_RegA->setText("A: " + QString::number(state.regA));
+    ui->Label_RegX->setText("X: " + QString::number(state.regX));
+    ui->Label_RegY->setText("Y: " + QString::number(state.regY));
+    ui->Label_RegSP->setText("SP: " + QString::number(state.regSP));
+    ui->Label_RegPC->setText("PC: " + QString::number(state.regPC));
     cpu.step();
 }
 
