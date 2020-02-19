@@ -6,6 +6,9 @@
 #include <QDir>
 #include <QIntValidator>
 #include <string>
+#include <iostream>
+#include <ios>
+#include <sstream>
 
 std::vector<std::uint8_t> program {
         0xA0, 0x0A, // LDY, # 0x0A
@@ -48,11 +51,11 @@ void MainWindow::Reset()
 void MainWindow::Step()
 {
     auto state = cpu.getState();
-    ui->Label_RegA->setText("A: " + QString::number(state.regA));
-    ui->Label_RegX->setText("X: " + QString::number(state.regX));
-    ui->Label_RegY->setText("Y: " + QString::number(state.regY));
-    ui->Label_RegSP->setText("SP: " + QString::number(state.regSP));
-    ui->Label_RegPC->setText("PC: " + QString::number(state.regPC));
+    ui->Label_RegA->setText("A: " + QString::fromStdString(toHex(state.regA)));
+    ui->Label_RegX->setText("X: " + QString::fromStdString(toHex(state.regX)));
+    ui->Label_RegY->setText("Y: " + QString::fromStdString(toHex(state.regY)));
+    ui->Label_RegSP->setText("SP: " + QString::fromStdString(toHex(state.regSP)));
+    ui->Label_RegPC->setText("PC: " + QString::fromStdString(toHex(state.regPC)));
     cpu.step();
 }
 
