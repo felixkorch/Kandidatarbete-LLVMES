@@ -18,10 +18,7 @@ void writeMemory(std::uint16_t adr, std::uint8_t data) {
 int main(int argc, char **argv) try {
     ProgramLoader *programLoader = new ProgramLoader("xd.o");
 
-    auto program = programLoader->getProgram();
-
-    auto programTokens = programLoader->getProgramTokens();
-
+    std::vector<uint8_t> program = programLoader->getProgram();
 
     // Load program into virtual computer memory
     memory[0xFFFC] = 0x20;
