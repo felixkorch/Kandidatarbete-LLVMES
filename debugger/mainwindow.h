@@ -31,7 +31,7 @@ private:
     std::shared_ptr<Debugger> m_debugger;
 
 private:
-    void DisplayRegisters(llvmes::CPUState& state);
+    void DisplayRegisters();
 
     template<typename T>
     std::string ToHexString(T i)
