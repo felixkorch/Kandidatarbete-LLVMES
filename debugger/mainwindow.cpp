@@ -18,19 +18,45 @@
 MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent)
         , m_ui(new Ui::MainWindow)
+        , m_good_state(false)
 {
     m_ui->setupUi(this);
     connect(m_ui->Button_Reset, SIGNAL (released()), this, SLOT (Reset()));
     connect(m_ui->Button_Push, SIGNAL (released()), this, SLOT (Step()));
     connect(m_ui->Button_Run, SIGNAL (released()), this, SLOT (Run()));
     connect(m_ui->Button_Run_BP, SIGNAL (released()), this, SLOT (RunBP()));
+    connect(m_ui->Button_Browse, SIGNAL (released()), this, SLOT (Browse()));
+
+    this->statusBar()->setSizeGripEnabled(false);
+    QWidget::setWindowTitle(TITLE);
+
+    m_ui->Label_Loaded->setStyleSheet("QLabel { color : red; }");
+    m_ui->Label_Loaded->setVisible(true);
+
+    m_ui->Label_Breakpoint->setStyleSheet("QLabel { margin-left:40px; }");
+}
+
+void MainWindow::Browse()
+{
+    QString path =
+        QFileDialog::getOpenFileName(this, "Open a file", "directoryToOpen",
+            "Binary files (*.bin)");
+    if(path.isNull() || path.isEmpty())
+        return;
 
     try {
-        m_debugger = std::make_shared<Debugger>("6502_functional_test.bin");
+        m_debugger = std::make_shared<Debugger>(path.toStdString());
         m_debugger->GetCPU()->regPC = 0x0400;
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
+
+    QMessageBox::information(
+        this,
+        tr(TITLE),
+        tr("Sucessfully loaded program!") );
+    m_ui->Label_Loaded->setText(QFileInfo(path).fileName());
+    m_ui->Label_Loaded->setStyleSheet("QLabel { color : green; }");
 }
 
 void MainWindow::Run()

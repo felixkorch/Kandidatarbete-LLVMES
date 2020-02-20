@@ -25,10 +25,12 @@ private slots:
     void Run();
     void RunBP();
     void RunFinished();
+    void Browse();
 
 private:
     Ui::MainWindow* m_ui;
     std::shared_ptr<Debugger> m_debugger;
+    bool m_good_state;
 
 private:
     void DisplayRegisters();
@@ -44,4 +46,6 @@ private:
                << std::hex << (unsigned)i;
         return stream.str();
     }
+
+    static constexpr const char* TITLE = "LLVMES - Debugger";
 };

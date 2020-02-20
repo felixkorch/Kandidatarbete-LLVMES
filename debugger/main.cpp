@@ -16,7 +16,8 @@ int main(int argc, char *argv[])
         // create frameless window (and set windowState or title)
         FramelessWindow framelessWindow;
         framelessWindow.setWindowTitle("LLVMES - Debugger");
-        framelessWindow.setFixedSize(800, 600);
+        // TODO: Make it scaleable
+        framelessWindow.setFixedSize(500, 500);
 
         MainWindow *mainWindow = new MainWindow;
         framelessWindow.setContent(mainWindow);

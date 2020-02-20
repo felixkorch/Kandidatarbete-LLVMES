@@ -6,69 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>452</width>
+    <height>447</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="horizontalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>390</y>
-      <width>757</width>
-      <height>80</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="spacing">
-      <number>100</number>
-     </property>
-     <property name="leftMargin">
-      <number>100</number>
-     </property>
-     <property name="rightMargin">
-      <number>100</number>
-     </property>
-     <item>
-      <widget class="QPushButton" name="Button_Push">
-       <property name="text">
-        <string>Step</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="Button_Run">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="text">
-        <string>Run</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="Button_Run_BP">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="text">
-        <string>Run(BP)</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="Button_Reset">
-       <property name="text">
-        <string>Reset</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
@@ -141,27 +86,96 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="formLayoutWidget">
+   <widget class="QWidget" name="verticalLayoutWidget_2">
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>150</y>
-      <width>321</width>
-      <height>51</height>
+      <y>60</y>
+      <width>160</width>
+      <height>211</height>
      </rect>
     </property>
-    <layout class="QFormLayout" name="formLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QPushButton" name="Button_Push">
        <property name="text">
-        <string>Breakpoint:</string>
+        <string>Step</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item>
+      <widget class="QPushButton" name="Button_Run">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Run</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="Button_Run_BP">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Run(BP)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="Button_Reset">
+       <property name="text">
+        <string>Reset</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>310</y>
+      <width>391</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="Button_Browse">
+       <property name="text">
+        <string>Open Program</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="Label_Breakpoint">
+       <property name="text">
+        <string>Breakpoint:</string>
+       </property>
+       <property name="margin">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLineEdit" name="Edit_Breakpoint"/>
      </item>
     </layout>
+   </widget>
+   <widget class="QLabel" name="Label_Loaded">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>20</y>
+      <width>191</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Warning: No program loaded!</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -169,7 +183,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>452</width>
      <height>22</height>
     </rect>
    </property>
