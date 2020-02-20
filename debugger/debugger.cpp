@@ -95,5 +95,6 @@ bool Debugger::Reset()
     }
     m_cpu->reset();
     m_running = false;
+    qInfo("Debugger: Reset");
     return true;
 }
