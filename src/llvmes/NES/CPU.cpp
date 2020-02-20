@@ -13,12 +13,12 @@ namespace llvmes {
         , regStatus(0x34)
         , irq(false)
         , nmi(false)
-        , instructionTable(0xFF)
         , illegalOPCode(false)
         , address(0)
+        , instructionTable(0xFF)
     {
         for(auto& it : instructionTable)
-            it = {&CPU::addressModeImplied, &CPU::illegalOP };
+            it = {&CPU::addressModeImplied, &CPU::illegalOP, "Illegal OP" };
 
         instructionTable[0xD0] = {&CPU::addressModeImmediate, &CPU::opBNE, "BNE" };
         instructionTable[0xF0] = {&CPU::addressModeImmediate, &CPU::opBEQ, "BEQ" };
@@ -393,6 +393,14 @@ namespace llvmes {
     void CPU::reset()
     {
         regPC = 0x0400;
+        regX = 0;
+        regY = 0;
+        regA = 0;
+        regSP = 0xFD;
+        address = 0;
+        nmi = false;
+        irq = false;
+        illegalOPCode = false;
     }
 
     void CPU::run()
@@ -536,7 +544,7 @@ namespace llvmes {
     void CPU::opBMI()
     {
         std::int8_t operand = read(address);
-        if(regStatus.Z)
+        if(regStatus.N)
             regPC += operand;
     }
 
