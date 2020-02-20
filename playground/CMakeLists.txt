@@ -1,11 +1,11 @@
 ﻿set(PLAYGROUND_FILES
-    ####
+    ExecuteFile
 )
 set(LLVM_PLAYGROUND_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/playground)
 
 foreach (file ${PLAYGROUND_FILES})
 
-    add_executable(${file} ${file}.cpp ExecuteFile.cpp)
+    add_executable(${file} ${file}.cpp)
     target_link_libraries(${file} PUBLIC
         llvmes
     )
