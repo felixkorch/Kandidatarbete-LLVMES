@@ -14,11 +14,11 @@ namespace llvmes {
     class ProgramToken {
 
     public:
-        ProgramToken(char first, char second);
+        ProgramToken(char upper, char lower);
+        uint8_t toInt();
 
     private:
-        char first;
-        char second;
+        std::string token;
     };
 
 
