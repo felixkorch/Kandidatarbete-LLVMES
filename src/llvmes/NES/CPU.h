@@ -7,15 +7,6 @@
 
 namespace llvmes {
 
-    struct CPUState {
-        std::uint8_t   regX;
-        std::uint8_t   regY;
-        std::uint8_t   regA;
-        std::uint8_t   regSP;
-        std::uint16_t  regPC;
-        unsigned int regStatus;
-    };
-
     class CPU {
     public:
         typedef std::function<std::uint8_t(std::uint16_t)> BusRead;
@@ -28,10 +19,16 @@ namespace llvmes {
         void dump();
         void setNMI();
         void setIRQ();
-        CPUState getState() { return { regX, regY, regA, regSP, regPC, regStatus }; }
 
         BusRead read;
         BusWrite write;
+
+        std::uint8_t   regX;
+        std::uint8_t   regY;
+        std::uint8_t   regA;
+        std::uint8_t   regSP;
+        std::uint16_t  regPC;
+        StatusRegister regStatus;
 
 	private:
 
@@ -61,13 +58,6 @@ namespace llvmes {
         };
 
     private:
-        std::uint8_t   regX;
-        std::uint8_t   regY;
-        std::uint8_t   regA;
-        std::uint8_t   regSP;
-        std::uint16_t  regPC;
-        StatusRegister regStatus;
-
         bool irq, nmi;
 
         // Will be set to true whenever an illegal op-code gets fetched
