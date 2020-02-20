@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <string>
 #include <vector>
+#include "ProgramToken.h"
 
 namespace llvmes {
     class ProgramLoader {
@@ -17,6 +18,9 @@ namespace llvmes {
 
         ProgramLoader(const std::string &path);
 
+        std::vector<char> getProgram();
+
+        std::vector<ProgramToken*> getProgramTokens();
 
     private:
         std::vector<char> data;
