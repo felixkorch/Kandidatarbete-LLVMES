@@ -21,7 +21,7 @@ namespace llvmes {
             it = {&CPU::addressModeImplied, &CPU::illegalOP };
 
         instructionTable[0xD0] = {&CPU::addressModeImmediate, &CPU::opBNE, "BNE" };
-        instructionTable[0xB0] = {&CPU::addressModeImmediate, &CPU::opBEQ, "BEQ" };
+        instructionTable[0xF0] = {&CPU::addressModeImmediate, &CPU::opBEQ, "BEQ" };
         instructionTable[0x30] = {&CPU::addressModeImmediate, &CPU::opBMI, "BMI" };
         instructionTable[0x90] = {&CPU::addressModeImmediate, &CPU::opBCC, "BCC" };
         instructionTable[0xB0] = {&CPU::addressModeImmediate, &CPU::opBCS, "BCS" };
@@ -371,7 +371,7 @@ namespace llvmes {
         // TODO: This preprocessor statement might not work for everyone
 #ifndef NDEBUG
         // Print the instruction name in debug mode
-        std::cout << instr.name << std::endl;
+        std::cout << "0x" << std::hex << regPC - 1 << ": " << instr.name << std::endl;
 #endif
 
         // Execute
@@ -392,7 +392,7 @@ namespace llvmes {
 
     void CPU::reset()
     {
-        regPC = read16(RESET_VECTOR);
+        regPC = 0x0400;
     }
 
     void CPU::run()
