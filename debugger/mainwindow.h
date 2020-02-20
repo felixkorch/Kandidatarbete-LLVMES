@@ -1,9 +1,13 @@
 #pragma once
 #include <QMainWindow>
+#include <QFutureWatcher>
 
 #include <llvmes/NES/CPU.h>
+
 #include <sstream>
 #include <iomanip>
+
+#include "debugger.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,10 +22,19 @@ public:
 private slots:
     void Reset();
     void Step();
+    void Run();
+    void RunBP();
+    void RunFinished();
 
 private:
+    Ui::MainWindow* m_ui;
+    std::shared_ptr<Debugger> m_debugger;
+
+private:
+    void DisplayRegisters(llvmes::CPUState& state);
+
     template<typename T>
-    std::string toHex(T i)
+    std::string ToHexString(T i)
     {
         std::stringstream stream;
         stream << "$"
@@ -31,8 +44,4 @@ private:
                << std::hex << (unsigned)i;
         return stream.str();
     }
-
-    Ui::MainWindow *ui;
-    llvmes::CPU cpu;
-    std::vector<std::uint8_t> memory;
 };

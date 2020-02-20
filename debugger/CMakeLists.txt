@@ -15,6 +15,7 @@ add_executable(Debugger
         mainwindow.ui
         mainwindow.cpp
         main.cpp
+        debugger.cpp
 
         ext/framelesswindow/darkstyle.cpp
         ext/framelesswindow/framelesswindow.ui

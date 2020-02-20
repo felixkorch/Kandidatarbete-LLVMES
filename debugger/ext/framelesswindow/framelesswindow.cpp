@@ -125,7 +125,7 @@ void FramelessWindow::styleWindow(bool bActive, bool bNoState) {
       QGraphicsEffect *oldShadow = ui->windowFrame->graphicsEffect();
       if (oldShadow) delete oldShadow;
       QGraphicsDropShadowEffect *windowShadow = new QGraphicsDropShadowEffect;
-      windowShadow->setBlurRadius(9.0);
+      //windowShadow->setBlurRadius(9.0);
       windowShadow->setColor(palette().color(QPalette::Highlight));
       windowShadow->setOffset(0.0);
       ui->windowFrame->setGraphicsEffect(windowShadow);
@@ -155,7 +155,7 @@ void FramelessWindow::styleWindow(bool bActive, bool bNoState) {
       QGraphicsEffect *oldShadow = ui->windowFrame->graphicsEffect();
       if (oldShadow) delete oldShadow;
       QGraphicsDropShadowEffect *windowShadow = new QGraphicsDropShadowEffect;
-      windowShadow->setBlurRadius(9.0);
+      //windowShadow->setBlurRadius(9.0);
       windowShadow->setColor(palette().color(QPalette::Shadow));
       windowShadow->setOffset(0.0);
       ui->windowFrame->setGraphicsEffect(windowShadow);
