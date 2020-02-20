@@ -4,16 +4,16 @@
 
 #include <cstdint>
 #include <ios>
-#include "ProgramToken.h"
+#include "program_token.h"
 
 namespace llvmes {
 
     ProgramToken::ProgramToken(char upper, char lower) {
-        this->token = std::string(1, upper) + lower;
+        this->m_token = std::string(1, upper) + lower;
     }
 
     // Converts the hexadecimal string representation to an integer which the emulator can interpret
-    uint8_t ProgramToken::toInt() {
-        return std::stoi(this->token, 0, 16);
+    uint8_t ProgramToken::ToInt() {
+        return std::stoi(this->m_token, 0, 16);
     }
 }

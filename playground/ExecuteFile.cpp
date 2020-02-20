@@ -1,5 +1,5 @@
 #include "llvmes/NES/CPU.h"
-#include "llvmes/NES/ProgramLoader.h"
+#include "llvmes/NES/program_loader.h"
 #include <string>
 #include <iostream>
 
@@ -18,7 +18,7 @@ void writeMemory(std::uint16_t adr, std::uint8_t data) {
 int main(int argc, char **argv) try {
     ProgramLoader *programLoader = new ProgramLoader("xd.o");
 
-    std::vector<uint8_t> program = programLoader->getProgram();
+    std::vector<uint8_t> program = programLoader->GetProgram();
 
     // Load program into virtual computer memory
     memory[0xFFFC] = 0x20;

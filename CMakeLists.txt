@@ -19,7 +19,7 @@ endif()
 
 set(SOURCE
     src/llvmes/NES/ROM.cpp
-    src/llvmes/NES/CPU.cpp src/llvmes/NES/ProgramLoader.cpp src/llvmes/NES/ProgramLoader.h src/llvmes/NES/ProgramToken.cpp src/llvmes/NES/ProgramToken.h)
+    src/llvmes/NES/CPU.cpp src/llvmes/NES/program_loader.cpp src/llvmes/NES/program_loader.h src/llvmes/NES/program_token.cpp src/llvmes/NES/program_token.h)
 
 add_library (${PROJECT_NAME} ${SOURCE})
 target_include_directories(${PROJECT_NAME} PUBLIC
