@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     try {
         m_debugger = std::make_shared<Debugger>("6502_functional_test.bin");
+        m_debugger->GetCPU()->regPC = 0x0400;
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
@@ -60,27 +61,28 @@ void MainWindow::RunBP()
 
 void MainWindow::RunFinished()
 {
-    auto state = m_debugger->GetCPU()->getState();
-    DisplayRegisters(state);
-    qInfo("CPU Stopped.");
+    DisplayRegisters();
 }
 
 void MainWindow::Reset()
 {
     bool ok = m_debugger->Reset();
+
     if(!ok)
         return;
-    auto state = m_debugger->GetCPU()->getState();
-    DisplayRegisters(state);
+
+    m_debugger->GetCPU()->regPC = 0x0400;
+    DisplayRegisters();
 }
 
-void MainWindow::DisplayRegisters(llvmes::CPUState& state)
+void MainWindow::DisplayRegisters()
 {
-    m_ui->Label_RegA->setText("A: " + QString::fromStdString(ToHexString(state.regA)));
-    m_ui->Label_RegX->setText("X: " + QString::fromStdString(ToHexString(state.regX)));
-    m_ui->Label_RegY->setText("Y: " + QString::fromStdString(ToHexString(state.regY)));
-    m_ui->Label_RegSP->setText("SP: " + QString::fromStdString(ToHexString(state.regSP)));
-    m_ui->Label_RegPC->setText("PC: " + QString::fromStdString(ToHexString(state.regPC)));
+    auto cpu = m_debugger->GetCPU();
+    m_ui->Label_RegA->setText("A: " + QString::fromStdString(ToHexString(cpu->regA)));
+    m_ui->Label_RegX->setText("X: " + QString::fromStdString(ToHexString(cpu->regX)));
+    m_ui->Label_RegY->setText("Y: " + QString::fromStdString(ToHexString(cpu->regY)));
+    m_ui->Label_RegSP->setText("SP: " + QString::fromStdString(ToHexString(cpu->regSP)));
+    m_ui->Label_RegPC->setText("PC: " + QString::fromStdString(ToHexString(cpu->regPC)));
 }
 
 void MainWindow::Step()
@@ -88,8 +90,7 @@ void MainWindow::Step()
     bool ok = m_debugger->Step();
     if(!ok)
         return;
-    auto state = m_debugger->GetCPU()->getState();
-    DisplayRegisters(state);
+    DisplayRegisters();
 }
 
 MainWindow::~MainWindow()

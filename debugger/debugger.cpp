@@ -8,6 +8,9 @@
 #include <fstream>
 
 Debugger::Debugger(const std::string& path)
+    : m_cpu(std::make_shared<llvmes::CPU>())
+    , m_memory(0x10000)
+    , m_running(false)
 {
     connect(&this->m_run_watcher, SIGNAL (finished()), this, SLOT (RunFinished()));
 
@@ -48,6 +51,8 @@ bool Debugger::Run(std::function<void()> callback)
     auto future = QtConcurrent::run([this]() {
         while(m_running)
             m_cpu->step();
+        QThread::msleep(200);
+        qInfo("Debugger: CPU Stopped");
     });
 
     this->m_run_watcher.setFuture(future);
@@ -64,11 +69,12 @@ bool Debugger::RunWithBP(std::uint16_t addr, std::function<void()> callback)
     m_callback = callback;
 
     auto future = QtConcurrent::run([this, addr]() {
-        auto state = m_cpu->getState();
-        while(state.regPC != addr) {
+        std::uint16_t pc = m_cpu->regPC;
+        while(pc != addr) {
+            pc = m_cpu->regPC;
             m_cpu->step();
-            state = m_cpu->getState();
         }
+        QThread::msleep(200);
         qInfo("Debugger: Stopped at breakpoint");
     });
 
@@ -79,7 +85,6 @@ bool Debugger::RunWithBP(std::uint16_t addr, std::function<void()> callback)
 void Debugger::RunFinished()
 {
     m_callback();
-    qInfo("Debugger: CPU Stopped.");
 }
 
 bool Debugger::Reset()
