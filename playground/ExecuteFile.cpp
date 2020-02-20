@@ -31,7 +31,7 @@ int main(int argc, char** argv) try
     std::ifstream in{ argv[1], std::ios::binary };
     if (in.fail())
         throw std::runtime_error("The file doesn't exist");
-    auto program = std::vector<char>{ std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>() };
+    auto program = std::vector<char>{ std::istreambuf_iterator<char>(in),std::istreambuf_iterator<char>() };
 
     memory[0xFFFC] = 0x20;
     memory[0xFFFD] = 0x40;

@@ -14,7 +14,7 @@ namespace llvmes {
         , irq(false)
         , nmi(false)
         , instructionTable(0xFF)
-        , illegalOpcode(false)
+        , illegalOPCode(false)
         , address(0)
     {
         for(auto& it : instructionTable)
@@ -397,13 +397,13 @@ namespace llvmes {
 
     void CPU::run()
     {
-        while(!illegalOpcode)
+        while(!illegalOPCode)
             step();
     }
 
     void CPU::illegalOP()
     {
-        illegalOpcode = true;
+        illegalOPCode = true;
     }
 
     // A + M + C -> A, C
