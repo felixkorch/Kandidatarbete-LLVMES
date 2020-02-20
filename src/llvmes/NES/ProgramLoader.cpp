@@ -6,7 +6,6 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <sstream>
 
 namespace llvmes {
 
@@ -30,24 +29,50 @@ namespace llvmes {
         readFrom.close();
 
         // Remove newlines
+
         content.erase(std::remove(content.begin(), content.end(), '\n'), content.end());
         // Move ownership of content to data
         data = std::move(content);
     }
 
+    // Get machine code which the emulator can interpret
+    std::vector<uint8_t> ProgramLoader::getProgram() {
+        if (data.empty())
+            throw "ProgramLoader: The program has not been loaded or is empty!";
+
+        auto programTokens = this->getProgramTokens();
+
+        // Allocate enough memory for the program
+        std::vector<uint8_t> program;
+        program.reserve(programTokens.size());
+
+        for (ProgramToken *programToken : programTokens) {
+            program.push_back(programToken->toInt());
+        }
+
+        // Cleanup program tokens before returning
+        while (!programTokens.empty()) {
+            delete programTokens.back(), programTokens.pop_back();
+        }
+
+        return program;
+
+    }
+
     // Return (raw) content of read file
-    std::vector<char> ProgramLoader::getProgram() {
+    std::vector<char> ProgramLoader::getFileContent() {
         std::vector<char> data_copy;
         // Copy existing data vector
         data_copy.assign(data.begin(), data.end());
         return data_copy;
     }
 
-    // Return content of read file which is easier to work with
+    // Return content of read file as tokens, which represent hexadecimal values
     std::vector<ProgramToken *> ProgramLoader::getProgramTokens() {
         size_t programLength = data.size();
         // TODO: This is probably wrong
         std::vector<ProgramToken *> tokens;
+        tokens.reserve(programLength);
 
         // TODO: This is probably wrong
         for (size_t index = 0; index < programLength; index += 2) {
