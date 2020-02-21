@@ -393,6 +393,7 @@ namespace llvmes {
     void CPU::reset()
     {
         regPC = 0x0400;
+        regStatus = 0x34;
         regX = 0;
         regY = 0;
         regA = 0;
