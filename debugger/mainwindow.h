@@ -32,6 +32,7 @@ private:
     Ui::MainWindow* m_ui;
     std::shared_ptr<Debugger> m_debugger;
     bool m_good_state;
+    std::string prev_instr, curr_instr;
 
 private:
     void DisplayRegisters();
@@ -50,12 +51,19 @@ private:
 
     std::string PrettyPrintPC()
     {
-        auto cpu = m_debugger->GetCPU();
-        auto memory = m_debugger->GetMemory();
-        auto opcode = memory[cpu->regPC];
-        auto instr = cpu->instructionTable[opcode];
+        std::shared_ptr<llvmes::CPU> cpu = m_debugger->GetCPU();
+        std::vector<char>& memory = m_debugger->GetMemory();
+
+        std::uint8_t opcode;
+        try {
+            opcode = memory.at(cpu->regPC);
+        } catch (std::exception& e) {
+            e.what();
+        }
+
+        llvmes::Instruction instr = cpu->instructionTable[opcode];
         std::stringstream stream;
-        stream << std::hex << cpu->regPC << ": " << instr.name << std::endl;
+        stream << "$" << std::hex << cpu->regPC << ": " << instr.name;
         return stream.str();
     }
 
