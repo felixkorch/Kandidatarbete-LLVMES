@@ -115,6 +115,9 @@ void MainWindow::DisplayRegisters()
     m_ui->Label_Value_V->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.V)));
     m_ui->Label_Value_N->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.N)));
 
+    m_ui->Label_PrevInst->setText(QString::fromStdString(PrettyPrintPC()));
+    //m_ui->Label_CurrInst->setText(QString::fromStdString(PrettyPrintPC()));
+    //m_ui->Label_NextInst->setText(QString::fromStdString(PrettyPrintPC()));
 }
 
 void MainWindow::Step()
