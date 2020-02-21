@@ -6,6 +6,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
 #include "debugger.h"
 
@@ -44,6 +45,17 @@ private:
                << std::setfill ('0')
                << std::setw(sizeof(T)*2)
                << std::hex << (unsigned)i;
+        return stream.str();
+    }
+
+    std::string PrettyPrintPC()
+    {
+        auto cpu = m_debugger->GetCPU();
+        auto memory = m_debugger->GetMemory();
+        auto opcode = memory[cpu->regPC];
+        auto instr = cpu->instructionTable[opcode];
+        std::stringstream stream;
+        stream << std::hex << cpu->regPC << ": " << instr.name << std::endl;
         return stream.str();
     }
 
