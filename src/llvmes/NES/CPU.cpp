@@ -572,14 +572,14 @@ namespace llvmes {
     void CPU::opBVC()
     {
         std::int8_t operand = read(address);
-        if(!regStatus.C)
+        if(!regStatus.V)
             regPC += operand;
     }
 
     void CPU::opBVS()
     {
         std::int8_t operand = read(address);
-        if(regStatus.C)
+        if(regStatus.V)
             regPC += operand;
     }
 
