@@ -12,7 +12,7 @@ namespace llvmes {
 
     ProgramLoader::ProgramLoader(char *source, std::size_t length) {
         if (source == nullptr)
-            throw "ProgramLoader: Source null";
+            throw std::runtime_error("ProgramLoader: Source null");
         std::copy(source, source + length, m_data.begin());
     }
 
@@ -22,7 +22,7 @@ namespace llvmes {
 
         // Check if can read from file
         if (read_from.fail())
-            throw "ProgramLoader: The file doesn't exist";
+            throw std::runtime_error("ProgramLoader: The file doesn't exist");
 
         // Read content of file
         auto content = std::vector<char>{std::istreambuf_iterator<char>(read_from), std::istreambuf_iterator<char>()};
@@ -38,7 +38,7 @@ namespace llvmes {
     // Get machine code which the emulator can interpret
     std::vector<std::uint8_t> ProgramLoader::GetProgram() {
         if (m_data.empty())
-            throw "ProgramLoader: The program has not been loaded or is empty!";
+            throw std::runtime_error("ProgramLoader: The program has not been loaded or is empty!");
 
         auto program_tokens = this->GetProgramTokens();
 
