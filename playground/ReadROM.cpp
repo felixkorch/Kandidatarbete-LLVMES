@@ -1,4 +1,4 @@
-#include "llvmes/NES/ROM.h"
+#include "llvmes/nes/rom.h"
 #include <iostream>
 
 using namespace llvmes;

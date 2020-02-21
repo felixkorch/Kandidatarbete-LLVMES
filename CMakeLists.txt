@@ -18,7 +18,7 @@ if(VERBOSE)
 endif()
 
 set(SOURCE
-        src/llvmes/nes/ROM.cpp
+        src/llvmes/nes/rom.cpp
         src/llvmes/interpreter/cpu.cpp
         src/llvmes/interpreter/cpu.h
         )

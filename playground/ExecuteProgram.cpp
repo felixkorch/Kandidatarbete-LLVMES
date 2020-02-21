@@ -1,4 +1,4 @@
-#include "llvmes/NES/CPU.h"
+#include "llvmes/interpreter/cpu.h"
 #include <string>
 
 using namespace llvmes;
@@ -30,10 +30,10 @@ int main()
     std::copy(program.begin(), program.end(), &memory[0x4020]);
 
     CPU cpu;
-    cpu.read = readMemory;
-    cpu.write = writeMemory;
-    cpu.reset();
-    cpu.dump();
+    cpu.Read = readMemory;
+    cpu.Write = writeMemory;
+    cpu.Reset();
+    cpu.Dump();
 
-    cpu.run();
+    cpu.Run();
 }

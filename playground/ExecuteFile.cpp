@@ -1,4 +1,4 @@
-#include "llvmes/NES/CPU.h"
+#include "llvmes/interpreter/cpu.h"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -39,11 +39,11 @@ int main(int argc, char** argv) try
     std::copy(program.begin(), program.end(), &memory[0x4020]);
 
     CPU cpu;
-    cpu.read = readMemory;
-    cpu.write = writeMemory;
-    cpu.reset();
+    cpu.Read = readMemory;
+    cpu.Write = writeMemory;
+    cpu.Reset();
 
-    cpu.run();
+    cpu.Run();
 
     return 0;
 

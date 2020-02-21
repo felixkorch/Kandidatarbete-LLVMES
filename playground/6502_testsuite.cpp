@@ -1,4 +1,4 @@
-#include "llvmes/NES/CPU.h"
+#include "llvmes/interpreter/cpu.h"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -13,11 +13,11 @@ int main(int argc, char** argv) try
     auto program = std::vector<char>{std::istreambuf_iterator<char>(in),std::istreambuf_iterator<char>() };
 
     CPU cpu;
-    cpu.read = [program](std::uint16_t addr) { return program[addr]; };
-    cpu.write = [program](std::uint16_t addr, std::uint8_t data) mutable { return program[addr] = data; };
-    cpu.reset();
+    cpu.Read = [program](std::uint16_t addr) { return program[addr]; };
+    cpu.Write = [program](std::uint16_t addr, std::uint8_t data) mutable { return program[addr] = data; };
+    cpu.Reset();
 
-    cpu.run();
+    cpu.Run();
 
     return 0;
 
