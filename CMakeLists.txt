@@ -17,10 +17,11 @@ if(VERBOSE)
     endforeach()
 endif()
 
-
 set(SOURCE
-    src/llvmes/NES/ROM.cpp
-    src/llvmes/NES/CPU.cpp)
+        src/llvmes/nes/ROM.cpp
+        src/llvmes/interpreter/cpu.cpp
+        src/llvmes/interpreter/cpu.h
+        )
 
 add_library (${PROJECT_NAME} ${SOURCE})
 target_include_directories(${PROJECT_NAME} PUBLIC
