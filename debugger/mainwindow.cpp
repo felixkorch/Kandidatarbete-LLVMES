@@ -50,6 +50,9 @@ void MainWindow::Browse()
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
+
+    m_ui->Label_Loaded->setStyleSheet("QLabel { color : green; }");
+    m_ui->Label_Loaded->setText(QFileInfo(path).fileName());
 }
 
 void MainWindow::Run()
