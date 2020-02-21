@@ -24,7 +24,7 @@ int main(int argc, char **argv) try {
     // Load program into virtual computer memory
     memory[0xFFFC] = 0x20;
     memory[0xFFFD] = 0x40;
-    std::copy(program.begin(), program.end() - 1, &memory[0x4020]);
+    std::copy(program.begin(), program.end(), &memory[0x4020]);
 
     CPU cpu;
     cpu.read = readMemory;
