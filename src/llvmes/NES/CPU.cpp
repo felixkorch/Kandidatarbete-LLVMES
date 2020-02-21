@@ -430,8 +430,8 @@ namespace llvmes {
     
     void CPU::opBRK()
     {
-        stackPush(regPC >> 8);
-        stackPush(regPC & 0xFF);
+        stackPush((regPC + 1) >> 8);
+        stackPush((regPC + 1) & 0xFF);
         stackPush(regStatus | FLAG_B | FLAG_UNUSED);
         regStatus.I = 1;
         regPC = read16(IRQ_VECTOR);
