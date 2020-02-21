@@ -47,6 +47,7 @@ private:
         return stream.str();
     }
 
+
     static constexpr const char* TITLE = "LLVMES - Debugger";
 };
 
