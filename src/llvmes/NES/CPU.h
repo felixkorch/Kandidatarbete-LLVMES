@@ -1,5 +1,7 @@
 #pragma once
 #include "llvmes/NES/StatusRegister.h"
+#include "llvmes/NES/Instruction.h"
+
 #include <cstdint>
 #include <vector>
 #include <array>
@@ -9,7 +11,6 @@
 namespace llvmes {
 
     class CPU {
-        class Instruction;
     public:
         typedef std::function<std::uint8_t(std::uint16_t)> BusRead;
         typedef std::function<void(std::uint16_t, std::uint8_t)> BusWrite;
@@ -48,17 +49,6 @@ namespace llvmes {
         // Address at this location points to the first instruction
         constexpr static unsigned int RESET_VECTOR = 0xFFFC;
         constexpr static unsigned int IRQ_VECTOR   = 0xFFFE;
-
-        // Pointer to a function which will execute an instruction
-        typedef void(CPU::*OpFunction)();
-        // Pointer to a function which will fetch an address used in an instruction
-        typedef void(CPU::*AddrFunction)();
-
-        struct Instruction {
-            AddrFunction addr;
-            OpFunction op;
-            std::string name;
-        };
 
     private:
         bool irq, nmi;
