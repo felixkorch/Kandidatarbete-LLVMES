@@ -521,10 +521,10 @@ namespace llvmes {
 
     void CPU::opJSR()
     {
-        std::uint16_t returnAddress = regPC + 1;
+        std::uint16_t returnAddress = regPC - 1; // TODO: Should be just regPC since we increment in step()?
         stackPush(returnAddress >> 8); // Push PC high
         stackPush(returnAddress);            // Push PC low
-        regPC = read16(regPC);
+        regPC = address;
     }
 
     void CPU::opBNE()
