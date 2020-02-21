@@ -19,6 +19,6 @@ int main(int argc, char** argv) try
 
     return 0;
 
-} catch(const char* msg){
-    std::cerr << msg << std::endl;
+} catch(std::exception& e){
+    std::cerr << e.what() << std::endl;
 }
