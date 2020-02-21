@@ -19,6 +19,7 @@ public:
     bool RunWithBP(std::uint16_t addr, std::function<void()> callback);
 
     std::shared_ptr<llvmes::CPU> GetCPU() { return m_cpu; }
+    std::vector<char>& GetMemory() { return m_memory; }
 private slots:
     // Gets called when the worker thread is done.
     void RunFinished();
