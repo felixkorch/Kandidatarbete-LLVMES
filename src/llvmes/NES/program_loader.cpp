@@ -46,13 +46,8 @@ namespace llvmes {
         std::vector<std::uint8_t> program;
         program.reserve(program_tokens.size());
 
-        for (ProgramToken *programToken : program_tokens) {
-            program.push_back(programToken->ToInt());
-        }
-
-        // Cleanup program tokens before returning
-        for(ProgramToken* p : program_tokens)
-            delete p;
+        for (ProgramToken& programToken : program_tokens)
+            program.push_back(programToken.ToInt());
 
         return program;
 
@@ -67,10 +62,10 @@ namespace llvmes {
     }
 
     // Return content of read file as tokens, which represent hexadecimal values
-    std::vector<ProgramToken *> ProgramLoader::GetProgramTokens() {
+    std::vector<ProgramToken> ProgramLoader::GetProgramTokens() {
         size_t program_length = m_data.size();
 
-        std::vector<ProgramToken *> tokens;
+        std::vector<ProgramToken> tokens;
         tokens.reserve(program_length);
 
         // TODO: This assumes that there's an even number of character in the file being read.
@@ -79,7 +74,7 @@ namespace llvmes {
             // E.g. 0x41 => upper_hex_token == 4; lower_hex_token == 1;
             char upper_hex_token = m_data[index];
             char lower_hex_token = m_data[index + 1];
-            ProgramToken *token = new ProgramToken(upper_hex_token, lower_hex_token);
+            ProgramToken token(upper_hex_token, lower_hex_token);
             tokens.push_back(token);
         }
 
