@@ -432,7 +432,7 @@ namespace llvmes {
     {
         stackPush(regPC >> 8);
         stackPush(regPC & 0xFF);
-        stackPush(regStatus | FLAG_B);
+        stackPush(regStatus | FLAG_B | FLAG_UNUSED);
         regStatus.I = 1;
         regPC = read16(IRQ_VECTOR);
 	}
