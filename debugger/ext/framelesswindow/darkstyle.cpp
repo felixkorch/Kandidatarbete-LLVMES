@@ -11,7 +11,7 @@
 ###############################################################################
 */
 
-#include "DarkStyle.h"
+#include "darkstyle.h"
 
 DarkStyle::DarkStyle() : DarkStyle(styleBase()) {}
 
