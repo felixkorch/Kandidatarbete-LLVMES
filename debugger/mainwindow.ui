@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>452</width>
+    <width>568</width>
     <height>447</height>
    </rect>
   </property>
@@ -17,8 +17,8 @@
    <widget class="QWidget" name="verticalLayoutWidget_2">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>120</y>
+      <x>150</x>
+      <y>140</y>
       <width>160</width>
       <height>211</height>
      </rect>
@@ -95,8 +95,8 @@
    <widget class="QLabel" name="Label_Loaded">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>90</y>
+      <x>130</x>
+      <y>110</y>
       <width>201</width>
       <height>20</height>
      </rect>
@@ -470,13 +470,46 @@
      </item>
     </layout>
    </widget>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>140</y>
+      <width>191</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_5">
+     <item>
+      <widget class="QLabel" name="Label_PrevInst">
+       <property name="text">
+        <string>PREV</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="Label_CurrInst">
+       <property name="text">
+        <string>CURR</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="Label_NextInst">
+       <property name="text">
+        <string>NEXT</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>452</width>
+     <width>568</width>
      <height>22</height>
     </rect>
    </property>
