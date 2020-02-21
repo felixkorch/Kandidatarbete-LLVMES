@@ -15,7 +15,7 @@ namespace llvmes {
 
     public:
         ProgramToken(char upper, char lower);
-        uint8_t ToInt();
+        std::uint8_t ToInt();
 
     private:
         std::string m_token;

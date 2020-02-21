@@ -13,7 +13,7 @@ namespace llvmes {
     }
 
     // Converts the hexadecimal string representation to an integer which the emulator can interpret
-    uint8_t ProgramToken::ToInt() {
+    std::uint8_t ProgramToken::ToInt() {
         return std::stoi(this->m_token, 0, 16);
     }
 }

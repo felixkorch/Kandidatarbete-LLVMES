@@ -36,14 +36,14 @@ namespace llvmes {
     }
 
     // Get machine code which the emulator can interpret
-    std::vector<uint8_t> ProgramLoader::GetProgram() {
+    std::vector<std::uint8_t> ProgramLoader::GetProgram() {
         if (m_data.empty())
             throw "ProgramLoader: The program has not been loaded or is empty!";
 
         auto program_tokens = this->GetProgramTokens();
 
         // Allocate enough memory for the program
-        std::vector<uint8_t> program;
+        std::vector<std::uint8_t> program;
         program.reserve(program_tokens.size());
 
         for (ProgramToken *programToken : program_tokens) {

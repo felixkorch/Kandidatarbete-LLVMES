@@ -16,9 +16,7 @@ namespace llvmes {
 
         ProgramLoader(const std::string &path);
 
-        ~ProgramLoader();
-
-        std::vector<uint8_t> GetProgram();
+        std::vector<std::uint8_t> GetProgram();
 
     private:
         std::vector<ProgramToken*> GetProgramTokens();
