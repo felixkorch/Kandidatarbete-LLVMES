@@ -19,7 +19,7 @@ namespace llvmes {
         std::vector<std::uint8_t> GetProgram();
 
     private:
-        std::vector<ProgramToken*> GetProgramTokens();
+        std::vector<ProgramToken> GetProgramTokens();
         std::vector<char> GetFileContent();
         std::vector<char> m_data;
     };
