@@ -2,6 +2,7 @@
 #include "llvmes/NES/program_loader.h"
 #include <string>
 #include <iostream>
+#include <memory>
 
 using namespace llvmes;
 
@@ -16,7 +17,7 @@ void writeMemory(std::uint16_t adr, std::uint8_t data) {
 }
 
 int main(int argc, char **argv) try {
-    ProgramLoader *programLoader = new ProgramLoader("xd.o");
+    auto programLoader = std::make_unique<ProgramLoader>("xd.o");
 
     std::vector<uint8_t> program = programLoader->GetProgram();
 
