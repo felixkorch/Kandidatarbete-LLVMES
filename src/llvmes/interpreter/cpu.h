@@ -1,6 +1,6 @@
 #pragma once
-#include "llvmes/NES/StatusRegister.h"
-#include "llvmes/NES/Instruction.h"
+#include "llvmes/interpreter/status_register.h"
+#include "llvmes/interpreter/instruction.h"
 
 #include <cstdint>
 #include <vector>

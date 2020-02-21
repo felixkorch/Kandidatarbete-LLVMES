@@ -1,4 +1,4 @@
-#include "llvmes/NES/CPU.h"
+#include "llvmes/interpreter/cpu.h"
 #include <iostream>
 #include <bitset>
 
