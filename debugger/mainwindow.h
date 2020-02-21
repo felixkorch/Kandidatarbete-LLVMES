@@ -2,7 +2,7 @@
 #include <QMainWindow>
 #include <QFutureWatcher>
 
-#include <llvmes/NES/CPU.h>
+#include <llvmes/interpreter/cpu.h>
 
 #include <sstream>
 #include <iomanip>
