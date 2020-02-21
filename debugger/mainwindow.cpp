@@ -115,9 +115,15 @@ void MainWindow::DisplayRegisters()
     m_ui->Label_Value_V->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.V)));
     m_ui->Label_Value_N->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.N)));
 
-    m_ui->Label_PrevInst->setText(QString::fromStdString(PrettyPrintPC()));
-    //m_ui->Label_CurrInst->setText(QString::fromStdString(PrettyPrintPC()));
-    //m_ui->Label_NextInst->setText(QString::fromStdString(PrettyPrintPC()));
+    std::string next_instr = PrettyPrintPC();
+    m_ui->Label_PrevInst->setText(QString::fromStdString(prev_instr));
+    m_ui->Label_CurrInst->setText(QString::fromStdString(curr_instr));
+    m_ui->Label_NextInst->setText(QString::fromStdString(next_instr));
+
+    // Prepare strings for next step
+    prev_instr = curr_instr;
+    curr_instr = next_instr;
+
 }
 
 void MainWindow::Step()
