@@ -21,9 +21,9 @@ Debugger::Debugger(const std::string& path)
     m_memory = std::vector<char>{std::istreambuf_iterator<char>(in),std::istreambuf_iterator<char>() };
 
     // Setup CPU
-    m_cpu->read = [this](std::uint16_t addr){ return m_memory[addr]; };
-    m_cpu->write = [this](std::uint16_t addr, std::uint8_t value){ m_memory[addr] = value; };
-    m_cpu->reset();
+    m_cpu->Read = [this](std::uint16_t addr){ return m_memory[addr]; };
+    m_cpu->Write = [this](std::uint16_t addr, std::uint8_t value){ m_memory[addr] = value; };
+    m_cpu->Reset();
 }
 
 bool Debugger::Step()
@@ -32,7 +32,7 @@ bool Debugger::Step()
         qCritical("Debugger: Cant step while CPU is running!");
         return false;
     }
-    m_cpu->step();
+    m_cpu->Step();
     return true;
 }
 
@@ -50,7 +50,7 @@ bool Debugger::Run(std::function<void()> callback)
 
     auto future = QtConcurrent::run([this]() {
         while(m_running)
-            m_cpu->step();
+            m_cpu->Step();
         QThread::msleep(200);
         qInfo("Debugger: CPU Stopped");
     });
@@ -72,7 +72,7 @@ bool Debugger::RunWithBP(std::uint16_t addr, std::function<void()> callback)
         std::uint16_t pc = m_cpu->regPC;
         while(pc != addr) {
             pc = m_cpu->regPC;
-            m_cpu->step();
+            m_cpu->Step();
         }
         QThread::msleep(200);
         qInfo("Debugger: Stopped at breakpoint");
@@ -93,7 +93,7 @@ bool Debugger::Reset()
         qCritical("Debugger: Can't do this while running");
         return false;
     }
-    m_cpu->reset();
+    m_cpu->Reset();
     m_running = false;
     qInfo("Debugger: Reset");
     return true;

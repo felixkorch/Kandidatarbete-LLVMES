@@ -1,5 +1,5 @@
 #pragma once
-#include <llvmes/NES/CPU.h>
+#include <llvmes/interpreter/cpu.h>
 
 #include <memory>
 #include <string>
