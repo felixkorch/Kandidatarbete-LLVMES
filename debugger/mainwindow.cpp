@@ -97,11 +97,21 @@ void MainWindow::Reset()
 void MainWindow::DisplayRegisters()
 {
     auto cpu = m_debugger->GetCPU();
-    m_ui->Label_RegA->setText("A: " + QString::fromStdString(ToHexString(cpu->regA)));
-    m_ui->Label_RegX->setText("X: " + QString::fromStdString(ToHexString(cpu->regX)));
-    m_ui->Label_RegY->setText("Y: " + QString::fromStdString(ToHexString(cpu->regY)));
-    m_ui->Label_RegSP->setText("SP: " + QString::fromStdString(ToHexString(cpu->regSP)));
-    m_ui->Label_RegPC->setText("PC: " + QString::fromStdString(ToHexString(cpu->regPC)));
+    m_ui->Label_Value_RegA->setText(QString::fromStdString(ToHexString(cpu->regA)));
+    m_ui->Label_Value_RegX->setText(QString::fromStdString(ToHexString(cpu->regX)));
+    m_ui->Label_Value_RegY->setText(QString::fromStdString(ToHexString(cpu->regY)));
+    m_ui->Label_Value_RegSP->setText(QString::fromStdString(ToHexString(cpu->regSP)));
+    m_ui->Label_Value_RegPC->setText(QString::fromStdString(ToHexString(cpu->regPC)));
+
+    m_ui->Label_Value_C->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.C)));
+    m_ui->Label_Value_Z->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.Z)));
+    m_ui->Label_Value_I->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.I)));
+    m_ui->Label_Value_D->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.D)));
+    m_ui->Label_Value_B->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.B)));
+    m_ui->Label_Value_U->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.Unused)));
+    m_ui->Label_Value_V->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.V)));
+    m_ui->Label_Value_N->setText(QString::fromStdString(ToHexString((bool)cpu->regStatus.N)));
+
 }
 
 void MainWindow::Step()
