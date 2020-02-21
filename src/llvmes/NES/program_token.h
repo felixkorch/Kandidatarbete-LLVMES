@@ -6,8 +6,8 @@
  * This class represents a single piece of 6502 machine code, which can either be an instruction or some data
  * */
 
-#ifndef LLVMES_PROGRAM_TOKEN_H
-#define LLVMES_PROGRAM_TOKEN_H
+#pragma once
+#include <string>
 
 
 namespace llvmes {
@@ -23,5 +23,3 @@ namespace llvmes {
 
 
 }
-
-#endif //LLVMES_PROGRAM_TOKEN_H

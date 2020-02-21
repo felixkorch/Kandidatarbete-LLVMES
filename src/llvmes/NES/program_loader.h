@@ -2,11 +2,9 @@
 // Created by Markus Pettersson on 2020-02-18.
 //
 
-#ifndef LLVMES_PROGRAM_LOADER_H
-#define LLVMES_PROGRAM_LOADER_H
-
-#include <cstddef>
-#include <string>
+#pragma once
+// #include <cstddef>
+// #include <string>
 #include <vector>
 #include "program_token.h"
 
@@ -28,5 +26,3 @@ namespace llvmes {
         std::vector<char> m_data;
     };
 }
-
-#endif //LLVMES_PROGRAM_LOADER_H
