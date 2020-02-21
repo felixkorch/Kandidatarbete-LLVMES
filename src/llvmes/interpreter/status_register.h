@@ -1,14 +1,13 @@
 namespace llvmes {
-    class StatusRegister {
-    
+class StatusRegister {
     template <unsigned int N>
     class Bit {
         unsigned int &data;
 
        public:
-        constexpr Bit(unsigned int &data)
-                : data(data)
-        {}
+        constexpr Bit(unsigned int &data) : data(data)
+        {
+        }
 
         unsigned int &operator=(bool value)
         {
@@ -35,28 +34,43 @@ namespace llvmes {
     Bit<7> N;
 
     constexpr StatusRegister()
-            : data(0)
-            , C(data), Z(data)
-            , I(data), D(data)
-            , B(data), Unused(data)
-            , V(data), N(data)
-    {}
+        : data(0),
+          C(data),
+          Z(data),
+          I(data),
+          D(data),
+          B(data),
+          Unused(data),
+          V(data),
+          N(data)
+    {
+    }
 
-    constexpr StatusRegister(const StatusRegister& other)
-        : data(other.data)
-        , C(data), Z(data)
-        , I(data), D(data)
-        , B(data), Unused(data)
-        , V(data), N(data)
-    {}
+    constexpr StatusRegister(const StatusRegister &other)
+        : data(other.data),
+          C(data),
+          Z(data),
+          I(data),
+          D(data),
+          B(data),
+          Unused(data),
+          V(data),
+          N(data)
+    {
+    }
 
     constexpr StatusRegister(unsigned int value)
-        : data(value)
-        , C(data), Z(data)
-        , I(data), D(data)
-        , B(data), Unused(data)
-        , V(data), N(data)
-    {}
+        : data(value),
+          C(data),
+          Z(data),
+          I(data),
+          D(data),
+          B(data),
+          Unused(data),
+          V(data),
+          N(data)
+    {
+    }
 
     constexpr operator unsigned int() const
     {
@@ -68,10 +82,10 @@ namespace llvmes {
         return data = newValue;
     }
 
-	StatusRegister& operator=(StatusRegister& other)
-	{
-		data = other.data;
-		return *this;
-	}
+    StatusRegister &operator=(StatusRegister &other)
+    {
+        data = other.data;
+        return *this;
+    }
 };
-}
+}  // namespace llvmes

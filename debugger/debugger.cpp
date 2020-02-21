@@ -2,33 +2,36 @@
 
 #include <QDebug>
 #include <QMainWindow>
-#include <QtConcurrent/QtConcurrent>
 #include <QString>
-
+#include <QtConcurrent/QtConcurrent>
 #include <fstream>
 
 Debugger::Debugger(const std::string& path)
-    : m_cpu(std::make_shared<llvmes::CPU>())
-    , m_memory(0x10000)
-    , m_running(false)
+    : m_cpu(std::make_shared<llvmes::CPU>()),
+      m_memory(0x10000),
+      m_running(false)
 {
-    connect(&this->m_run_watcher, SIGNAL (finished()), this, SLOT (RunFinished()));
+    connect(&this->m_run_watcher, SIGNAL(finished()), this,
+            SLOT(RunFinished()));
 
     // Setup memory
-    std::ifstream in{ path, std::ios::binary };
-    if(in.fail())
+    std::ifstream in{path, std::ios::binary};
+    if (in.fail())
         throw std::runtime_error("Debugger: Couldn't find program!");
-    m_memory = std::vector<char>{std::istreambuf_iterator<char>(in),std::istreambuf_iterator<char>() };
+    m_memory = std::vector<char>{std::istreambuf_iterator<char>(in),
+                                 std::istreambuf_iterator<char>()};
 
     // Setup CPU
-    m_cpu->Read = [this](std::uint16_t addr){ return m_memory[addr]; };
-    m_cpu->Write = [this](std::uint16_t addr, std::uint8_t value){ m_memory[addr] = value; };
+    m_cpu->Read = [this](std::uint16_t addr) { return m_memory[addr]; };
+    m_cpu->Write = [this](std::uint16_t addr, std::uint8_t value) {
+        m_memory[addr] = value;
+    };
     m_cpu->Reset();
 }
 
 bool Debugger::Step()
 {
-    if(m_running) {
+    if (m_running) {
         qCritical("Debugger: Cant step while CPU is running!");
         return false;
     }
@@ -38,7 +41,7 @@ bool Debugger::Step()
 
 bool Debugger::Run(std::function<void()> callback)
 {
-    if(m_running) {
+    if (m_running) {
         m_running = false;
         return false;
     }
@@ -49,8 +52,7 @@ bool Debugger::Run(std::function<void()> callback)
     qInfo("Debugger: CPU Started");
 
     auto future = QtConcurrent::run([this]() {
-        while(m_running)
-            m_cpu->Step();
+        while (m_running) m_cpu->Step();
         QThread::msleep(200);
         qInfo("Debugger: CPU Stopped");
     });
@@ -61,7 +63,7 @@ bool Debugger::Run(std::function<void()> callback)
 
 bool Debugger::RunWithBP(std::uint16_t addr, std::function<void()> callback)
 {
-    if(m_running) {
+    if (m_running) {
         qCritical("Debugger: CPU already running");
         return false;
     }
@@ -70,7 +72,7 @@ bool Debugger::RunWithBP(std::uint16_t addr, std::function<void()> callback)
 
     auto future = QtConcurrent::run([this, addr]() {
         std::uint16_t pc = m_cpu->regPC;
-        while(pc != addr) {
+        while (pc != addr) {
             pc = m_cpu->regPC;
             m_cpu->Step();
         }
@@ -89,7 +91,7 @@ void Debugger::RunFinished()
 
 bool Debugger::Reset()
 {
-    if(m_running) {
+    if (m_running) {
         qCritical("Debugger: Can't do this while running");
         return false;
     }

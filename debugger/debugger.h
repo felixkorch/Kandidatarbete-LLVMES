@@ -1,15 +1,14 @@
 #pragma once
 #include <llvmes/interpreter/cpu.h>
 
+#include <QFutureWatcher>
+#include <functional>
 #include <memory>
 #include <string>
-#include <functional>
-
-#include <QFutureWatcher>
 
 class Debugger : public QObject {
-Q_OBJECT
-public:
+    Q_OBJECT
+   public:
     Debugger(const std::string& path);
 
     bool Step();
@@ -18,12 +17,19 @@ public:
     // Run the CPU with a breakpoint set.
     bool RunWithBP(std::uint16_t addr, std::function<void()> callback);
 
-    std::shared_ptr<llvmes::CPU> GetCPU() { return m_cpu; }
-    std::vector<char>& GetMemory() { return m_memory; }
-private slots:
+    std::shared_ptr<llvmes::CPU> GetCPU()
+    {
+        return m_cpu;
+    }
+    std::vector<char>& GetMemory()
+    {
+        return m_memory;
+    }
+   private slots:
     // Gets called when the worker thread is done.
     void RunFinished();
-private:
+
+   private:
     // CPU as shared ptr makes it thread safe.
     std::shared_ptr<llvmes::CPU> m_cpu;
     std::vector<char> m_memory;

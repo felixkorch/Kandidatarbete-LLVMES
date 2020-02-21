@@ -1,14 +1,15 @@
-#include "llvmes/interpreter/cpu.h"
 #include <string>
+
+#include "llvmes/interpreter/cpu.h"
 
 using namespace llvmes;
 
-std::vector<std::uint8_t> program {
-    0xA0, 0x0A, // LDY, # 0x0A
-    0xE8,       // INX 
-    0x88,       // DEY
-    0xD0, 0xFC, // BNE, Begin
-    0xEA        // NOP
+std::vector<std::uint8_t> program{
+    0xA0, 0x0A,  // LDY, # 0x0A
+    0xE8,        // INX
+    0x88,        // DEY
+    0xD0, 0xFC,  // BNE, Begin
+    0xEA         // NOP
 };
 
 std::vector<std::uint8_t> memory(0xFFFF, 0);
