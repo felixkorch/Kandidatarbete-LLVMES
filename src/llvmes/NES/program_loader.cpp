@@ -50,9 +50,8 @@ namespace llvmes {
         }
 
         // Cleanup program tokens before returning
-        while (!program_tokens.empty()) {
-            delete program_tokens.back(), program_tokens.pop_back();
-        }
+        for(ProgramToken* p : program_tokens)
+            delete p;
 
         return program;
 
