@@ -1,4 +1,4 @@
-﻿project ("llvmes")
+project ("llvmes")
 set (CMAKE_CXX_STANDARD 14)
 cmake_minimum_required (VERSION 3.8)
 
@@ -19,7 +19,9 @@ endif()
 
 set(SOURCE
     src/llvmes/NES/ROM.cpp
-    src/llvmes/NES/CPU.cpp src/llvmes/NES/program_loader.cpp src/llvmes/NES/program_loader.h src/llvmes/NES/program_token.cpp src/llvmes/NES/program_token.h)
+    src/llvmes/NES/CPU.cpp
+    src/llvmes/NES/program_loader.cpp
+    src/llvmes/NES/program_token.cpp)
 
 add_library (${PROJECT_NAME} ${SOURCE})
 target_include_directories(${PROJECT_NAME} PUBLIC
