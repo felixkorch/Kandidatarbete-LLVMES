@@ -6,7 +6,7 @@ namespace llvmes {
 	{
         if(source == nullptr)
             throw std::runtime_error("ROM: Source NULL");
-        std::copy(source, source + length, data.begin());
+        std::copy(source, source + length, m_data.begin());
 	}
 
     ROM::ROM(const std::string& path)
@@ -14,43 +14,43 @@ namespace llvmes {
         std::ifstream in{ path, std::ios::binary };
         if (in.fail())
             throw std::runtime_error("ROM: The file doesn't exist");
-        data = std::vector<char>{ std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>() };
+        m_data = std::vector<char>{ std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>() };
 	}
 
-    ROM::const_iterator ROM::beginPRGROM() const
+    ROM::const_iterator ROM::BeginPRGROM() const
     {
-        return std::next(data.cbegin(), 16);
+        return std::next(m_data.cbegin(), 16);
     }
 
-    ROM::const_iterator ROM::endPRGROM() const
+    ROM::const_iterator ROM::EndPRGROM() const
     {
-        return std::next(beginPRGROM(), data[4] * 0x4000);
+        return std::next(BeginPRGROM(), m_data[4] * 0x4000);
     }
 
-    ROM::const_iterator ROM::beginCHRROM() const
+    ROM::const_iterator ROM::BeginCHRROM() const
     {
-        return endPRGROM();
+        return EndPRGROM();
     }
 
-    ROM::const_iterator ROM::endCHRROM() const
+    ROM::const_iterator ROM::EndCHRROM() const
     {
-        return std::next(beginCHRROM(), data[5] * 0x2000);
+        return std::next(BeginCHRROM(), m_data[5] * 0x2000);
     }
 
-    bool ROM::empty() const
+    bool ROM::Empty() const
     {
-        return data.size() == 0;
+        return m_data.size() == 0;
     }
 
-	int ROM::mapperCode() const
+	int ROM::MapperCode() const
 	{
-		return (data[7] & 0xF0) | (data[6] >> 4);
+		return (m_data[7] & 0xF0) | (m_data[6] >> 4);
 	}
 
-    const std::string ROM::mapperName() const
+    const std::string ROM::MapperName() const
     {
-        switch (mapperCode()) {
-        case 0: return ((endPRGROM() - beginPRGROM() > 0x4000) ? "NROM256" : "NROM128");
+        switch (MapperCode()) {
+        case 0: return ((EndPRGROM() - BeginPRGROM() > 0x4000) ? "NROM256" : "NROM128");
         case 1: return "MMC1";
         case 2: return "UxROM";
         case 4: return "MMC3";
@@ -61,9 +61,9 @@ namespace llvmes {
     std::ostream& operator<<(std::ostream& stream, const ROM& rom)
     {
         return stream << "ROM-Layout: {\n"
-            << "    MapperType: " << rom.mapperName() << " (Code: " << rom.mapperCode() << "),\n"
-            << "    PRGROM Size: " << (rom.endPRGROM() - rom.beginPRGROM()) << " B,\n"
-            << "    CHRROM Size: " << (rom.endCHRROM() - rom.beginCHRROM()) << " B\n"
+            << "    MapperType: " << rom.MapperName() << " (Code: " << rom.MapperCode() << "),\n"
+            << "    PRGROM Size: " << (rom.EndPRGROM() - rom.BeginPRGROM()) << " B,\n"
+            << "    CHRROM Size: " << (rom.EndCHRROM() - rom.BeginCHRROM()) << " B\n"
             << "}";
     }
 
