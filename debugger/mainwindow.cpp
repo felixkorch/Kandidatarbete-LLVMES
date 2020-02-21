@@ -50,13 +50,6 @@ void MainWindow::Browse()
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
-
-    QMessageBox::information(
-        this,
-        tr(TITLE),
-        tr("Sucessfully loaded program!") );
-    m_ui->Label_Loaded->setText(QFileInfo(path).fileName());
-    m_ui->Label_Loaded->setStyleSheet("QLabel { color : green; }");
 }
 
 void MainWindow::Run()
