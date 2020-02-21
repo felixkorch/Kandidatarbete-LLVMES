@@ -9,6 +9,7 @@
 namespace llvmes {
 
     class CPU {
+        class Instruction;
     public:
         typedef std::function<std::uint8_t(std::uint16_t)> BusRead;
         typedef std::function<void(std::uint16_t, std::uint8_t)> BusWrite;
@@ -30,6 +31,7 @@ namespace llvmes {
         std::uint8_t   regSP;
         std::uint16_t  regPC;
         StatusRegister regStatus;
+        std::vector<Instruction> instructionTable;
 
 	private:
 
@@ -65,8 +67,6 @@ namespace llvmes {
         bool illegalOPCode;
         // Contains the address associated with an instruction
         std::uint16_t address;
-        std::vector<Instruction> instructionTable;
-
     private:
 
         /// Does two consecutively reads at a certain address
