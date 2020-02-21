@@ -49,3 +49,13 @@ private:
 
     static constexpr const char* TITLE = "LLVMES - Debugger";
 };
+
+template<>
+inline std::string MainWindow::ToHexString<bool>(bool i)
+{
+    std::stringstream stream;
+    stream << std::uppercase
+           << std::setw(1)
+           << std::hex << i;
+    return stream.str();
+}
