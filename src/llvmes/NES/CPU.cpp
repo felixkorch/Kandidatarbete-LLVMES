@@ -11,11 +11,11 @@ namespace llvmes {
         , regSP(0xFD)
         , regPC(0)
         , regStatus(0x34)
+        , instructionTable(0xFF)
         , irq(false)
         , nmi(false)
         , illegalOPCode(false)
         , address(0)
-        , instructionTable(0xFF)
     {
         for(auto& it : instructionTable)
             it = {&CPU::addressModeImplied, &CPU::illegalOP, "Illegal OP" };
