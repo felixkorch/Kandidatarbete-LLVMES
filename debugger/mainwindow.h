@@ -54,15 +54,15 @@ class MainWindow : public QMainWindow {
 
         std::uint8_t opcode;
         try {
-            opcode = memory.at(cpu->regPC);
+            opcode = memory.at(cpu->reg_pc);
         }
         catch (std::exception& e) {
             e.what();
         }
 
-        llvmes::Instruction instr = cpu->instructionTable[opcode];
+        llvmes::Instruction instr = cpu->instruction_table[opcode];
         std::stringstream stream;
-        stream << "$" << std::hex << cpu->regPC << ": " << instr.name;
+        stream << "$" << std::hex << cpu->reg_pc << ": " << instr.name;
         return stream.str();
     }
 

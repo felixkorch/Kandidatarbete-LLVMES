@@ -71,9 +71,9 @@ bool Debugger::RunWithBP(std::uint16_t addr, std::function<void()> callback)
     m_callback = callback;
 
     auto future = QtConcurrent::run([this, addr]() {
-        std::uint16_t pc = m_cpu->regPC;
+        std::uint16_t pc = m_cpu->reg_pc;
         while (pc != addr) {
-            pc = m_cpu->regPC;
+            pc = m_cpu->reg_pc;
             m_cpu->Step();
         }
         QThread::msleep(200);

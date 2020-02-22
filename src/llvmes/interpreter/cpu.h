@@ -26,13 +26,13 @@ class CPU {
     BusRead Read;
     BusWrite Write;
 
-    std::uint8_t regX;
-    std::uint8_t regY;
-    std::uint8_t regA;
-    std::uint8_t regSP;
-    std::uint16_t regPC;
-    StatusRegister regStatus;
-    std::vector<Instruction> instructionTable;
+    std::uint8_t reg_x;
+    std::uint8_t reg_y;
+    std::uint8_t reg_a;
+    std::uint8_t reg_sp;
+    std::uint16_t reg_pc;
+    StatusRegister reg_status;
+    std::vector<Instruction> instruction_table;
 
    private:
     constexpr static unsigned int FLAG_C = (1 << 0);

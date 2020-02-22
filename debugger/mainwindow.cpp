@@ -43,7 +43,7 @@ void MainWindow::Browse()
 
     try {
         m_debugger = std::make_shared<Debugger>(path.toStdString());
-        m_debugger->GetCPU()->regPC = 0x0400;
+        m_debugger->GetCPU()->reg_pc = 0x0400;
     }
     catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
@@ -91,7 +91,7 @@ void MainWindow::Reset()
     if (!ok)
         return;
 
-    m_debugger->GetCPU()->regPC = 0x0400;
+    m_debugger->GetCPU()->reg_pc = 0x0400;
     DisplayRegisters();
 }
 
@@ -99,32 +99,32 @@ void MainWindow::DisplayRegisters()
 {
     auto cpu = m_debugger->GetCPU();
     m_ui->Label_Value_RegA->setText(
-        QString::fromStdString(ToHexString(cpu->regA)));
+        QString::fromStdString(ToHexString(cpu->reg_a)));
     m_ui->Label_Value_RegX->setText(
-        QString::fromStdString(ToHexString(cpu->regX)));
+        QString::fromStdString(ToHexString(cpu->reg_x)));
     m_ui->Label_Value_RegY->setText(
-        QString::fromStdString(ToHexString(cpu->regY)));
+        QString::fromStdString(ToHexString(cpu->reg_y)));
     m_ui->Label_Value_RegSP->setText(
-        QString::fromStdString(ToHexString(cpu->regSP)));
+        QString::fromStdString(ToHexString(cpu->reg_sp)));
     m_ui->Label_Value_RegPC->setText(
-        QString::fromStdString(ToHexString(cpu->regPC)));
+        QString::fromStdString(ToHexString(cpu->reg_pc)));
 
     m_ui->Label_Value_C->setText(
-        QString::fromStdString(ToHexString((bool)cpu->regStatus.C)));
+        QString::fromStdString(ToHexString((bool)cpu->reg_status.C)));
     m_ui->Label_Value_Z->setText(
-        QString::fromStdString(ToHexString((bool)cpu->regStatus.Z)));
+        QString::fromStdString(ToHexString((bool)cpu->reg_status.Z)));
     m_ui->Label_Value_I->setText(
-        QString::fromStdString(ToHexString((bool)cpu->regStatus.I)));
+        QString::fromStdString(ToHexString((bool)cpu->reg_status.I)));
     m_ui->Label_Value_D->setText(
-        QString::fromStdString(ToHexString((bool)cpu->regStatus.D)));
+        QString::fromStdString(ToHexString((bool)cpu->reg_status.D)));
     m_ui->Label_Value_B->setText(
-        QString::fromStdString(ToHexString((bool)cpu->regStatus.B)));
+        QString::fromStdString(ToHexString((bool)cpu->reg_status.B)));
     m_ui->Label_Value_U->setText(
-        QString::fromStdString(ToHexString((bool)cpu->regStatus.Unused)));
+        QString::fromStdString(ToHexString((bool)cpu->reg_status.Unused)));
     m_ui->Label_Value_V->setText(
-        QString::fromStdString(ToHexString((bool)cpu->regStatus.V)));
+        QString::fromStdString(ToHexString((bool)cpu->reg_status.V)));
     m_ui->Label_Value_N->setText(
-        QString::fromStdString(ToHexString((bool)cpu->regStatus.N)));
+        QString::fromStdString(ToHexString((bool)cpu->reg_status.N)));
 
     std::string next_instr = PrettyPrintPC();
     m_ui->Label_PrevInst->setText(QString::fromStdString(prev_instr));
