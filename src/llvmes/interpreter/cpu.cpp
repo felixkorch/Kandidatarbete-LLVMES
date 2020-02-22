@@ -476,7 +476,7 @@ void CPU::Step()
 #endif
 
     // Execute
-    (this->*instr.addr)();  // Fetch the operand (if necessary)
+    (this->*instr.fetch_address)();  // Fetch the address (if necessary)
     (this->*instr.op)();    // Execute the instruction
 }
 

@@ -4,13 +4,13 @@
 namespace llvmes {
 class CPU;
 // Pointer to a function which will execute an instruction
-typedef void (CPU::*OpFunction)();
+typedef void (CPU::*Operation_FnPtr)();
 // Pointer to a function which will fetch an address used in an instruction
-typedef void (CPU::*AddrFunction)();
+typedef void (CPU::*AddressMode_FnPtr)();
 
 struct Instruction {
-    AddrFunction addr;
-    OpFunction op;
+    Operation_FnPtr fetch_address;
+    AddressMode_FnPtr op;
     std::string name;
 };
 }  // namespace llvmes
