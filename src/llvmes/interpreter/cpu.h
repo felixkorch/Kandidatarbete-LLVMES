@@ -2,19 +2,23 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
 #include "llvmes/interpreter/instruction.h"
 #include "llvmes/interpreter/status_register.h"
 
 namespace llvmes {
 
+using DisassemblyMap = std::map<std::uint16_t, std::string>;
+typedef std::function<std::uint8_t(std::uint16_t)> BusRead;
+typedef std::function<void(std::uint16_t, std::uint8_t)> BusWrite;
+
 class CPU {
    public:
-    typedef std::function<std::uint8_t(std::uint16_t)> BusRead;
-    typedef std::function<void(std::uint16_t, std::uint8_t)> BusWrite;
-
     CPU();
     void Step();
     void Run();
@@ -22,6 +26,7 @@ class CPU {
     void Dump();
     void SetNMI();
     void SetIRQ();
+    DisassemblyMap Disassemble(std::uint16_t start, std::uint16_t stop);
 
     BusRead Read;
     BusWrite Write;
@@ -32,7 +37,6 @@ class CPU {
     std::uint8_t reg_sp;
     std::uint16_t reg_pc;
     StatusRegister reg_status;
-    std::vector<Instruction> instruction_table;
 
    private:
     constexpr static unsigned int FLAG_C = (1 << 0);
@@ -50,8 +54,8 @@ class CPU {
     constexpr static unsigned int IRQ_VECTOR = 0xFFFE;
 
    private:
+    std::vector<Instruction> m_instruction_table;
     bool m_irq, m_nmi;
-
     // Will be set to true whenever an illegal op-code gets fetched
     bool m_illegal_opcode;
     // Contains the address associated with an instruction
@@ -142,5 +146,37 @@ class CPU {
     void OP_CPY();
     void IllegalOP();
 };
+
+template <typename T>
+inline std::string ToHexString(T i)
+{
+    std::stringstream stream;
+    stream << "$" << std::uppercase << std::setfill('0')
+           << std::setw(sizeof(T) * 2) << std::hex << (unsigned)i;
+    return stream.str();
+}
+
+template <>
+inline std::string ToHexString<bool>(bool i)
+{
+    std::stringstream stream;
+    stream << std::uppercase << std::setw(1) << std::hex << i;
+    return stream.str();
+}
+
+inline int HexStringToInt(const std::string& in)
+{
+    auto strip_zeroes = [](const std::string& s){
+        std::string temp = s;
+        while (temp.at(0) == '0')
+            temp = temp.substr(1);
+        return temp;
+    };
+
+    std::string out;
+    out = (in.at(0) == '$') ? strip_zeroes(in.substr(1))
+                            : strip_zeroes(in);
+    return std::stoi(out, 0, 16);
+}
 
 }  // namespace llvmes
