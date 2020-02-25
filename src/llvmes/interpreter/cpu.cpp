@@ -469,13 +469,6 @@ void CPU::Step()
     // Decode
     Instruction& instr = m_instruction_table[opcode];
 
-    // TODO: This preprocessor statement might not work for everyone
-#ifndef NDEBUG
-    // Print the instruction name in debug mode
-    std::cout << "0x" << std::hex << reg_pc - 1 << ": " << instr.name
-              << std::endl;
-#endif
-
     // Execute
     (this->*instr.fetch_address)();  // Fetch the address (if necessary)
     (this->*instr.op)();    // Execute the instruction
