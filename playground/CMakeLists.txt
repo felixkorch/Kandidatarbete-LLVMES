@@ -1,7 +1,7 @@
 ﻿set(PLAYGROUND_FILES
-        ReadROM
-        ExecuteProgram
-        ExecuteFile
+        read_rom
+        execute_program
+        execute_file
         6502_testsuite
 )
 set(LLVM_PLAYGROUND_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/playground)

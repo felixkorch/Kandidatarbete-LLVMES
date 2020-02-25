@@ -1,14 +1,15 @@
-#include "llvmes/NES/CPU.h"
 #include <string>
+
+#include "llvmes/interpreter/cpu.h"
 
 using namespace llvmes;
 
-std::vector<std::uint8_t> program {
-    0xA0, 0x0A, // LDY, # 0x0A
-    0xE8,       // INX 
-    0x88,       // DEY
-    0xD0, 0xFC, // BNE, Begin
-    0xEA        // NOP
+std::vector<std::uint8_t> program{
+    0xA0, 0x0A,  // LDY, # 0x0A
+    0xE8,        // INX
+    0x88,        // DEY
+    0xD0, 0xFC,  // BNE, Begin
+    0xEA         // NOP
 };
 
 std::vector<std::uint8_t> memory(0xFFFF, 0);
@@ -30,10 +31,10 @@ int main()
     std::copy(program.begin(), program.end(), &memory[0x4020]);
 
     CPU cpu;
-    cpu.read = readMemory;
-    cpu.write = writeMemory;
-    cpu.reset();
-    cpu.dump();
+    cpu.Read = readMemory;
+    cpu.Write = writeMemory;
+    cpu.Reset();
+    cpu.Dump();
 
-    cpu.run();
+    cpu.Run();
 }

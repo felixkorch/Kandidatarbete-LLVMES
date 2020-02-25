@@ -5,6 +5,7 @@ cmake_minimum_required (VERSION 3.8)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 find_package(LLVM REQUIRED CONFIG)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(VERBOSE)
     message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
@@ -16,10 +17,11 @@ if(VERBOSE)
     endforeach()
 endif()
 
-
 set(SOURCE
-    src/llvmes/NES/ROM.cpp
-    src/llvmes/NES/CPU.cpp)
+        src/llvmes/nes/rom.cpp
+        src/llvmes/interpreter/cpu.cpp
+        src/llvmes/interpreter/cpu.h
+        )
 
 add_library (${PROJECT_NAME} ${SOURCE})
 target_include_directories(${PROJECT_NAME} PUBLIC

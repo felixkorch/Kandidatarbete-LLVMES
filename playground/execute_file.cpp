@@ -1,7 +1,8 @@
-#include "llvmes/NES/CPU.h"
-#include <string>
 #include <fstream>
 #include <iostream>
+#include <string>
+
+#include "llvmes/interpreter/cpu.h"
 
 using namespace llvmes;
 
@@ -17,8 +18,8 @@ void writeMemory(std::uint16_t adr, std::uint8_t data)
     memory[adr] = data;
 }
 
-int main(int argc, char** argv) try
-{
+int main(int argc, char** argv)
+try {
     if (argc == 1) {
         std::cout << "No path provided." << std::endl;
         return 1;
@@ -28,25 +29,25 @@ int main(int argc, char** argv) try
         return 1;
     }
 
-    std::ifstream in{ argv[1], std::ios::binary };
+    std::ifstream in{argv[1], std::ios::binary};
     if (in.fail())
         throw std::runtime_error("The file doesn't exist");
-    auto program = std::vector<char>{ std::istreambuf_iterator<char>(in),
-            std::istreambuf_iterator<char>() };
+    auto program = std::vector<char>{std::istreambuf_iterator<char>(in),
+                                     std::istreambuf_iterator<char>()};
 
     memory[0xFFFC] = 0x20;
     memory[0xFFFD] = 0x40;
     std::copy(program.begin(), program.end(), &memory[0x4020]);
 
     CPU cpu;
-    cpu.read = readMemory;
-    cpu.write = writeMemory;
-    cpu.reset();
+    cpu.Read = readMemory;
+    cpu.Write = writeMemory;
+    cpu.Reset();
 
-    cpu.run();
+    cpu.Run();
 
     return 0;
-
-} catch(std::exception& e){
-        std::cerr << e.what() << std::endl;
+}
+catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
 }
