@@ -76,6 +76,12 @@ void MainWindow::UpdateUI()
     m_ui->Label_Value_N->setText(
         QString::fromStdString(ToHexString((bool)cpu->reg_status.N)));
 
+    auto find = m_disassembly.find(cpu->reg_pc);
+    if (find == m_disassembly.end())
+        return;
+    m_ui->Label_Value_NextInstr->setText(QString::fromStdString(find->second));
+    m_ui->Label_NextInstr->setText(
+        QString::fromStdString(ToHexString(cpu->reg_pc)));
 }
 
 void MainWindow::Stop()
@@ -205,7 +211,8 @@ void MainWindow::OnRunStop()
         if(find == m_disassembly.end())
             continue;
 
-        m_disassembly_view->AddLine(addr, QString::fromStdString(find->second));
+        m_disassembly_view->AddLine(m_ui->Label_NextInstr->text(),
+                                    m_ui->Label_Value_NextInstr->text());
         cache.pop();
     }
 }
@@ -216,7 +223,10 @@ void MainWindow::OnStep()
     auto find = m_disassembly.find(pc);
     if(find == m_disassembly.end())
         return;
-    m_disassembly_view->AddLine(pc, QString::fromStdString(find->second));
+    m_disassembly_view->AddLine(m_ui->Label_NextInstr->text(),
+                                m_ui->Label_Value_NextInstr->text());
+
+    m_ui->Label_Value_NextInstr->setText(QString::fromStdString(find->second));
     UpdateUI();
 }
 
