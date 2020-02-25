@@ -76,6 +76,9 @@ void MainWindow::UpdateUI()
     m_ui->Label_Value_N->setText(
         QString::fromStdString(ToHexString((bool)cpu->reg_status.N)));
 
+    m_ui->scrollArea->verticalScrollBar()->setSliderPosition(
+        m_disassembly_view->height());
+
     auto find = m_disassembly.find(cpu->reg_pc);
     if (find == m_disassembly.end())
         return;
