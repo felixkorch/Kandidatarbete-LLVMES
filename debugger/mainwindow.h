@@ -3,11 +3,14 @@
 
 #include <QFutureWatcher>
 #include <QMainWindow>
+#include <QVBoxLayout>
+
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
 #include "debugger.h"
+#include "disassemblyview.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -21,58 +24,29 @@ class MainWindow : public QMainWindow {
    public:
     MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
+
    private slots:
+    // These are events from the user e.g. "Click on Reset"
     void Reset();
     void Step();
     void Run();
     void RunBP();
-    void RunFinished();
+    void Stop();
     void Browse();
+
+    // These are responses on events from the debugger e.g. "When step is done, update the UI"
+    void UpdateUI();
+    void OnReset();
+    void OnRunStart();
+    void OnRunStop();
+    void OnStep();
 
    private:
     Ui::MainWindow* m_ui;
     std::shared_ptr<Debugger> m_debugger;
-    bool m_good_state;
-    std::string prev_instr, curr_instr;
+    llvmes::DisassemblyMap m_disassembly;
+    DisassemblyView* m_disassembly_view;
 
    private:
-    void DisplayRegisters();
-
-    template <typename T>
-    std::string ToHexString(T i)
-    {
-        std::stringstream stream;
-        stream << "$" << std::uppercase << std::setfill('0')
-               << std::setw(sizeof(T) * 2) << std::hex << (unsigned)i;
-        return stream.str();
-    }
-
-    std::string PrettyPrintPC()
-    {
-        std::shared_ptr<llvmes::CPU> cpu = m_debugger->GetCPU();
-        std::vector<char>& memory = m_debugger->GetMemory();
-
-        std::uint8_t opcode;
-        try {
-            opcode = memory.at(cpu->reg_pc);
-        }
-        catch (std::exception& e) {
-            e.what();
-        }
-
-        llvmes::Instruction instr = cpu->instruction_table[opcode];
-        std::stringstream stream;
-        stream << "$" << std::hex << cpu->reg_pc << ": " << instr.name;
-        return stream.str();
-    }
-
     static constexpr const char* TITLE = "LLVMES - Debugger";
 };
-
-template <>
-inline std::string MainWindow::ToHexString<bool>(bool i)
-{
-    std::stringstream stream;
-    stream << std::uppercase << std::setw(1) << std::hex << i;
-    return stream.str();
-}

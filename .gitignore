@@ -30,3 +30,7 @@ _deps
 .idea/
 cmake-build-debug/
 *.autosave
+
+.cmake/
+
+*.cbp
