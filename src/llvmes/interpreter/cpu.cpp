@@ -11,13 +11,13 @@ CPU::CPU()
       reg_sp(0xFD),
       reg_pc(0),
       reg_status(0x34),
-      instruction_table(0xFF),
+      m_instruction_table(0xFF),
       m_irq(false),
       m_nmi(false),
       m_illegal_opcode(false),
       m_address(0)
 {
-    for (auto& it : instruction_table)
+    for (auto& it : m_instruction_table)
         it = {&CPU::AddressModeImplied, &CPU::IllegalOP, "Illegal OP"};
 
     instruction_table[0xD0] = {&CPU::AddressModeImmediate, &CPU::OP_BNE, "BNE"};
