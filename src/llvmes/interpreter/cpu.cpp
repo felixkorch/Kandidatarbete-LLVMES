@@ -486,7 +486,7 @@ void CPU::Dump()
 
 void CPU::Reset()
 {
-    reg_pc = 0x0400;
+    reg_pc = Read16(RESET_VECTOR);
     reg_status = 0x34;
     reg_x = 0;
     reg_y = 0;
