@@ -2,6 +2,7 @@
 
 #include <bitset>
 #include <iostream>
+#include <map>
 
 namespace llvmes {
 CPU::CPU()
@@ -333,20 +334,20 @@ std::uint16_t CPU::Read16(std::uint16_t addr)
     return lowByte | (highByte << 8);
 }
 
-/// The operand is immediately following the op-code
+/// The operand immediately following the opcode
 void CPU::AddressModeImmediate()
 {
     m_address = reg_pc++;
 }
 
-/// The address to the operand is the 2 bytes succeeding the op-code
+/// The address to the operand is the 2 bytes succeeding the opcode
 void CPU::AddressModeAbsolute()
 {
     m_address = Read16(reg_pc);
     reg_pc += 2;
 }
 
-/// The address to the operand is the 2 bytes succeeding the op-code + value of
+/// The address to the operand is the 2 bytes succeeding the opcode + value of
 /// register X
 void CPU::AddressModeAbsoluteX()
 {
@@ -354,7 +355,7 @@ void CPU::AddressModeAbsoluteX()
     reg_pc += 2;
 }
 
-/// The address to the operand is the 2 bytes succeeding the op-code + value of
+/// The address to the operand is the 2 bytes succeeding the opcode + value of
 /// register Y
 void CPU::AddressModeAbsoluteY()
 {
@@ -362,15 +363,15 @@ void CPU::AddressModeAbsoluteY()
     reg_pc += 2;
 }
 
-/// The address to the operand is the byte succeeding the op-code extended to
+/// The address to the operand is the byte succeeding the opcode extended to
 /// 16bits
 void CPU::AddressModeZeropage()
 {
     m_address = Read(reg_pc++);
 }
 
-/// Zeropage X-Indexed
-/// The address to the operand is the byte succeeding the op-code + register X
+///-Indexed
+/// The address to the operand is the byte succeeding the opcode + register X
 /// If the address gets larger than 0x100(255) the address will wrap and gets
 /// back to 0
 void CPU::AddressModeZeropageX()
@@ -379,8 +380,8 @@ void CPU::AddressModeZeropageX()
     m_address = addr;
 }
 
-/// Zeropage Y-Indexed
-/// The address to the operand is the byte succeeding the op-code + register Y
+/// Y-Indexed
+/// The address to the operand is the byte succeeding the opcode + register Y
 /// If the address gets larger than 0x100(255) the address will wrap and gets
 /// back to 0
 void CPU::AddressModeZeropageY()
@@ -389,7 +390,7 @@ void CPU::AddressModeZeropageY()
     m_address = addr;
 }
 
-/// The two bytes that follow the op-code is an address which contains the
+/// The two bytes that follow the opcode is an address which contains the
 /// LS-Byte of the real target address. The other byte is located in "target
 /// address + 1". Due to an error in the original design, if the target address
 /// is located on a page-boundary, the last byte of the address will be on
@@ -405,7 +406,7 @@ void CPU::AddressModeIndirect()
 
 void CPU::AddressModeIndirectX()
 {
-    // This address is used to index the zeropage
+    // This address is used to index the
     std::uint8_t addr = ((Read(reg_pc++) + reg_x) % 0x100);
     std::uint8_t low = Read(addr);
     // Wrap if the address gets to 255
@@ -415,7 +416,7 @@ void CPU::AddressModeIndirectX()
 
 void CPU::AddressModeIndirectY()
 {
-    // This address is used to index the zeropage
+    // This address is used to index the
     std::uint8_t addr = ((Read(reg_pc++) + reg_y) % 0x100);
     std::uint8_t low = Read(addr);
     // Wrap if the address gets to 255
