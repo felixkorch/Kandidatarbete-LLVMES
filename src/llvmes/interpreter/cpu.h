@@ -10,11 +10,12 @@
 
 namespace llvmes {
 
+using DisassemblyMap = std::map<std::uint16_t, std::string>;
+typedef std::function<std::uint8_t(std::uint16_t)> BusRead;
+typedef std::function<void(std::uint16_t, std::uint8_t)> BusWrite;
+
 class CPU {
    public:
-    typedef std::function<std::uint8_t(std::uint16_t)> BusRead;
-    typedef std::function<void(std::uint16_t, std::uint8_t)> BusWrite;
-
     CPU();
     void Step();
     void Run();
