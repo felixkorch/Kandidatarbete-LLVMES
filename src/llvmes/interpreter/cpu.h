@@ -2,8 +2,11 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 
 #include "llvmes/interpreter/instruction.h"
 #include "llvmes/interpreter/status_register.h"
@@ -23,6 +26,7 @@ class CPU {
     void Dump();
     void SetNMI();
     void SetIRQ();
+    DisassemblyMap Disassemble(std::uint16_t start, std::uint16_t stop);
 
     BusRead Read;
     BusWrite Write;

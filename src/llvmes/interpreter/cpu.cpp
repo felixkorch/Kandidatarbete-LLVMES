@@ -958,4 +958,81 @@ void CPU::OP_CPY()
     reg_status.C = result < 0x0100;
 }
 
+DisassemblyMap CPU::Disassemble(std::uint16_t start, std::uint16_t stop)
+{
+    // Contains the final map
+    std::map<std::uint16_t, std::string> map;
+
+    // Local PC to step through the memory while disassembling
+    std::uint32_t pc = start;
+
+    // Contains the operand associated with an instruction
+    std::uint32_t operand;
+
+    while (pc <= (std::uint32_t)stop)
+    {
+        // The address to the instruction (opcode)
+        std::uint16_t instr_addr = pc;
+
+        // The dissasembly string for the instruction
+        std::string instr_string = "";
+
+        std::uint8_t opcode = Read(pc++);
+
+        instr_string += m_instruction_table[opcode].name + " ";
+
+        if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeImplied) {
+            instr_string += " [IMP]";
+        }
+        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeImmediate) {
+            operand = Read(pc++);
+            instr_string += "#" + ToHexString<std::uint8_t>(operand) + " [IMM]";
+        }
+        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeZeropage) {
+            operand = Read(pc++);
+            instr_string += ToHexString<std::uint8_t>(operand) + " [ZP]";
+        }
+        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeZeropageX) {
+            operand = Read(pc++);
+            instr_string += ToHexString<std::uint8_t>(operand) + ", X [ZPX]";
+        }
+        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeZeropageY) {
+            operand = Read(pc++);
+            instr_string += ToHexString<std::uint8_t>(operand) + ", Y [ZPY]";
+        }
+        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeIndirectX) {
+            operand = Read(pc++);
+            instr_string += "(" + ToHexString<std::uint8_t>(operand) + ", X) [IZX]";
+        }
+        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeIndirectY) {
+            operand = Read(pc++);
+            instr_string += "(" + ToHexString<std::uint8_t>(operand) + "), Y [IZY]";
+        }
+        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeAbsolute) {
+            operand = Read16(pc);
+            pc += 2;
+            instr_string += ToHexString<std::uint16_t>(operand) + " [ABS]";
+        }
+        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeAbsoluteX) {
+            operand = Read16(pc);
+            pc += 2;
+            instr_string += ToHexString<std::uint16_t>(operand) + ", X [ABX]";
+        }
+        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeAbsoluteY) {
+            operand = Read16(pc);
+            pc += 2;
+            instr_string += ToHexString<std::uint16_t>(operand) + ", Y [ABY]";
+        }
+        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeIndirect) {
+            operand = Read16(pc);
+            pc += 2;
+            instr_string += "(" + ToHexString<std::uint16_t>(operand) + ") [IND]";
+        }
+
+        map[instr_addr] = instr_string;
+    }
+
+    return map;
+}
+
 }  // namespace llvmes
