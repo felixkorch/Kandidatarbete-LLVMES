@@ -33,7 +33,6 @@ class CPU {
     std::uint8_t reg_sp;
     std::uint16_t reg_pc;
     StatusRegister reg_status;
-    std::vector<Instruction> instruction_table;
 
    private:
     constexpr static unsigned int FLAG_C = (1 << 0);
@@ -51,8 +50,8 @@ class CPU {
     constexpr static unsigned int IRQ_VECTOR = 0xFFFE;
 
    private:
+    std::vector<Instruction> m_instruction_table;
     bool m_irq, m_nmi;
-
     // Will be set to true whenever an illegal op-code gets fetched
     bool m_illegal_opcode;
     // Contains the address associated with an instruction
