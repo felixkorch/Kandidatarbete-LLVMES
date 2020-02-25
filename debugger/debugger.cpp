@@ -12,7 +12,7 @@ Debugger::Debugger(const std::string& path)
       m_running(false)
 {
     connect(&this->m_run_watcher, SIGNAL(finished()), this,
-            SLOT(RunFinished()));
+            SLOT(RunStop()));
 
     // Setup memory
     std::ifstream in{path, std::ios::binary};
@@ -29,74 +29,89 @@ Debugger::Debugger(const std::string& path)
     m_cpu->Reset();
 }
 
-bool Debugger::Step()
+void Debugger::Step()
 {
     if (m_running) {
         qCritical("Debugger: Cant step while CPU is running!");
-        return false;
+        return;
     }
     m_cpu->Step();
-    return true;
+    emit Signal_Step();
 }
 
-bool Debugger::Run(std::function<void()> callback)
+void Debugger::Run()
 {
     if (m_running) {
-        m_running = false;
-        return false;
+        qCritical("Debugger: Cant do this while CPU is running!");
+        return;
     }
 
-    m_callback = callback;
-
     m_running = true;
+    emit Signal_RunStart();
     qInfo("Debugger: CPU Started");
 
     auto future = QtConcurrent::run([this]() {
-        while (m_running) m_cpu->Step();
-        QThread::msleep(200);
+        while (m_running) {
+            m_cpu->Step();
+            AddToCache(m_cpu->reg_pc);
+        }
         qInfo("Debugger: CPU Stopped");
     });
 
     this->m_run_watcher.setFuture(future);
-    return true;
 }
 
-bool Debugger::RunWithBP(std::uint16_t addr, std::function<void()> callback)
+void Debugger::Stop()
+{
+    m_running = false;
+    emit Signal_RunStop();
+}
+
+void Debugger::RunWithBP(std::uint16_t addr)
 {
     if (m_running) {
-        qCritical("Debugger: CPU already running");
-        return false;
+        qCritical("Debugger: Cant do this while CPU is running!");
+        return;
     }
 
-    m_callback = callback;
+    m_running = true;
+    emit Signal_RunStart();
+    qInfo("Debugger: CPU Started");
 
     auto future = QtConcurrent::run([this, addr]() {
         std::uint16_t pc = m_cpu->reg_pc;
-        while (pc != addr) {
+        while (pc != addr && m_running) {
             pc = m_cpu->reg_pc;
             m_cpu->Step();
+            AddToCache(pc);
         }
-        QThread::msleep(200);
         qInfo("Debugger: Stopped at breakpoint");
+        Stop();
     });
 
     this->m_run_watcher.setFuture(future);
-    return true;
 }
 
-void Debugger::RunFinished()
+void Debugger::RunStop()
 {
-    m_callback();
+    emit Signal_RunStop();
 }
 
-bool Debugger::Reset()
+void Debugger::Reset()
 {
     if (m_running) {
         qCritical("Debugger: Can't do this while running");
-        return false;
+        return;
     }
     m_cpu->Reset();
     m_running = false;
     qInfo("Debugger: Reset");
-    return true;
+    emit Signal_Reset();
+}
+
+void Debugger::AddToCache(std::uint16_t addr)
+{
+    if(m_cache.size() == CACHE_SIZE)
+        m_cache.pop();
+    m_cache.push(addr);
 }
