@@ -6,9 +6,9 @@
 #include <iomanip>
 #include <map>
 #include <memory>
+#include <queue>
 #include <sstream>
 #include <string>
-#include <queue>
 
 class Debugger : public QObject {
     Q_OBJECT
@@ -22,16 +22,8 @@ class Debugger : public QObject {
     void RunWithBP(std::uint16_t addr);
     bool IsRunning() { return m_running; }
 
-    std::shared_ptr<llvmes::CPU> GetCPU()
-    {
-        return m_cpu;
-    }
-
-    std::vector<char>& GetMemory()
-    {
-        return m_memory;
-    }
-
+    std::shared_ptr<llvmes::CPU> GetCPU() { return m_cpu; }
+    std::vector<char>& GetMemory() { return m_memory; }
     std::queue<std::uint16_t>& GetCache() { return m_cache; }
 
    signals:

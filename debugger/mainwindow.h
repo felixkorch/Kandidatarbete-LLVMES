@@ -4,7 +4,6 @@
 #include <QFutureWatcher>
 #include <QMainWindow>
 #include <QVBoxLayout>
-
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -34,7 +33,8 @@ class MainWindow : public QMainWindow {
     void Stop();
     void Browse();
 
-    // These are responses on events from the debugger e.g. "When step is done, update the UI"
+    // These are responses on events from the debugger e.g.
+    // "When step is done, update the UI"
     void UpdateUI();
     void OnReset();
     void OnRunStart();

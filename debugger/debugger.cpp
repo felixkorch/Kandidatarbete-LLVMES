@@ -11,8 +11,7 @@ Debugger::Debugger(const std::string& path)
       m_memory(0x10000),
       m_running(false)
 {
-    connect(&this->m_run_watcher, SIGNAL(finished()), this,
-            SLOT(RunStop()));
+    connect(&this->m_run_watcher, SIGNAL(finished()), this, SLOT(RunStop()));
 
     // Setup memory
     std::ifstream in{path, std::ios::binary};
@@ -111,7 +110,7 @@ void Debugger::Reset()
 
 void Debugger::AddToCache(std::uint16_t addr)
 {
-    if(m_cache.size() == CACHE_SIZE)
+    if (m_cache.size() == CACHE_SIZE)
         m_cache.pop();
     m_cache.push(addr);
 }

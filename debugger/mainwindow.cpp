@@ -1,12 +1,13 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 
+#include <llvmes/interpreter/cpu.h>
+
+#include <QAbstractSlider>
 #include <QDir>
 #include <QFileDialog>
 #include <QIntValidator>
 #include <QMessageBox>
 #include <QMessageLogger>
-#include <QAbstractSlider>
 #include <QScrollBar>
 #include <QtConcurrent/QtConcurrent>
 #include <QtDebug>
@@ -16,7 +17,7 @@
 #include <sstream>
 #include <string>
 
-#include <llvmes/interpreter/cpu.h>
+#include "ui_mainwindow.h"
 
 using namespace llvmes;
 
@@ -56,8 +57,7 @@ void MainWindow::UpdateUI()
         QString::fromStdString(ToHexString(cpu->reg_y)));
     m_ui->Label_Value_RegSP->setText(
         QString::fromStdString(ToHexString(cpu->reg_sp)));
-    m_ui->Edit_PC->setText(
-        QString::fromStdString(ToHexString(cpu->reg_pc)));
+    m_ui->Edit_PC->setText(QString::fromStdString(ToHexString(cpu->reg_pc)));
 
     m_ui->Label_Value_C->setText(
         QString::fromStdString(ToHexString((bool)cpu->reg_status.C)));
@@ -75,7 +75,6 @@ void MainWindow::UpdateUI()
         QString::fromStdString(ToHexString((bool)cpu->reg_status.V)));
     m_ui->Label_Value_N->setText(
         QString::fromStdString(ToHexString((bool)cpu->reg_status.N)));
-
 }
 
 void MainWindow::Stop()
@@ -100,26 +99,25 @@ void MainWindow::Browse()
     m_ui->Label_Loaded->setStyleSheet("QLabel { color : green; }");
     m_ui->Label_Loaded->setText(QFileInfo(path).fileName());
 
-    connect(m_debugger.get(), &Debugger::Signal_Reset,
-            this, &MainWindow::OnReset);
-    connect(m_debugger.get(), &Debugger::Signal_RunStart,
-            this, &MainWindow::OnRunStart);
-    connect(m_debugger.get(), &Debugger::Signal_RunStop,
-            this, &MainWindow::OnRunStop);
-    connect(m_debugger.get(), &Debugger::Signal_Step,
-            this, &MainWindow::OnStep);
+    connect(m_debugger.get(), &Debugger::Signal_Reset, this,
+            &MainWindow::OnReset);
+    connect(m_debugger.get(), &Debugger::Signal_RunStart, this,
+            &MainWindow::OnRunStart);
+    connect(m_debugger.get(), &Debugger::Signal_RunStop, this,
+            &MainWindow::OnRunStop);
+    connect(m_debugger.get(), &Debugger::Signal_Step, this,
+            &MainWindow::OnStep);
 
     auto cpu = m_debugger->GetCPU();
     cpu->reg_pc = 0x0400;
     m_disassembly = cpu->Disassemble(0x0400, 0xFFFF);
 
     UpdateUI();
-
 }
 
 void MainWindow::Run()
 {
-    if(m_debugger->IsRunning())
+    if (m_debugger->IsRunning())
         return;
 
     m_debugger->Run();
@@ -127,7 +125,7 @@ void MainWindow::Run()
 
 void MainWindow::RunBP()
 {
-    if(m_debugger->IsRunning())
+    if (m_debugger->IsRunning())
         return;
 
     QString bp_string = m_ui->Edit_Breakpoint->text();
@@ -145,7 +143,7 @@ void MainWindow::RunBP()
 
 void MainWindow::Reset()
 {
-    if(m_debugger->IsRunning())
+    if (m_debugger->IsRunning())
         return;
 
     m_debugger->Reset();
@@ -153,14 +151,15 @@ void MainWindow::Reset()
 
 void MainWindow::Step()
 {
-    if(m_debugger->IsRunning())
+    if (m_debugger->IsRunning())
         return;
 
     int pc;
     try {
         std::string pc_string = m_ui->Edit_PC->text().toStdString();
         pc = HexStringToInt(pc_string);
-    } catch (std::exception& e) {
+    }
+    catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
         return;
     }
@@ -185,7 +184,8 @@ void MainWindow::OnRunStart()
     try {
         std::string pc_string = m_ui->Edit_PC->text().toStdString();
         pc = HexStringToInt(pc_string);
-    } catch (std::exception& e) {
+    }
+    catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
         return;
     }
@@ -198,11 +198,11 @@ void MainWindow::OnRunStop()
 
     auto& cache = m_debugger->GetCache();
 
-    while(cache.size() > 0) {
+    while (cache.size() > 0) {
         std::uint16_t addr = cache.front();
 
         auto find = m_disassembly.find(addr);
-        if(find == m_disassembly.end())
+        if (find == m_disassembly.end())
             continue;
 
         m_disassembly_view->AddLine(addr, QString::fromStdString(find->second));
@@ -214,7 +214,7 @@ void MainWindow::OnStep()
 {
     const std::uint16_t pc = m_debugger->GetCPU()->reg_pc;
     auto find = m_disassembly.find(pc);
-    if(find == m_disassembly.end())
+    if (find == m_disassembly.end())
         return;
     m_disassembly_view->AddLine(pc, QString::fromStdString(find->second));
     UpdateUI();
