@@ -467,7 +467,7 @@ void CPU::Step()
     std::uint8_t opcode = Read(reg_pc++);
 
     // Decode
-    Instruction& instr = instruction_table[opcode];
+    Instruction& instr = m_instruction_table[opcode];
 
     // TODO: This preprocessor statement might not work for everyone
 #ifndef NDEBUG
