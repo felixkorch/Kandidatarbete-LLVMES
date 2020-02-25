@@ -12,7 +12,7 @@ CPU::CPU()
       reg_sp(0xFD),
       reg_pc(0),
       reg_status(0x34),
-      m_instruction_table(0xFF),
+      m_instruction_table(0x100),
       m_irq(false),
       m_nmi(false),
       m_illegal_opcode(false),
