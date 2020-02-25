@@ -2,11 +2,11 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <iomanip>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <sstream>
-#include <iomanip>
 
 #include "llvmes/interpreter/instruction.h"
 #include "llvmes/interpreter/status_register.h"
@@ -166,16 +166,14 @@ inline std::string ToHexString<bool>(bool i)
 
 inline int HexStringToInt(const std::string& in)
 {
-    auto strip_zeroes = [](const std::string& s){
+    auto strip_zeroes = [](const std::string& s) {
         std::string temp = s;
-        while (temp.at(0) == '0')
-            temp = temp.substr(1);
+        while (temp.at(0) == '0') temp = temp.substr(1);
         return temp;
     };
 
     std::string out;
-    out = (in.at(0) == '$') ? strip_zeroes(in.substr(1))
-                            : strip_zeroes(in);
+    out = (in.at(0) == '$') ? strip_zeroes(in.substr(1)) : strip_zeroes(in);
     return std::stoi(out, 0, 16);
 }
 

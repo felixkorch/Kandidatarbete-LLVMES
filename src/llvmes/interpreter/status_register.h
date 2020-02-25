@@ -5,9 +5,7 @@ class StatusRegister {
         unsigned int &data;
 
        public:
-        constexpr Bit(unsigned int &data) : data(data)
-        {
-        }
+        constexpr Bit(unsigned int &data) : data(data) {}
 
         unsigned int &operator=(bool value)
         {
@@ -16,10 +14,7 @@ class StatusRegister {
             return data &= ~(1 << N);
         }
 
-        constexpr operator bool() const
-        {
-            return data & (1 << N);
-        }
+        constexpr operator bool() const { return data & (1 << N); }
     };
 
    public:
@@ -72,15 +67,9 @@ class StatusRegister {
     {
     }
 
-    constexpr operator unsigned int() const
-    {
-        return data;
-    }
+    constexpr operator unsigned int() const { return data; }
 
-    unsigned int &operator=(unsigned int newValue)
-    {
-        return data = newValue;
-    }
+    unsigned int &operator=(unsigned int newValue) { return data = newValue; }
 
     StatusRegister &operator=(StatusRegister &other)
     {
