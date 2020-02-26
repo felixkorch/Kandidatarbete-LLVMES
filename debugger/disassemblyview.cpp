@@ -15,13 +15,14 @@ DisassemblyView::DisassemblyView(QWidget* parent) : QWidget(parent)
     m_vbox->setAlignment(Qt::AlignTop);
 }
 
-void DisassemblyView::AddLine(std::uint16_t addr, const QString& disassembly)
+void DisassemblyView::AddLine(const QString& addr, const QString& disassembly)
 {
     QWidget* line = new QWidget;
     QHBoxLayout* hbox = new QHBoxLayout(line);
 
-    QLabel* address_label =
-        new QLabel(QString::fromStdString(ToHexString(addr)));
+
+    QLabel* address_label = new QLabel(addr);
+
     address_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     QLabel* disassembly_label = new QLabel(disassembly);
