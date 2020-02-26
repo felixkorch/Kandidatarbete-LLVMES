@@ -12,7 +12,7 @@ CPU::CPU()
       reg_sp(0xFD),
       reg_pc(0),
       reg_status(0x34),
-      m_instruction_table(0xFF),
+      m_instruction_table(0x100),
       m_irq(false),
       m_nmi(false),
       m_illegal_opcode(false),
@@ -21,154 +21,177 @@ CPU::CPU()
     for (auto& it : m_instruction_table)
         it = {&CPU::AddressModeImplied, &CPU::IllegalOP, "Illegal OP"};
 
-    m_instruction_table[0xD0] = {&CPU::AddressModeImmediate, &CPU::OP_BNE, "BNE"};
-    m_instruction_table[0xF0] = {&CPU::AddressModeImmediate, &CPU::OP_BEQ, "BEQ"};
-    m_instruction_table[0x30] = {&CPU::AddressModeImmediate, &CPU::OP_BMI, "BMI"};
-    m_instruction_table[0x90] = {&CPU::AddressModeImmediate, &CPU::OP_BCC, "BCC"};
-    m_instruction_table[0xB0] = {&CPU::AddressModeImmediate, &CPU::OP_BCS, "BCS"};
-    m_instruction_table[0x10] = {&CPU::AddressModeImmediate, &CPU::OP_BPL, "BPL"};
-    m_instruction_table[0x50] = {&CPU::AddressModeImmediate, &CPU::OP_BVC, "BVC"};
-    m_instruction_table[0x70] = {&CPU::AddressModeImmediate, &CPU::OP_BVS, "BVS"};
+    m_instruction_table[0xD0] = {&CPU::AddressModeImmediate, &CPU::OP_BNE,
+                                 "BNE"};
+    m_instruction_table[0xF0] = {&CPU::AddressModeImmediate, &CPU::OP_BEQ,
+                                 "BEQ"};
+    m_instruction_table[0x30] = {&CPU::AddressModeImmediate, &CPU::OP_BMI,
+                                 "BMI"};
+    m_instruction_table[0x90] = {&CPU::AddressModeImmediate, &CPU::OP_BCC,
+                                 "BCC"};
+    m_instruction_table[0xB0] = {&CPU::AddressModeImmediate, &CPU::OP_BCS,
+                                 "BCS"};
+    m_instruction_table[0x10] = {&CPU::AddressModeImmediate, &CPU::OP_BPL,
+                                 "BPL"};
+    m_instruction_table[0x50] = {&CPU::AddressModeImmediate, &CPU::OP_BVC,
+                                 "BVC"};
+    m_instruction_table[0x70] = {&CPU::AddressModeImmediate, &CPU::OP_BVS,
+                                 "BVS"};
 
     m_instruction_table[0xE8] = {&CPU::AddressModeImplied, &CPU::OP_INX, "INX"};
     m_instruction_table[0xC8] = {&CPU::AddressModeImplied, &CPU::OP_INY, "INY"};
     m_instruction_table[0x88] = {&CPU::AddressModeImplied, &CPU::OP_DEY, "DEY"};
     m_instruction_table[0xCA] = {&CPU::AddressModeImplied, &CPU::OP_DEX, "DEX"};
 
-    m_instruction_table[0xE6] = {&CPU::AddressModeZeropage, &CPU::OP_INC, "INC"};
-    m_instruction_table[0xF6] = {&CPU::AddressModeZeropageX, &CPU::OP_INC, "INC"};
-    m_instruction_table[0xEE] = {&CPU::AddressModeAbsolute, &CPU::OP_INC, "INC"};
-    m_instruction_table[0xFE] = {&CPU::AddressModeAbsoluteX, &CPU::OP_INC, "INC"};
+    m_instruction_table[0xE6] = {&CPU::AddressModeZeropage, &CPU::OP_INC,
+                                 "INC"};
+    m_instruction_table[0xF6] = {&CPU::AddressModeZeropageX, &CPU::OP_INC,
+                                 "INC"};
+    m_instruction_table[0xEE] = {&CPU::AddressModeAbsolute, &CPU::OP_INC,
+                                 "INC"};
+    m_instruction_table[0xFE] = {&CPU::AddressModeAbsoluteX, &CPU::OP_INC,
+                                 "INC"};
 
     m_instruction_table[0x4C] = {&CPU::AddressModeAbsolute, &CPU::OP_JMP,
-                              "JMP"};
+                                 "JMP"};
     m_instruction_table[0x6C] = {&CPU::AddressModeIndirect, &CPU::OP_JMP,
-                              "JMP"};
-    m_instruction_table[0x20] = {&CPU::AddressModeAbsolute, &CPU::OP_JSR, "JSR"};
+                                 "JMP"};
+    m_instruction_table[0x20] = {&CPU::AddressModeAbsolute, &CPU::OP_JSR,
+                                 "JSR"};
 
     m_instruction_table[0x24] = {&CPU::AddressModeZeropage, &CPU::OP_BIT,
-                              "BIT"};
+                                 "BIT"};
     m_instruction_table[0x2C] = {&CPU::AddressModeAbsolute, &CPU::OP_BIT,
-                              "BIT"};
+                                 "BIT"};
 
     m_instruction_table[0x00] = {&CPU::AddressModeImplied, &CPU::OP_BRK, "BRK"};
 
     m_instruction_table[0x69] = {&CPU::AddressModeImmediate, &CPU::OP_ADC,
-                              "ADC"};
+                                 "ADC"};
 
     m_instruction_table[0xC9] = {&CPU::AddressModeImmediate, &CPU::OP_CMP,
-                              "CMP"};
+                                 "CMP"};
     m_instruction_table[0xC5] = {&CPU::AddressModeZeropage, &CPU::OP_CMP,
-                              "CMP"};
+                                 "CMP"};
     m_instruction_table[0xD5] = {&CPU::AddressModeZeropageX, &CPU::OP_CMP,
-                              "CMP"};
+                                 "CMP"};
     m_instruction_table[0xCD] = {&CPU::AddressModeAbsolute, &CPU::OP_CMP,
-                              "CMP"};
+                                 "CMP"};
     m_instruction_table[0xDD] = {&CPU::AddressModeAbsoluteX, &CPU::OP_CMP,
-                              "CMP"};
+                                 "CMP"};
     m_instruction_table[0xD9] = {&CPU::AddressModeAbsoluteY, &CPU::OP_CMP,
-                              "CMP"};
+                                 "CMP"};
     m_instruction_table[0xC1] = {&CPU::AddressModeIndirectX, &CPU::OP_CMP,
-                              "CMP"};
+                                 "CMP"};
     m_instruction_table[0xD1] = {&CPU::AddressModeIndirectY, &CPU::OP_CMP,
-                              "CMP"};
+                                 "CMP"};
 
-    m_instruction_table[0xE0] = {&CPU::AddressModeImmediate, &CPU::OP_CPX, "CPX"};
-    m_instruction_table[0xE4] = {&CPU::AddressModeZeropage, &CPU::OP_CPX, "CPX"};
-    m_instruction_table[0xEC] = {&CPU::AddressModeAbsolute, &CPU::OP_CPX, "CPX"};
+    m_instruction_table[0xE0] = {&CPU::AddressModeImmediate, &CPU::OP_CPX,
+                                 "CPX"};
+    m_instruction_table[0xE4] = {&CPU::AddressModeZeropage, &CPU::OP_CPX,
+                                 "CPX"};
+    m_instruction_table[0xEC] = {&CPU::AddressModeAbsolute, &CPU::OP_CPX,
+                                 "CPX"};
 
-    m_instruction_table[0xC0] = {&CPU::AddressModeImmediate, &CPU::OP_CPY, "CPY"};
-    m_instruction_table[0xC4] = {&CPU::AddressModeZeropage, &CPU::OP_CPY, "CPY"};
-    m_instruction_table[0xCC] = {&CPU::AddressModeAbsolute, &CPU::OP_CPY, "CPY"};
+    m_instruction_table[0xC0] = {&CPU::AddressModeImmediate, &CPU::OP_CPY,
+                                 "CPY"};
+    m_instruction_table[0xC4] = {&CPU::AddressModeZeropage, &CPU::OP_CPY,
+                                 "CPY"};
+    m_instruction_table[0xCC] = {&CPU::AddressModeAbsolute, &CPU::OP_CPY,
+                                 "CPY"};
 
-    m_instruction_table[0xC6] = {&CPU::AddressModeZeropage, &CPU::OP_DEC, "DEC"};
-    m_instruction_table[0xD6] = {&CPU::AddressModeZeropageX, &CPU::OP_DEC, "DEC"};
-    m_instruction_table[0xCE] = {&CPU::AddressModeAbsolute, &CPU::OP_DEC, "DEC"};
-    m_instruction_table[0xDE] = {&CPU::AddressModeAbsoluteX, &CPU::OP_DEC, "DEC"};
+    m_instruction_table[0xC6] = {&CPU::AddressModeZeropage, &CPU::OP_DEC,
+                                 "DEC"};
+    m_instruction_table[0xD6] = {&CPU::AddressModeZeropageX, &CPU::OP_DEC,
+                                 "DEC"};
+    m_instruction_table[0xCE] = {&CPU::AddressModeAbsolute, &CPU::OP_DEC,
+                                 "DEC"};
+    m_instruction_table[0xDE] = {&CPU::AddressModeAbsoluteX, &CPU::OP_DEC,
+                                 "DEC"};
 
     m_instruction_table[0x49] = {&CPU::AddressModeImmediate, &CPU::OP_EOR,
-                              "EOR"};
+                                 "EOR"};
     m_instruction_table[0x45] = {&CPU::AddressModeZeropage, &CPU::OP_EOR,
-                              "EOR"};
+                                 "EOR"};
     m_instruction_table[0x55] = {&CPU::AddressModeZeropageX, &CPU::OP_EOR,
-                              "EOR"};
+                                 "EOR"};
     m_instruction_table[0x4D] = {&CPU::AddressModeAbsolute, &CPU::OP_EOR,
-                              "EOR"};
+                                 "EOR"};
     m_instruction_table[0x5D] = {&CPU::AddressModeAbsoluteX, &CPU::OP_EOR,
-                              "EOR"};
+                                 "EOR"};
     m_instruction_table[0x59] = {&CPU::AddressModeAbsoluteY, &CPU::OP_EOR,
-                              "EOR"};
+                                 "EOR"};
     m_instruction_table[0x41] = {&CPU::AddressModeIndirectX, &CPU::OP_EOR,
-                              "EOR"};
+                                 "EOR"};
     m_instruction_table[0x51] = {&CPU::AddressModeIndirectY, &CPU::OP_EOR,
-                              "EOR"};
+                                 "EOR"};
 
     m_instruction_table[0xA9] = {&CPU::AddressModeImmediate, &CPU::OP_LDA,
-                              "LDA"};
+                                 "LDA"};
     m_instruction_table[0xA5] = {&CPU::AddressModeZeropage, &CPU::OP_LDA,
-                              "LDA"};
+                                 "LDA"};
     m_instruction_table[0xB5] = {&CPU::AddressModeZeropageX, &CPU::OP_LDA,
-                              "LDA"};
+                                 "LDA"};
     m_instruction_table[0xA1] = {&CPU::AddressModeIndirectX, &CPU::OP_LDA,
-                              "LDA"};
+                                 "LDA"};
     m_instruction_table[0xB1] = {&CPU::AddressModeIndirectY, &CPU::OP_LDA,
-                              "LDA"};
+                                 "LDA"};
     m_instruction_table[0xAD] = {&CPU::AddressModeAbsolute, &CPU::OP_LDA,
-                              "LDA"};
+                                 "LDA"};
     m_instruction_table[0xBD] = {&CPU::AddressModeAbsoluteX, &CPU::OP_LDA,
-                              "LDA"};
+                                 "LDA"};
     m_instruction_table[0xB9] = {&CPU::AddressModeAbsoluteY, &CPU::OP_LDA,
-                              "LDA"};
+                                 "LDA"};
 
     m_instruction_table[0xA2] = {&CPU::AddressModeImmediate, &CPU::OP_LDX,
-                              "LDX"};
+                                 "LDX"};
     m_instruction_table[0xA6] = {&CPU::AddressModeZeropage, &CPU::OP_LDX,
-                              "LDX"};
+                                 "LDX"};
     m_instruction_table[0xB6] = {&CPU::AddressModeZeropageY, &CPU::OP_LDX,
-                              "LDX"};
+                                 "LDX"};
     m_instruction_table[0xAE] = {&CPU::AddressModeAbsolute, &CPU::OP_LDX,
-                              "LDX"};
+                                 "LDX"};
     m_instruction_table[0xBE] = {&CPU::AddressModeAbsoluteY, &CPU::OP_LDX,
-                              "LDX"};
+                                 "LDX"};
 
     m_instruction_table[0xA0] = {&CPU::AddressModeImmediate, &CPU::OP_LDY,
-                              "LDY"};
+                                 "LDY"};
     m_instruction_table[0xA4] = {&CPU::AddressModeZeropage, &CPU::OP_LDY,
-                              "LDY"};
+                                 "LDY"};
     m_instruction_table[0xB4] = {&CPU::AddressModeZeropageX, &CPU::OP_LDY,
-                              "LDY"};
+                                 "LDY"};
     m_instruction_table[0xAC] = {&CPU::AddressModeAbsolute, &CPU::OP_LDY,
-                              "LDY"};
+                                 "LDY"};
     m_instruction_table[0xBC] = {&CPU::AddressModeAbsoluteX, &CPU::OP_LDY,
-                              "LDY"};
+                                 "LDY"};
 
     m_instruction_table[0x4A] = {&CPU::AddressModeAccumulator, &CPU::OP_LSR_ACC,
-                              "LSR"};
+                                 "LSR"};
     m_instruction_table[0x46] = {&CPU::AddressModeZeropage, &CPU::OP_LSR,
-                              "LSR"};
+                                 "LSR"};
     m_instruction_table[0x56] = {&CPU::AddressModeZeropageX, &CPU::OP_LSR,
-                              "LSR"};
+                                 "LSR"};
     m_instruction_table[0x4E] = {&CPU::AddressModeAbsolute, &CPU::OP_LSR,
-                              "LSR"};
+                                 "LSR"};
     m_instruction_table[0x5E] = {&CPU::AddressModeAbsoluteX, &CPU::OP_LSR,
-                              "LSR"};
+                                 "LSR"};
 
     m_instruction_table[0x09] = {&CPU::AddressModeImmediate, &CPU::OP_ORA,
-                              "ORA"};
+                                 "ORA"};
     m_instruction_table[0x05] = {&CPU::AddressModeZeropage, &CPU::OP_ORA,
-                              "ORA"};
+                                 "ORA"};
     m_instruction_table[0x15] = {&CPU::AddressModeZeropageX, &CPU::OP_ORA,
-                              "ORA"};
+                                 "ORA"};
     m_instruction_table[0x0D] = {&CPU::AddressModeAbsolute, &CPU::OP_ORA,
-                              "ORA"};
+                                 "ORA"};
     m_instruction_table[0x1D] = {&CPU::AddressModeAbsoluteX, &CPU::OP_ORA,
-                              "ORA"};
+                                 "ORA"};
     m_instruction_table[0x19] = {&CPU::AddressModeAbsoluteY, &CPU::OP_ORA,
-                              "ORA"};
+                                 "ORA"};
     m_instruction_table[0x01] = {&CPU::AddressModeIndirectX, &CPU::OP_ORA,
-                              "ORA"};
+                                 "ORA"};
     m_instruction_table[0x11] = {&CPU::AddressModeIndirectY, &CPU::OP_ORA,
-                              "ORA"};
+                                 "ORA"};
 
     m_instruction_table[0x48] = {&CPU::AddressModeImplied, &CPU::OP_PHA, "PHA"};
     m_instruction_table[0x08] = {&CPU::AddressModeImplied, &CPU::OP_PHP, "PHP"};
@@ -176,46 +199,46 @@ CPU::CPU()
     m_instruction_table[0x28] = {&CPU::AddressModeImplied, &CPU::OP_PLP, "PLP"};
 
     m_instruction_table[0x2A] = {&CPU::AddressModeImplied, &CPU::OP_ROL_ACC,
-                              "ROL"};
+                                 "ROL"};
     m_instruction_table[0x26] = {&CPU::AddressModeZeropage, &CPU::OP_ROL,
-                              "ROL"};
+                                 "ROL"};
     m_instruction_table[0x36] = {&CPU::AddressModeZeropageX, &CPU::OP_ROL,
-                              "ROL"};
+                                 "ROL"};
     m_instruction_table[0x2E] = {&CPU::AddressModeAbsolute, &CPU::OP_ROL,
-                              "ROL"};
+                                 "ROL"};
     m_instruction_table[0x3E] = {&CPU::AddressModeAbsoluteX, &CPU::OP_ROL,
-                              "ROL"};
+                                 "ROL"};
 
     m_instruction_table[0x6A] = {&CPU::AddressModeImplied, &CPU::OP_ROR_ACC,
-                              "ROR"};
+                                 "ROR"};
     m_instruction_table[0x66] = {&CPU::AddressModeZeropage, &CPU::OP_ROR,
-                              "ROR"};
+                                 "ROR"};
     m_instruction_table[0x76] = {&CPU::AddressModeZeropageX, &CPU::OP_ROR,
-                              "ROR"};
+                                 "ROR"};
     m_instruction_table[0x6E] = {&CPU::AddressModeAbsolute, &CPU::OP_ROR,
-                              "ROR"};
+                                 "ROR"};
     m_instruction_table[0x7E] = {&CPU::AddressModeAbsoluteX, &CPU::OP_ROR,
-                              "ROR"};
+                                 "ROR"};
 
     m_instruction_table[0x40] = {&CPU::AddressModeImplied, &CPU::OP_RTI, "RTI"};
     m_instruction_table[0x60] = {&CPU::AddressModeImplied, &CPU::OP_RTS, "RTS"};
 
     m_instruction_table[0xE9] = {&CPU::AddressModeImmediate, &CPU::OP_SBC,
-                              "SBC"};
+                                 "SBC"};
     m_instruction_table[0xE5] = {&CPU::AddressModeZeropage, &CPU::OP_SBC,
-                              "SBC"};
+                                 "SBC"};
     m_instruction_table[0xF5] = {&CPU::AddressModeZeropageX, &CPU::OP_SBC,
-                              "SBC"};
+                                 "SBC"};
     m_instruction_table[0xED] = {&CPU::AddressModeAbsolute, &CPU::OP_SBC,
-                              "SBC"};
+                                 "SBC"};
     m_instruction_table[0xFD] = {&CPU::AddressModeAbsoluteX, &CPU::OP_SBC,
-                              "SBC"};
+                                 "SBC"};
     m_instruction_table[0xF9] = {&CPU::AddressModeAbsoluteY, &CPU::OP_SBC,
-                              "SBC"};
+                                 "SBC"};
     m_instruction_table[0xE1] = {&CPU::AddressModeIndirectX, &CPU::OP_SBC,
-                              "SBC"};
+                                 "SBC"};
     m_instruction_table[0xF1] = {&CPU::AddressModeIndirectY, &CPU::OP_SBC,
-                              "SBC"};
+                                 "SBC"};
 
     m_instruction_table[0x38] = {&CPU::AddressModeImplied, &CPU::OP_SEC, "SEC"};
     m_instruction_table[0xF8] = {&CPU::AddressModeImplied, &CPU::OP_SED, "SED"};
@@ -227,33 +250,33 @@ CPU::CPU()
     m_instruction_table[0xB8] = {&CPU::AddressModeImplied, &CPU::OP_CLV, "CLV"};
 
     m_instruction_table[0x85] = {&CPU::AddressModeZeropage, &CPU::OP_STA,
-                              "STA"};
+                                 "STA"};
     m_instruction_table[0x95] = {&CPU::AddressModeZeropageX, &CPU::OP_STA,
-                              "STA"};
+                                 "STA"};
     m_instruction_table[0x8D] = {&CPU::AddressModeAbsolute, &CPU::OP_STA,
-                              "STA"};
+                                 "STA"};
     m_instruction_table[0x9D] = {&CPU::AddressModeAbsoluteX, &CPU::OP_STA,
-                              "STA"};
+                                 "STA"};
     m_instruction_table[0x99] = {&CPU::AddressModeAbsoluteY, &CPU::OP_STA,
-                              "STA"};
+                                 "STA"};
     m_instruction_table[0x81] = {&CPU::AddressModeIndirectX, &CPU::OP_STA,
-                              "STA"};
+                                 "STA"};
     m_instruction_table[0x91] = {&CPU::AddressModeIndirectY, &CPU::OP_STA,
-                              "STA"};
+                                 "STA"};
 
     m_instruction_table[0x86] = {&CPU::AddressModeZeropage, &CPU::OP_STX,
-                              "STX"};
+                                 "STX"};
     m_instruction_table[0x96] = {&CPU::AddressModeZeropageY, &CPU::OP_STX,
-                              "STX"};
+                                 "STX"};
     m_instruction_table[0x8E] = {&CPU::AddressModeAbsolute, &CPU::OP_STX,
-                              "STX"};
+                                 "STX"};
 
     m_instruction_table[0x84] = {&CPU::AddressModeZeropage, &CPU::OP_STY,
-                              "STY"};
+                                 "STY"};
     m_instruction_table[0x94] = {&CPU::AddressModeZeropageX, &CPU::OP_STY,
-                              "STY"};
+                                 "STY"};
     m_instruction_table[0x8C] = {&CPU::AddressModeAbsolute, &CPU::OP_STY,
-                              "STY"};
+                                 "STY"};
 
     m_instruction_table[0xAA] = {&CPU::AddressModeImplied, &CPU::OP_TAX, "TAX"};
     m_instruction_table[0xA8] = {&CPU::AddressModeImplied, &CPU::OP_TAY, "TAY"};
@@ -263,47 +286,47 @@ CPU::CPU()
     m_instruction_table[0x98] = {&CPU::AddressModeImplied, &CPU::OP_TYA, "TYA"};
 
     m_instruction_table[0x29] = {&CPU::AddressModeImmediate, &CPU::OP_AND,
-                              "AND"};
+                                 "AND"};
     m_instruction_table[0x25] = {&CPU::AddressModeZeropage, &CPU::OP_AND,
-                              "AND"};
+                                 "AND"};
     m_instruction_table[0x35] = {&CPU::AddressModeZeropageX, &CPU::OP_AND,
-                              "AND"};
+                                 "AND"};
     m_instruction_table[0x2D] = {&CPU::AddressModeAbsolute, &CPU::OP_AND,
-                              "AND"};
+                                 "AND"};
     m_instruction_table[0x3D] = {&CPU::AddressModeAbsoluteX, &CPU::OP_AND,
-                              "AND"};
+                                 "AND"};
     m_instruction_table[0x39] = {&CPU::AddressModeAbsoluteY, &CPU::OP_AND,
-                              "AND"};
+                                 "AND"};
     m_instruction_table[0x21] = {&CPU::AddressModeIndirectX, &CPU::OP_AND,
-                              "AND"};
+                                 "AND"};
     m_instruction_table[0x31] = {&CPU::AddressModeIndirectY, &CPU::OP_AND,
-                              "AND"};
+                                 "AND"};
 
     m_instruction_table[0x0A] = {&CPU::AddressModeAccumulator, &CPU::OP_ASL_ACC,
-                              "ASL"};
+                                 "ASL"};
     m_instruction_table[0x06] = {&CPU::AddressModeZeropage, &CPU::OP_ASL,
-                              "ASL"};
+                                 "ASL"};
     m_instruction_table[0x16] = {&CPU::AddressModeZeropageX, &CPU::OP_ASL,
-                              "ASL"};
+                                 "ASL"};
     m_instruction_table[0x0E] = {&CPU::AddressModeAbsolute, &CPU::OP_ASL,
-                              "ASL"};
+                                 "ASL"};
     m_instruction_table[0x1E] = {&CPU::AddressModeAbsoluteX, &CPU::OP_ASL,
-                              "ASL"};
+                                 "ASL"};
 
     m_instruction_table[0x61] = {&CPU::AddressModeIndirectX, &CPU::OP_ADC,
-                              "ADC"};
+                                 "ADC"};
     m_instruction_table[0x71] = {&CPU::AddressModeIndirectY, &CPU::OP_ADC,
-                              "ADC"};
+                                 "ADC"};
     m_instruction_table[0x65] = {&CPU::AddressModeZeropage, &CPU::OP_ADC,
-                              "ADC"};
+                                 "ADC"};
     m_instruction_table[0x75] = {&CPU::AddressModeZeropageX, &CPU::OP_ADC,
-                              "ADC"};
+                                 "ADC"};
     m_instruction_table[0x6D] = {&CPU::AddressModeAbsolute, &CPU::OP_ADC,
-                              "ADC"};
+                                 "ADC"};
     m_instruction_table[0x7D] = {&CPU::AddressModeAbsoluteX, &CPU::OP_ADC,
-                              "ADC"};
+                                 "ADC"};
     m_instruction_table[0x79] = {&CPU::AddressModeAbsoluteY, &CPU::OP_ADC,
-                              "ADC"};
+                                 "ADC"};
 
     m_instruction_table[0xEA] = {&CPU::AddressModeImplied, &CPU::OP_NOP, "NOP"};
 }
@@ -471,7 +494,7 @@ void CPU::Step()
 
     // Execute
     (this->*instr.fetch_address)();  // Fetch the address (if necessary)
-    (this->*instr.op)();    // Execute the instruction
+    (this->*instr.op)();             // Execute the instruction
 }
 
 void CPU::Dump()
@@ -963,8 +986,7 @@ DisassemblyMap CPU::Disassemble(std::uint16_t start, std::uint16_t stop)
     // Contains the operand associated with an instruction
     std::uint32_t operand;
 
-    while (pc <= (std::uint32_t)stop)
-    {
+    while (pc <= (std::uint32_t)stop) {
         // The address to the instruction (opcode)
         std::uint16_t instr_addr = pc;
 
@@ -975,52 +997,66 @@ DisassemblyMap CPU::Disassemble(std::uint16_t start, std::uint16_t stop)
 
         instr_string += m_instruction_table[opcode].name + " ";
 
-        if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeImplied) {
+        if (m_instruction_table[opcode].fetch_address ==
+            &CPU::AddressModeImplied) {
             instr_string += " [IMP]";
         }
-        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeImmediate) {
+        else if (m_instruction_table[opcode].fetch_address ==
+                 &CPU::AddressModeImmediate) {
             operand = Read(pc++);
             instr_string += "#" + ToHexString<std::uint8_t>(operand) + " [IMM]";
         }
-        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeZeropage) {
+        else if (m_instruction_table[opcode].fetch_address ==
+                 &CPU::AddressModeZeropage) {
             operand = Read(pc++);
             instr_string += ToHexString<std::uint8_t>(operand) + " [ZP]";
         }
-        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeZeropageX) {
+        else if (m_instruction_table[opcode].fetch_address ==
+                 &CPU::AddressModeZeropageX) {
             operand = Read(pc++);
             instr_string += ToHexString<std::uint8_t>(operand) + ", X [ZPX]";
         }
-        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeZeropageY) {
+        else if (m_instruction_table[opcode].fetch_address ==
+                 &CPU::AddressModeZeropageY) {
             operand = Read(pc++);
             instr_string += ToHexString<std::uint8_t>(operand) + ", Y [ZPY]";
         }
-        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeIndirectX) {
+        else if (m_instruction_table[opcode].fetch_address ==
+                 &CPU::AddressModeIndirectX) {
             operand = Read(pc++);
-            instr_string += "(" + ToHexString<std::uint8_t>(operand) + ", X) [IZX]";
+            instr_string +=
+                "(" + ToHexString<std::uint8_t>(operand) + ", X) [IZX]";
         }
-        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeIndirectY) {
+        else if (m_instruction_table[opcode].fetch_address ==
+                 &CPU::AddressModeIndirectY) {
             operand = Read(pc++);
-            instr_string += "(" + ToHexString<std::uint8_t>(operand) + "), Y [IZY]";
+            instr_string +=
+                "(" + ToHexString<std::uint8_t>(operand) + "), Y [IZY]";
         }
-        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeAbsolute) {
+        else if (m_instruction_table[opcode].fetch_address ==
+                 &CPU::AddressModeAbsolute) {
             operand = Read16(pc);
             pc += 2;
             instr_string += ToHexString<std::uint16_t>(operand) + " [ABS]";
         }
-        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeAbsoluteX) {
+        else if (m_instruction_table[opcode].fetch_address ==
+                 &CPU::AddressModeAbsoluteX) {
             operand = Read16(pc);
             pc += 2;
             instr_string += ToHexString<std::uint16_t>(operand) + ", X [ABX]";
         }
-        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeAbsoluteY) {
+        else if (m_instruction_table[opcode].fetch_address ==
+                 &CPU::AddressModeAbsoluteY) {
             operand = Read16(pc);
             pc += 2;
             instr_string += ToHexString<std::uint16_t>(operand) + ", Y [ABY]";
         }
-        else if (m_instruction_table[opcode].fetch_address == &CPU::AddressModeIndirect) {
+        else if (m_instruction_table[opcode].fetch_address ==
+                 &CPU::AddressModeIndirect) {
             operand = Read16(pc);
             pc += 2;
-            instr_string += "(" + ToHexString<std::uint16_t>(operand) + ") [IND]";
+            instr_string +=
+                "(" + ToHexString<std::uint16_t>(operand) + ") [IND]";
         }
 
         map[instr_addr] = instr_string;
