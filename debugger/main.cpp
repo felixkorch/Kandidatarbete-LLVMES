@@ -4,7 +4,10 @@
 #include <QApplication>
 
 #include "mainwindow.h"
+
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 int main(int argc, char *argv[])
 {
