@@ -215,8 +215,10 @@ void MainWindow::OnRunStop()
         if (find == m_disassembly.end())
             continue;
 
-        m_disassembly_view->AddLine(m_ui->Label_NextInstr->text(),
-                                    m_ui->Label_Value_NextInstr->text());
+        m_disassembly_view->AddLine(
+            QString::fromStdString(ToHexString(find->first)),
+            QString::fromStdString(find->second));
+
         cache.pop();
     }
 }
