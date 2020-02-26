@@ -581,8 +581,8 @@ void CPU::OP_INX()
 void CPU::OP_INY()
 {
     reg_y++;
-    reg_status.Z = reg_x == 0;
-    reg_status.N = reg_x & 0x80;
+    reg_status.Z = reg_y == 0;
+    reg_status.N = reg_y & 0x80;
 }
 
 void CPU::OP_DEY()
