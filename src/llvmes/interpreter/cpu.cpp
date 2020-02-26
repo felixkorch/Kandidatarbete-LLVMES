@@ -853,9 +853,9 @@ void CPU::OP_ROL_ACC()
 void CPU::OP_ROR_ACC()
 {
     std::uint32_t operand = reg_a;
-    operand >>= 1;
     operand = reg_status.C ? operand | 0x0100 : operand & ~0x0100;
     reg_status.C = operand & 1;
+    operand >>= 1;
     reg_status.Z = (operand & 0xFF) == 0;
     reg_status.N = (operand & 0xFF) & 0x80;
     reg_a = operand & 0xFF;
@@ -865,8 +865,8 @@ void CPU::OP_ROR()
 {
     std::uint32_t operand = Read(m_address);
     operand = reg_status.C ? operand | 0x0100 : operand & ~0x0100;
-    operand >>= 1;
     reg_status.C = operand & 1;
+    operand >>= 1;
     reg_status.Z = (operand & 0xFF) == 0;
     reg_status.N = (operand & 0xFF) & 0x80;
     Write(m_address, operand & 0xFF);
