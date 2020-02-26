@@ -440,10 +440,10 @@ void CPU::AddressModeIndirectX()
 void CPU::AddressModeIndirectY()
 {
     // This address is used to index the
-    std::uint8_t addr = ((Read(reg_pc++) + reg_y) % 0x100);
-    std::uint8_t low = Read(addr);
+    std::uint8_t base = (Read(reg_pc++));
+    std::uint8_t low = Read(base);
     // Wrap if the address gets to 255
-    std::uint8_t high = Read(addr + 1) % 0x100;
+    std::uint8_t high = Read(base + 1);
     // Add the contents of Y to get the final address
     m_address = (low | (high << 8)) + reg_y;
 }
