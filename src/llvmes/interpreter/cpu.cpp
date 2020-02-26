@@ -198,7 +198,7 @@ CPU::CPU()
     m_instruction_table[0x68] = {&CPU::AddressModeImplied, &CPU::OP_PLA, "PLA"};
     m_instruction_table[0x28] = {&CPU::AddressModeImplied, &CPU::OP_PLP, "PLP"};
 
-    m_instruction_table[0x2A] = {&CPU::AddressModeImplied, &CPU::OP_ROL_ACC,
+    m_instruction_table[0x2A] = {&CPU::AddressModeAccumulator, &CPU::OP_ROL_ACC,
                                  "ROL"};
     m_instruction_table[0x26] = {&CPU::AddressModeZeropage, &CPU::OP_ROL,
                                  "ROL"};
@@ -209,7 +209,7 @@ CPU::CPU()
     m_instruction_table[0x3E] = {&CPU::AddressModeAbsoluteX, &CPU::OP_ROL,
                                  "ROL"};
 
-    m_instruction_table[0x6A] = {&CPU::AddressModeImplied, &CPU::OP_ROR_ACC,
+    m_instruction_table[0x6A] = {&CPU::AddressModeAccumulator, &CPU::OP_ROR_ACC,
                                  "ROR"};
     m_instruction_table[0x66] = {&CPU::AddressModeZeropage, &CPU::OP_ROR,
                                  "ROR"};
