@@ -33,3 +33,8 @@ target_include_directories(Debugger PUBLIC
 target_link_libraries(Debugger
         llvmes
         Qt5::Widgets)
+
+if(WIN32)
+    set_target_properties(Debugger PROPERTIES 
+        LINK_FLAGS "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS")
+endif()
