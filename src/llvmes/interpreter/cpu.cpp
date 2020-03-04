@@ -198,7 +198,7 @@ CPU::CPU()
     m_instruction_table[0x68] = {&CPU::AddressModeImplied, &CPU::OP_PLA, "PLA"};
     m_instruction_table[0x28] = {&CPU::AddressModeImplied, &CPU::OP_PLP, "PLP"};
 
-    m_instruction_table[0x2A] = {&CPU::AddressModeImplied, &CPU::OP_ROL_ACC,
+    m_instruction_table[0x2A] = {&CPU::AddressModeAccumulator, &CPU::OP_ROL_ACC,
                                  "ROL"};
     m_instruction_table[0x26] = {&CPU::AddressModeZeropage, &CPU::OP_ROL,
                                  "ROL"};
@@ -209,7 +209,7 @@ CPU::CPU()
     m_instruction_table[0x3E] = {&CPU::AddressModeAbsoluteX, &CPU::OP_ROL,
                                  "ROL"};
 
-    m_instruction_table[0x6A] = {&CPU::AddressModeImplied, &CPU::OP_ROR_ACC,
+    m_instruction_table[0x6A] = {&CPU::AddressModeAccumulator, &CPU::OP_ROR_ACC,
                                  "ROR"};
     m_instruction_table[0x66] = {&CPU::AddressModeZeropage, &CPU::OP_ROR,
                                  "ROR"};
@@ -430,20 +430,20 @@ void CPU::AddressModeIndirect()
 void CPU::AddressModeIndirectX()
 {
     // This address is used to index the
-    std::uint8_t addr = ((Read(reg_pc++) + reg_x) % 0x100);
-    std::uint8_t low = Read(addr);
+    std::uint8_t base = (Read(reg_pc++) + reg_x);
+    std::uint8_t low = Read(base);
     // Wrap if the address gets to 255
-    std::uint8_t high = Read(addr + 1) % 0x100;
+    std::uint8_t high = Read(base + 1);
     m_address = low | (high << 8);
 }
 
 void CPU::AddressModeIndirectY()
 {
     // This address is used to index the
-    std::uint8_t addr = ((Read(reg_pc++) + reg_y) % 0x100);
-    std::uint8_t low = Read(addr);
+    std::uint8_t base = (Read(reg_pc++));
+    std::uint8_t low = Read(base);
     // Wrap if the address gets to 255
-    std::uint8_t high = Read(addr + 1) % 0x100;
+    std::uint8_t high = Read(base + 1);
     // Add the contents of Y to get the final address
     m_address = (low | (high << 8)) + reg_y;
 }
@@ -581,8 +581,8 @@ void CPU::OP_INX()
 void CPU::OP_INY()
 {
     reg_y++;
-    reg_status.Z = reg_x == 0;
-    reg_status.N = reg_x & 0x80;
+    reg_status.Z = reg_y == 0;
+    reg_status.N = reg_y & 0x80;
 }
 
 void CPU::OP_DEY()
@@ -835,9 +835,9 @@ void CPU::OP_ROL()
     operand <<= 1;
     operand = reg_status.C ? operand | 1 : operand & ~1;
     reg_status.C = operand & 0x0100;
-    Write(m_address, operand & 0xFF);
     reg_status.Z = (operand & 0xFF) == 0;
     reg_status.N = (operand & 0xFF) & 0x80;
+    Write(m_address, operand & 0xFF);
 }
 
 void CPU::OP_ROL_ACC()
@@ -846,9 +846,9 @@ void CPU::OP_ROL_ACC()
     operand <<= 1;
     operand = reg_status.C ? operand | 1 : operand & ~1;
     reg_status.C = operand & 0x0100;
-    Write(m_address, operand & 0xFF);
     reg_status.Z = (operand & 0xFF) == 0;
     reg_status.N = (operand & 0xFF) & 0x80;
+    reg_a = operand & 0xFF;
 }
 void CPU::OP_ROR_ACC()
 {
@@ -856,9 +856,9 @@ void CPU::OP_ROR_ACC()
     operand = reg_status.C ? operand | 0x0100 : operand & ~0x0100;
     reg_status.C = operand & 1;
     operand >>= 1;
-    Write(m_address, operand & 0xFF);
     reg_status.Z = (operand & 0xFF) == 0;
     reg_status.N = (operand & 0xFF) & 0x80;
+    reg_a = operand & 0xFF;
 }
 
 void CPU::OP_ROR()
@@ -867,9 +867,9 @@ void CPU::OP_ROR()
     operand = reg_status.C ? operand | 0x0100 : operand & ~0x0100;
     reg_status.C = operand & 1;
     operand >>= 1;
-    Write(m_address, operand & 0xFF);
     reg_status.Z = (operand & 0xFF) == 0;
     reg_status.N = (operand & 0xFF) & 0x80;
+    Write(m_address, operand & 0xFF);
 }
 
 void CPU::OP_RTI()
