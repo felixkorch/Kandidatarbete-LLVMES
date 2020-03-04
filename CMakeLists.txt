@@ -1,5 +1,9 @@
-﻿project ("llvmes")
-set (CMAKE_CXX_STANDARD 14)
+﻿if (POLICY CMP0048)
+cmake_policy(SET CMP0048 NEW)
+endif (POLICY CMP0048)
+
+project (llvmes)
+set (CMAKE_CXX_STANDARD 11)
 cmake_minimum_required (VERSION 3.8)
 
 
@@ -18,10 +22,10 @@ if(VERBOSE)
 endif()
 
 set(SOURCE
-        src/llvmes/nes/rom.cpp
-        src/llvmes/interpreter/cpu.cpp
-        src/llvmes/interpreter/cpu.h
-        )
+    src/llvmes/nes/rom.cpp
+    src/llvmes/interpreter/cpu.cpp
+    src/llvmes/interpreter/cpu.h
+)
 
 add_library (${PROJECT_NAME} ${SOURCE})
 target_include_directories(${PROJECT_NAME} PUBLIC
