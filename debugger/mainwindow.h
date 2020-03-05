@@ -46,6 +46,7 @@ class MainWindow : public QMainWindow {
     std::shared_ptr<Debugger> m_debugger;
     llvmes::DisassemblyMap m_disassembly;
     DisassemblyView* m_disassembly_view;
+    bool m_program_loaded;
 
    private:
     static constexpr const char* TITLE = "LLVMES - Debugger";

@@ -24,7 +24,8 @@ using namespace llvmes;
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
       m_ui(new Ui::MainWindow),
-      m_disassembly_view(new DisassemblyView)
+      m_disassembly_view(new DisassemblyView),
+      m_program_loaded(false)
 {
     m_ui->setupUi(this);
     connect(m_ui->Button_Reset, SIGNAL(released()), this, SLOT(Reset()));
@@ -89,6 +90,8 @@ void MainWindow::UpdateUI()
 
 void MainWindow::Stop()
 {
+    if(!m_program_loaded)
+        return;
     m_debugger->Stop();
 }
 
@@ -104,6 +107,7 @@ void MainWindow::Browse()
     }
     catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
+        return;
     }
 
     m_ui->Label_Loaded->setStyleSheet("QLabel { color : green; }");
@@ -118,6 +122,7 @@ void MainWindow::Browse()
     connect(m_debugger.get(), &Debugger::Signal_Step, this,
             &MainWindow::OnStep);
 
+    m_program_loaded = true;
     auto cpu = m_debugger->GetCPU();
     cpu->reg_pc = 0x0400;
     m_disassembly = cpu->Disassemble(0x0400, 0xFFFF);
@@ -127,6 +132,9 @@ void MainWindow::Browse()
 
 void MainWindow::Run()
 {
+    if(!m_program_loaded)
+        return;
+
     if (m_debugger->IsRunning())
         return;
 
@@ -135,6 +143,9 @@ void MainWindow::Run()
 
 void MainWindow::RunBP()
 {
+    if(!m_program_loaded)
+        return;
+
     if (m_debugger->IsRunning())
         return;
 
@@ -153,6 +164,9 @@ void MainWindow::RunBP()
 
 void MainWindow::Reset()
 {
+    if(!m_program_loaded)
+        return;
+
     if (m_debugger->IsRunning())
         return;
 
@@ -161,6 +175,9 @@ void MainWindow::Reset()
 
 void MainWindow::Step()
 {
+    if(!m_program_loaded)
+        return;
+
     if (m_debugger->IsRunning())
         return;
 
