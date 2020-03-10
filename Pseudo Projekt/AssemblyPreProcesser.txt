@@ -1,0 +1,36 @@
+
+var assembly;
+var lexedassembly;
+var parsedassembly;
+
+
+static var processAssembly(){
+
+ loadAssembly();
+ lexingAssebmly();
+ parsingAssembly();
+
+ return parsedassembly;
+}
+
+
+
+
+loadAssembly(){
+
+assembly = load in 6520 Assembly from file
+
+} 
+
+lexingAssembly(){
+
+lexedassembly = do whatever necessary to lex assembly
+
+}
+
+parsingAssembly(){
+
+parsedassembly = do whatever necessary to parse lexedassembly
+
+}
+

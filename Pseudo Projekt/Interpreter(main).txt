@@ -1,0 +1,57 @@
+include AssemblyPreProcesser;
+include Frontend;
+
+
+main(){
+
+var preprocessedassembly = AssemblyPreProcesser.processAssembly();
+stepThroughBlocks(preprocessedassembly);
+
+
+}
+
+
+
+stepThroughBlocks(var preprocessedassembly ){
+	
+1: does preprocessedassembly contain block? continue:break
+
+2: should we recompile this block? Frontend.compile(block):continue
+
+3: stepThroughOneBlock(block);
+	
+4: goto 1
+
+}
+
+
+stepThroughOneBlock(var block){
+
+1: does block contain instruction?continue:break
+
+2: executeInstruction(instruction);
+
+3: goto 1 
+
+}
+
+
+executeInstruction(var instruction){
+
+execute the specific instruction from INSTRUCTIONLIST
+
+}
+
+
+INSTRUCTIONLIST
+
+
+
+
+
+
+
+
+
+
+

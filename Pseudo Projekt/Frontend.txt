@@ -1,0 +1,50 @@
+include LLVM;
+
+
+var compiledblocks;
+
+static compile(var block){
+
+have we compiled this block already? executePrecompiled(block):compileBlock(block);
+
+}
+
+
+executePrecompiled(var block){
+
+run the compiled version of the block;
+
+}
+
+
+compileBlock(var block){
+
+store a reference pointer of stepThroughOneLLVMBlock(block) in compiledblocks;
+//this compiles the block?
+
+}
+
+stepThroughOneLLVMBlock(var block){
+
+1: does block contain instruction?continue:break
+
+2: executeLLVMInstruction(instruction);
+
+3: goto 1
+
+
+}
+
+executeLLVMInstruction(var instruction){
+
+execute the specific instruction from LLVMINSTRUCTIONLIST
+
+}
+
+
+
+
+
+LLVMINSTRUCTIONLIST
+
+
