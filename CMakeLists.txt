@@ -25,6 +25,8 @@ set(SOURCE
     src/llvmes/nes/rom.cpp
     src/llvmes/interpreter/cpu.cpp
     src/llvmes/interpreter/cpu.h
+    src/llvmes/disassembler.h
+    src/llvmes/6502_opcode.h
 )
 
 add_library (${PROJECT_NAME} ${SOURCE})
@@ -53,4 +55,7 @@ endif()
 
 add_subdirectory ("test")
 add_subdirectory ("playground")
+
+if(LLVMES_BUILD_DEBUGGER)
 add_subdirectory("debugger")
+endif()
