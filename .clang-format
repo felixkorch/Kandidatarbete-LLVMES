@@ -4,3 +4,6 @@ IndentWidth : 4
 BreakBeforeBraces : Stroustrup
 AllowShortFunctionsOnASingleLine : InlineOnly
 AllowShortIfStatementsOnASingleLine : Never
+AllowShortLoopsOnASingleLine: false
+DerivePointerAlignment: false
+PointerAlignment: Left
