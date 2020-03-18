@@ -1,54 +1,19 @@
 #pragma once
-#include <vector>
-#include <unordered_map>
-#include <map>
-#include <iostream>
-#include <sstream>
+
 #include <iomanip>
+#include <iostream>
+#include <map>
 #include <queue>
+#include <sstream>
+#include <unordered_map>
+#include <vector>
 
-#include "6502_opcode.h"
+#include "llvmes/6502_opcode.h"
+#include "llvmes/common.h"
 
-template<typename T>
-using Scope = std::unique_ptr<T>;
-template<typename T, typename ... Args>
-constexpr Scope<T> CreateScope(Args&& ... args)
-{
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
+namespace llvmes {
 
-template <typename T>
-inline std::string ToHexString(T i)
-{
-    std::stringstream stream;
-    stream << "$" << std::uppercase << std::setfill('0')
-           << std::setw(sizeof(T) * 2) << std::hex << (unsigned)i;
-    return stream.str();
-}
-
-template <>
-inline std::string ToHexString<bool>(bool i)
-{
-    std::stringstream stream;
-    stream << std::uppercase << std::setw(1) << std::hex << i;
-    return stream.str();
-}
-
-inline int HexStringToInt(const std::string& in)
-{
-    auto strip_zeroes = [](std::string temp) {
-        while (temp.at(0) == '0') temp = temp.substr(1);
-        return std::move(temp);
-    };
-
-    std::string out;
-    out = (in.at(0) == '$') ? strip_zeroes(in.substr(1)) : strip_zeroes(in);
-    return std::stoi(out, 0, 16);
-}
-
-enum class StatementType {
-    DataWord, DataByte, Instruction, Label
-};
+enum class StatementType { DataWord, DataByte, Instruction, Label };
 
 enum class InstructionType {
     ImmediateInstruction,
@@ -62,8 +27,6 @@ enum class InstructionType {
     IndirectInstruction
 };
 
-using namespace llvmes;
-
 struct Statement {
     virtual StatementType GetType() = 0;
     virtual void Print() = 0;
@@ -72,115 +35,112 @@ struct Statement {
 };
 
 struct DataWord : public Statement {
-    uint16_t index = 0;
+    uint16_t offset = 0;
     uint16_t word = 0;
 
-    DataWord(std::initializer_list<uint8_t> l)
-    : word((*l.begin() << 8) | (*l.begin() + 1)) {}
+    constexpr DataWord(uint8_t a1, uint8_t a2) : word((a1 << 8) | a2) {}
 
-    DataWord(uint8_t a1, uint8_t a2)
-    : word((a1 << 8) | a2)
-    {}
+    explicit constexpr DataWord(uint16_t word) : word(word) {}
 
     StatementType GetType() override { return StatementType::DataWord; }
+
     void Print() override
     {
-        std::cout << ".dw " << ToHexString(word) << std::endl;
+        std::cout << "[" << offset << "]: "
+                  << ".dw " << ToHexString(word) << std::endl;
     }
 
-    int GetIndex() override
-    {
-        return index;
-    }
+    int GetIndex() override { return offset; }
+
+    friend std::ostream& operator<<(std::ostream& os, const DataWord& dw);
 };
 
+std::ostream& operator<<(std::ostream& os, const DataWord& dw)
+{
+    os << ToHexString(dw.word);
+    return os;
+}
+
 struct DataByte : public Statement {
-    uint16_t index = 0;
+    uint16_t offset = 0;
     uint8_t byte = 0;
 
-    DataByte(uint8_t a)
-    : byte(a) {}
-
-    DataByte(std::initializer_list<uint8_t> l)
-        : byte(*l.begin()) {}
+    explicit constexpr DataByte(uint8_t a) : byte(a) {}
 
     StatementType GetType() override { return StatementType::DataByte; }
 
     void Print() override
     {
-        std::cout << "[" << index << "]: " << ".db " << ToHexString(byte) << std::endl;
+        std::cout << "[" << offset << "]: "
+                  << ".db " << ToHexString(byte) << std::endl;
     }
 
-    int GetIndex() override
-    {
-        return index;
-    }
+    int GetIndex() override { return offset; }
+
+    friend std::ostream& operator<<(std::ostream& os, const DataByte& db);
 };
 
+std::ostream& operator<<(std::ostream& os, const DataByte& db)
+{
+    os << ToHexString(db.byte);
+    return os;
+}
+
 struct Instruction : public Statement {
-    int size;
-    int index;
+    int size = 0;
+    int offset = 0;
     std::string name;
-    AdressingMode addressing_mode;
-    Op op_type;
-    uint8_t opcode;
-    uint8_t arg[2];
+    MOS6502::AddressingMode addressing_mode = {};
+    MOS6502::Op op_type = {};
+    uint8_t opcode = 0xFF;
+    uint8_t arg[2] = {0};
 
     StatementType GetType() override { return StatementType::Instruction; }
 
     void Print() override
     {
-        std::cout << "[" << index << "]: " << ToHexString(opcode) << std::endl;
+        std::cout << "[" << offset << "]: " << ToHexString(opcode) << std::endl;
     }
 
-    int GetIndex() override
-    {
-        return index;
-    }
+    int GetIndex() override { return offset; }
 };
 
 struct Label : public Statement {
     std::string name;
-    uint16_t index = 0;
+    uint16_t offset = 0;
 
-    Label(const std::string& name)
-    : name(name) {}
+    Label(const std::string& name) : name(name) {}
 
     StatementType GetType() override { return StatementType::Label; }
 
-    void Print() override
-    {
-        std::cout << name << ":" << std::endl;
-    }
+    void Print() override { std::cout << name << ":" << std::endl; }
 
-    int GetIndex() override
-    {
-        return index;
-    }
+    int GetIndex() override { return offset; }
 };
 
 class Disassembler {
-    static constexpr uint16_t start_index = 0x0000;
     using AST_Iterator = std::list<Scope<Statement>>::iterator;
     using AST = std::list<Scope<Statement>>;
 
-    int index = start_index;
+    int index = 0x0000; // Right now program must start at address 0
     std::vector<uint8_t> data;
     AST ast;
     AST_Iterator ast_it;
     std::queue<AST_Iterator> branches;
-public:
-    Disassembler(std::vector<uint8_t>&& data)
-        : data(data)
-    {}
+
+   public:
+    Disassembler(std::vector<uint8_t>&& data) : data(data) {}
 
     AST_Iterator FindStmtByIndex(uint16_t index)
     {
         auto stmt = std::find_if(ast.begin(), ast.end(),
-                [index](const Scope<Statement>& stmt){ return stmt->GetIndex() == index; });
+                                 [index](const Scope<Statement>& stmt) {
+                                     return stmt->GetIndex() == index;
+                                 });
 
-        if(stmt == ast.end())
-            std::cout << "Statement at index " << index << " doesn't exist" << std::endl;
+        if (stmt == ast.end())
+            std::cout << "Statement at offset " << index << " doesn't exist"
+                      << std::endl;
 
         return stmt;
     }
@@ -189,32 +149,33 @@ public:
     {
         auto stmt = FindStmtByIndex(index);
         Scope<Label> lbl = CreateScope<Label>(name);
-        lbl->index = index;
+        lbl->offset = index;
         ast.insert(stmt, std::move(lbl));
         return stmt;
     }
 
-
-    void FillBranchWithInstructions(AST_Iterator it)
+    void ReplaceWithInstruction(AST_Iterator it)
     {
+        while (it != ast.end()) {
+            // Already an instruction, mark the branch as complete
+            if ((*it)->GetType() == StatementType::Instruction)
+                break;
+            // Don't replace labels
+            else if ((*it)->GetType() == StatementType::Label)
+                it = std::next(it);
 
-        while(it != ast.end()) {
-
-            if((*it)->GetType() == StatementType::Instruction) {
-                branches.pop();
-                return;
-            }
-
-            uint16_t offs = (*it)->GetIndex(); // Get index of current statement
-            uint8_t opcode = data[offs]; // Get the opcode from the ROM
+            // Get offset of current statement
+            uint16_t offs = (*it)->GetIndex();
+            // Get the opcode from the ROM
+            uint8_t opcode = data[offs];
 
             // This contains information about the instruction
-            auto instr_info = decode_MOS6502_instruction(opcode);
+            auto instr_info = MOS6502::DecodeInstruction(opcode);
 
             Scope<Instruction> new_instr = CreateScope<Instruction>();
-            new_instr->index = offs;
+            new_instr->offset = offs;
             new_instr->name = "Instr";
-            new_instr->size = MOS6502_addressing_mode_size(instr_info.addr_mode);
+            new_instr->size = AddressingModeSize(instr_info.addr_mode);
             new_instr->addressing_mode = instr_info.addr_mode;
             new_instr->op_type = instr_info.op;
             new_instr->opcode = opcode;
@@ -224,31 +185,33 @@ public:
             *it = std::move(new_instr);
 
             // Delete the "argument databytes" and replace with instruction
-            // e.g. if length is 3 then the 2 bytes that carries data will get removed from the AST
-            // since they belong to the instruction
-            for(int i = 1; i < instr->size; i++) {
+            // e.g. if length is 3 then the 2 bytes that carries data will get
+            // removed from the AST since they belong to the instruction
+            for (int i = 1; i < instr->size; i++) {
                 auto arg = std::next(it);
                 DataByte& db = (DataByte&)*arg->get();
                 instr->arg[i - 1] = db.byte;
                 ast.erase(arg);
             }
 
-            if(MOS6502_opcode_is_branch(instr_info.op) || instr->op_type == Op::JMP) {
+            if (IsBranch(instr_info.op) || instr->opcode == 0x4C) {
                 uint16_t target_index = 0;
 
-                if(instr_info.op == Op::JSR || instr->opcode == 0x4C) { // JSR / JMP Abs
+                if (instr_info.op == MOS6502::Op::JSR ||
+                    instr->opcode == 0x4C) {  // JSR / JMP Abs
                     target_index = (uint16_t)*instr->arg;
                 }
-                else { // Normal branch
-                    target_index = (int8_t)instr->arg[0] + offs + 1;
+                else {  // Normal branch
+                    target_index = (int8_t)*instr->arg + offs + 2;
                 }
 
                 std::stringstream ss;
                 ss << "Label " << ToHexString(target_index);
-                AST_Iterator branch_target = InsertLabelBefore(target_index, ss.str());
+                AST_Iterator branch_target =
+                    InsertLabelBefore(target_index, ss.str());
                 branches.push(branch_target);
 
-                if(instr->opcode == 0x4C)
+                if (instr->opcode == 0x4C)
                     break;
             }
 
@@ -260,24 +223,23 @@ public:
     void Disassemble()
     {
         // Set all the statements to "data bytes"
-        for(int i = 0; i < data.size(); i++) {
+        for (int i = 0; i < data.size(); i++) {
             Scope<DataByte> db = CreateScope<DataByte>(data[i]);
-            db->index = i;
+            db->offset = i;
             ast.insert(ast.end(), std::move(db));
         }
 
         ast_it = InsertLabelBefore(index, "Reset_Routine");
 
-        FillBranchWithInstructions(ast_it);
-        while(!branches.empty())
-            FillBranchWithInstructions(branches.front());
+        ReplaceWithInstruction(ast_it);
+        while (!branches.empty())
+            ReplaceWithInstruction(branches.front());
     }
 
     void PrintAST()
     {
-        for(const Scope<Statement>& stmt : ast)
+        for (const Scope<Statement>& stmt : ast)
             stmt->Print();
     }
-
-
 };
+}  // namespace llvmes

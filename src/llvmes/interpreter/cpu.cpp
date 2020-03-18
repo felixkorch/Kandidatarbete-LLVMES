@@ -991,7 +991,7 @@ DisassemblyMap CPU::Disassemble(std::uint16_t start, std::uint16_t stop)
         std::uint16_t instr_addr = pc;
 
         // The dissasembly string for the instruction
-        std::string instr_string = "";
+        std::string instr_string;
 
         std::uint8_t opcode = Read(pc++);
 
