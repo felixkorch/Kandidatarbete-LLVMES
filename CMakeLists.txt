@@ -27,6 +27,7 @@ set(SOURCE
     src/llvmes/interpreter/cpu.h
     src/llvmes/disassembler.h
     src/llvmes/6502_opcode.h
+    src/llvmes/common.h
 )
 
 add_library (${PROJECT_NAME} ${SOURCE})
