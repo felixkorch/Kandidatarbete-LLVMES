@@ -107,7 +107,7 @@ bool IsBranch(Op op)
     }
 }
 
-int AddressingModeSize(AddressingMode mode)
+int InstructionSize(AddressingMode mode)
 {
     switch (mode) {
         case AddressingMode::Immediate:

@@ -30,7 +30,7 @@ enum class InstructionType {
 struct Statement {
     virtual StatementType GetType() = 0;
     virtual void Print() = 0;
-    virtual int GetIndex() = 0;
+    virtual int GetOffset() = 0;
     virtual ~Statement() = default;
 };
 
@@ -50,7 +50,7 @@ struct DataWord : public Statement {
                   << ".dw " << ToHexString(word) << std::endl;
     }
 
-    int GetIndex() override { return offset; }
+    int GetOffset() override { return offset; }
 
     friend std::ostream& operator<<(std::ostream& os, const DataWord& dw);
 };
@@ -75,7 +75,7 @@ struct DataByte : public Statement {
                   << ".db " << ToHexString(byte) << std::endl;
     }
 
-    int GetIndex() override { return offset; }
+    int GetOffset() override { return offset; }
 
     friend std::ostream& operator<<(std::ostream& os, const DataByte& db);
 };
@@ -102,7 +102,7 @@ struct Instruction : public Statement {
         std::cout << "[" << offset << "]: " << ToHexString(opcode) << std::endl;
     }
 
-    int GetIndex() override { return offset; }
+    int GetOffset() override { return offset; }
 };
 
 struct Label : public Statement {
@@ -115,7 +115,7 @@ struct Label : public Statement {
 
     void Print() override { std::cout << name << ":" << std::endl; }
 
-    int GetIndex() override { return offset; }
+    int GetOffset() override { return offset; }
 };
 
 class Disassembler {
@@ -135,7 +135,7 @@ class Disassembler {
     {
         auto stmt = std::find_if(ast.begin(), ast.end(),
                                  [index](const Scope<Statement>& stmt) {
-                                     return stmt->GetIndex() == index;
+                                     return stmt->GetOffset() == index;
                                  });
 
         if (stmt == ast.end())
@@ -165,17 +165,17 @@ class Disassembler {
                 it = std::next(it);
 
             // Get offset of current statement
-            uint16_t offs = (*it)->GetIndex();
+            uint16_t offs = (*it)->GetOffset();
             // Get the opcode from the ROM
             uint8_t opcode = data[offs];
 
             // This contains information about the instruction
             auto instr_info = MOS6502::DecodeInstruction(opcode);
+            auto new_instr = CreateScope<Instruction>();
 
-            Scope<Instruction> new_instr = CreateScope<Instruction>();
             new_instr->offset = offs;
             new_instr->name = "Instr";
-            new_instr->size = AddressingModeSize(instr_info.addr_mode);
+            new_instr->size = InstructionSize(instr_info.addr_mode);
             new_instr->addressing_mode = instr_info.addr_mode;
             new_instr->op_type = instr_info.op;
             new_instr->opcode = opcode;
