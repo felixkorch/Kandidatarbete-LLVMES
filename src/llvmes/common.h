@@ -17,7 +17,7 @@ using Ref = std::shared_ptr<T>;
 template <typename T, typename... Args>
 constexpr Ref<T> CreateRef(Args&&... args)
 {
-    return std::shared_ptr<T>(std::make_shared(std::forward<Args>(args)...));
+    return std::make_shared(std::forward<Args>(args)...);
 }
 
 template <typename T>

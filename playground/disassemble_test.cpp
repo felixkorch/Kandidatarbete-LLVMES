@@ -48,7 +48,7 @@ std::vector<uint8_t> program3 {
 };
 int main()
 {
-    Disassembler dis(std::move(program1));
+    llvmes::Disassembler dis(std::move(program1));
     dis.Disassemble();
     dis.PrintAST();
 }
