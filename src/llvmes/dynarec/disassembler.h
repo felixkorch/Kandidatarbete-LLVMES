@@ -8,6 +8,8 @@
 #include <sstream>
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
+#include <cassert>
 
 #include "llvmes/dynarec/6502_opcode.h"
 #include "llvmes/common.h"
