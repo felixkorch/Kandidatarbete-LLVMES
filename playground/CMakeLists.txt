@@ -1,5 +1,4 @@
 ﻿set(PLAYGROUND_FILES
-        read_rom
         execute_program
         execute_file
         6502_testsuite
