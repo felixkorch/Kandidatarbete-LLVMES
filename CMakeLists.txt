@@ -29,6 +29,7 @@ set(SOURCE
     src/llvmes/dynarec/6502_opcode.h
     src/llvmes/common.h
     src/llvmes/dynarec/codegen.h
+    src/llvmes/dynarec/codegen.cpp
     src/jitter/jitter.h
     src/jitter/jitter.cpp
 )
