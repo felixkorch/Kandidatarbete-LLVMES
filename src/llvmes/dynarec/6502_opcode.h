@@ -89,7 +89,7 @@ struct Instruction {
 
 // Technically undefined to run a branch instruction inside a basic block.
 // At the very least, it must not branch, so ... it's effectively a no-op.
-bool IsBranch(Op op)
+inline bool IsBranch(Op op)
 {
     switch (op) {
         case Op::JSR:
@@ -107,7 +107,7 @@ bool IsBranch(Op op)
     }
 }
 
-int InstructionSize(AddressingMode mode)
+inline int InstructionSize(AddressingMode mode)
 {
     switch (mode) {
         case AddressingMode::Immediate:

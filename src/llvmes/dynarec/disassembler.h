@@ -72,7 +72,7 @@ struct DataWord : public Statement {
     friend std::ostream& operator<<(std::ostream& os, const DataWord& dw);
 };
 
-std::ostream& operator<<(std::ostream& os, const DataWord& dw)
+inline std::ostream& operator<<(std::ostream& os, const DataWord& dw)
 {
     os << ToHexString(dw.word);
     return os;
@@ -98,7 +98,7 @@ struct DataByte : public Statement {
     friend std::ostream& operator<<(std::ostream& os, const DataByte& db);
 };
 
-std::ostream& operator<<(std::ostream& os, const DataByte& db)
+inline std::ostream& operator<<(std::ostream& os, const DataByte& db)
 {
     os << ToHexString(db.byte);
     return os;

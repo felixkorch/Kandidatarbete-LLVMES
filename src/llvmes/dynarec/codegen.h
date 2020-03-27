@@ -10,12 +10,12 @@
 
 namespace llvmes {
 
-void putreg(int8_t r)
+inline void putreg(int8_t r)
 {
     printf("%s\n", ToHexString(r).c_str());
 }
 
-void putchar(int8_t c)
+inline void putchar(int8_t c)
 {
     printf("%c", c);
 }
