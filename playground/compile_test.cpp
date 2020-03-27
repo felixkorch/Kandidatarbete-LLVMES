@@ -5,7 +5,7 @@ std::vector<uint8_t> program1{
     0xA0, 0x0A,        // LDY, # 0x0A
     0xE8,              // INX -- Begin
     0x88,              // DEY
-    0x8D, 0x08, 0x20,  // Print X
+    0x8D, 0x0A, 0x20,   // Print X
     0xD0, 0xF9,        // BNE, Begin
 };
 
