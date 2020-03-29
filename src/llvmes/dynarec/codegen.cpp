@@ -424,9 +424,17 @@ namespace llvmes {
                 break;
             }
             case 0x84: { // STY Zeropage
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+                c->builder.CreateStore(load_y, ram_ptr);
                 break;
             }
             case 0x94: { // STY ZeropageX
+                llvm::Value* X = llvm::ConstantInt::get(int8, i.arg);
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* sty_X = c->builder.CreateAdd(ram_ptr, X);
+                llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+                c->builder.CreateStore(load_y, sty_X);
                 break;
             }
             case 0x8C: { // STY Absolute
