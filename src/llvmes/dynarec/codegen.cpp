@@ -430,6 +430,9 @@ namespace llvmes {
                 break;
             }
             case 0x8C: { // STY Absolute
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+                c->builder.CreateStore(load_y, ram_ptr);
                 break;
             }
             case 0xAA: { // TAX Implied
