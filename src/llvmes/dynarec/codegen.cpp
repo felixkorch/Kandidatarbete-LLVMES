@@ -93,6 +93,13 @@ namespace llvmes {
                 break;
             }
             case 0xC9: { // CMP Immediate
+                int arg = i.arg;
+                llvm::Value* operand = llvm::ConstantInt::get(int8, arg);
+                llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+                llvm::Value* result = c->builder.CreateSub(reg_a, operand);
+                DynamicTestZ(result);
+                DynamicTestN(result);
+                DynamicTestCCmp(result);
                 break;
             }
             case 0xC5: { // CMP Zeropage
