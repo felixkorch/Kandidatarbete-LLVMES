@@ -412,9 +412,17 @@ namespace llvmes {
                 break;
             }
             case 0x86: { // STX Zeropage
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+                c->builder.CreateStore(load_x, ram_ptr);
                 break;
             }
             case 0x96: { // STX ZeropageY
+                llvm::Value* Y = c->builder.CreateLoad(c->reg_y);
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* stx_Y = c->builder.CreateAdd(ram_ptr, Y);
+                llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+                c->builder.CreateStore(load_x, stx_Y);
                 break;
             }
             case 0x8E: { // STX Absolute
