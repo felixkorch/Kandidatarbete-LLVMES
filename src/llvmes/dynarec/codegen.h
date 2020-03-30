@@ -192,6 +192,12 @@ class Compiler {
         llvm::Value* is_negative = c->builder.CreateICmpEQ(do_and, c_0x80);
         c->builder.CreateStore(is_negative, c->status_n);
     }
+    void DynamicTestCCmp(llvm::Value* v) 
+    {
+        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
+        llvm::Value* lesThen = c->builder.CreateICmpULT(v, c_0x0100);
+        c->builder.CreateStore(lesThen, c->status_c);
+    }
 
     llvm::Value* GetRAMPtr(uint16_t addr)
     {
