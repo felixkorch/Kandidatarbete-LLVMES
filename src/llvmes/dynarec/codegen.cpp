@@ -473,9 +473,19 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* value = c->builder.CreateLoad(zero_page_index);
             break;
         }
-        case 0x4A: {  // ACC Accumulator
+        case 0x4A: { // LSR Accumulator
+            llvm::Value* value = c->builder.CreateLoad(c->reg_a);
+            // Set carry flag to bit 0 of read value
+            llvm::Value* least_significant_bit = c->builder.CreateAnd(value, 1); //(value & 1);
+            c->builder.CreateStore(least_significant_bit, c->status_c);
+            // Do bit shift right and store the value
+            llvm::Value* right_shifted_value = c->builder.CreateLShr(value, 1); // value >> 1, logical shift right
+            c->builder.CreateStore(right_shifted_value, c->reg_a);
+            // Set Zero flag and Negative flag
+            DynamicTestZ(value);
+            DynamicTestN(value);
             break;
-        }
+         }
         case 0x46: {  // LSR Zeropage
             break;
         }
