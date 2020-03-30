@@ -430,7 +430,7 @@ namespace llvmes {
                 break;
             }
             case 0x94: { // STY ZeropageX
-                llvm::Value* X = llvm::ConstantInt::get(int8, i.arg);
+                llvm::Value* X = c->builder.CreateLoad(c->reg_x);
                 llvm::Value* ram_ptr = GetRAMPtr(i.arg);
                 llvm::Value* sty_X = c->builder.CreateAdd(ram_ptr, X);
                 llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
