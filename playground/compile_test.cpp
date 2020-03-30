@@ -1,13 +1,15 @@
 #include "llvmes/dynarec/compiler.h"
 #include "llvmes/dynarec/disassembler.h"
 
+
 #define PRINT_A 0x8D, 0x09, 0x20
 #define PRINT_X 0x4C, 0x14, 0x00
 #define LDY_IMM(V) 0xA0, V
 #define INX 0xE8
 #define DEY 0x88
 #define STX_ZPG_Y(V) 0x96, V
-#define BNE(V) 0xD0, V
+#define REL(X) 0xFE X
+#define BNE(V) 0xD0, REL(V)
 #define LDA_ABS(B1, B2) 0xAD, B2, B1
 
 std::vector<uint8_t> program1 {
@@ -30,10 +32,10 @@ std::vector<uint8_t> program2 {
 
 std::vector<uint8_t> program3 {
     LDY_IMM(0x0A),
-    INX,
+    INX,                   // Loop
     DEY,
-    STX_ZPG_Y(0x00),
-    BNE(0xFA),
+    STX_ZPG_Y(0x00),       // Write X to address 9-0
+    BNE(-4),               // Br -> Loop
     LDA_ABS(0x00, 0x00),
     PRINT_A,               // 10
     LDA_ABS(0x00, 0x01),
