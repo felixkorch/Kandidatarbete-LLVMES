@@ -482,7 +482,19 @@ void Compiler::CodeGen(Instruction& i)
         case 0x56: {  // LSR ZeropageX
             break;
         }
-        case 0x4E: {  // LSR Absolute
+        case 0x4E: { // LSR Absolute
+            uint16_t addr = i.arg;
+            llvm::Value* ram_ptr = GetRAMPtr(addr);
+            llvm::Value* value = c->builder.CreateLoad(ram_ptr);
+            // Set carry flag to bit 0 of read value
+            llvm::Value* least_significant_bit = c->builder.CreateAnd(value, 1);
+            c->builder.CreateStore(least_significant_bit, c->status_c);
+            // Do bit shift right and store the value
+            llvm::Value* right_shifted_value = c->builder.CreateLShr(value, 1); // value >> 1, logical shift right
+            c->builder.CreateStore(right_shifted_value, ram_ptr);
+            // Set Zero flag and Negative flag
+            DynamicTestZ(value);
+            DynamicTestN(value);
             break;
         }
         case 0x5E: {  // LSR AbsoluteX
