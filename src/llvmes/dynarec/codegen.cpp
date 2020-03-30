@@ -221,12 +221,18 @@ namespace llvmes {
                 break;
             }
             case 0xA4: { // LDY Zeropage
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+                c->builder.CreateStore(load_ram, c->reg_y);
                 break;
             }
             case 0xB4: { // LDY ZeropageX
                 break;
             }
             case 0xAC: { // LDY Absolute
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+                c->builder.CreateStore(load_ram, c->reg_y);
                 break;
             }
             case 0xBC: { // LDY AbsoluteX
