@@ -158,6 +158,22 @@ namespace llvmes {
                 break;
             }
             case 0xDD: { // CMP AbsoluteX
+                // in data
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                // get reg_x
+                llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+                // add reg_x and ram_ptr
+                llvm::Value* memPoiter = c->builder.CreateAdd(ram_ptr, reg_x);
+                // get date from pointer
+                llvm::Value* load_ram = c->builder.CreateLoad(memPoiter);
+                // get reg_a
+                llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+                // compare
+                llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
+                // flag test
+                DynamicTestZ(result);
+                DynamicTestN(result);
+                DynamicTestCCmp(result);
                 break;
             }
             case 0xD9: { // CMP AbsoluteY
