@@ -103,6 +103,16 @@ namespace llvmes {
                 break;
             }
             case 0xC5: { // CMP Zeropage
+                // in data
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                // get reg_a
+                llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+                // compare
+                llvm::Value* result = c->builder.CreateSub(reg_a, ram_ptr);
+                // flag Test
+                DynamicTestZ(result);
+                DynamicTestN(result);
+                DynamicTestCCmp(result);
                 break;
             }
             case 0xD5: { // CMP ZeropageX
