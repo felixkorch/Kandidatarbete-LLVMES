@@ -116,6 +116,31 @@ namespace llvmes {
                 break;
             }
             case 0xD5: { // CMP ZeropageX
+                // in data
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                // get reg_a and reg_x
+                llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+                llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+                // add data and reg_x
+                llvm::Value* memPoiter = c->builder.CreateAdd(ram_ptr, reg_x);
+                // modulus constant
+                llvm::Constant* mod = llvm::ConstantInt::get(int8, 0xFF);
+                // modulus and compare
+                llvm::Value* result;
+                if (c->builder.CreateICmpUGT(memPoiter, mod)) {
+                    llvm::Value* memPoiterCh =
+                        c->builder.CreateSub(memPoiter, mod);
+                    llvm::Value* load_ram = c->builder.CreateLoad(memPoiterCh);
+                    result = c->builder.CreateSub(reg_a, load_ram);
+                }
+                else {
+                    llvm::Value* load_ram = c->builder.CreateLoad(memPoiter);
+                    result = c->builder.CreateSub(reg_a, load_ram);
+                }
+                // flag Test
+                DynamicTestZ(result);
+                DynamicTestN(result);
+                DynamicTestCCmp(result);
                 break;
             }
             case 0xCD: { // CMP Absolute
