@@ -259,6 +259,17 @@ namespace llvmes {
                 break;
             }
             case 0xC4: { // CPY Zeropage
+                // in data
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+                // get reg_y
+                llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
+                // compare
+                llvm::Value* result = c->builder.CreateSub(reg_y, load_ram);
+                // flag Test
+                DynamicTestZ(result);
+                DynamicTestN(result);
+                DynamicTestCCmp(result);
                 break;
             }
             case 0xCC: { // CPY Absolute
