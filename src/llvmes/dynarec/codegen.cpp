@@ -245,6 +245,17 @@ namespace llvmes {
                 break;
             }
             case 0xC0: { // CPY Immediate
+                // set arg to value
+                int arg = i.arg;
+                llvm::Value* operand = llvm::ConstantInt::get(int8, arg);
+                // get reg_y
+                llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
+                // compare
+                llvm::Value* result = c->builder.CreateSub(reg_y, operand);
+                // flag test
+                DynamicTestZ(result);
+                DynamicTestN(result);
+                DynamicTestCCmp(result);
                 break;
             }
             case 0xC4: { // CPY Zeropage
