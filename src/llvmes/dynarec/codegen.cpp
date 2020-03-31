@@ -144,6 +144,17 @@ namespace llvmes {
                 break;
             }
             case 0xCD: { // CMP Absolute
+                // in data
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+                // get reg_a
+                llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+                // compare
+                llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
+                // flag test
+                DynamicTestZ(result);
+                DynamicTestN(result);
+                DynamicTestCCmp(result);
                 break;
             }
             case 0xDD: { // CMP AbsoluteX
