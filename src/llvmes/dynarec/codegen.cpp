@@ -395,6 +395,11 @@ namespace llvmes {
                 break;
             }
             case 0xB4: { // LDY ZeropageX
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+                llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
+                llvm::Value* zero_page_index = c->builder.CreateAnd(index_16, 0xFF);
+                llvm::Value* value = c->builder.CreateLoad(zero_page_index);
                 break;
             }
             case 0xAC: { // LDY Absolute
@@ -404,6 +409,12 @@ namespace llvmes {
                 break;
             }
             case 0xBC: { // LDY AbsoluteX
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+                llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
+                llvm::Value* zero_page_index =
+                    c->builder.CreateAnd(index_16, 0xFFF);
+                llvm::Value* value = c->builder.CreateLoad(zero_page_index);
                 break;
             }
             case 0x4A: { // ACC Accumulator
