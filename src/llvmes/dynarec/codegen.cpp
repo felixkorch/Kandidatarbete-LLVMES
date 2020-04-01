@@ -350,6 +350,11 @@ namespace llvmes {
                 break;
             }
             case 0xA2: { // LDX Immediate
+                int arg = i.arg;
+                llvm::Value* x = llvm::ConstantInt::get(int8, arg);
+                c->builder.CreateStore(x, c->reg_y);
+                StaticTestZ(arg);
+                StaticTestN(arg);
                 break;
             }
             case 0xA6: { // LDX Zeropage
@@ -366,8 +371,8 @@ namespace llvmes {
             }
             case 0xA0: { // LDY Immediate
                 int arg = i.arg;
-                llvm::Value* a = llvm::ConstantInt::get(int8, arg);
-                c->builder.CreateStore(a, c->reg_y);
+                llvm::Value* y = llvm::ConstantInt::get(int8, arg);
+                c->builder.CreateStore(y, c->reg_y);
                 StaticTestZ(arg);
                 StaticTestN(arg);
                 break;
