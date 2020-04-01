@@ -637,6 +637,13 @@ namespace llvmes {
                 break;
             }
             case 0xAA: { // TAX Implied
+
+                llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+                llvm::Value * result = c->builder.CreateStore(load_a, c->reg_x);
+
+                // flag test
+                DynamicTestZ(result);
+                DynamicTestN(result);
                 break;
             }
             case 0xA8: { // TAY Implied
