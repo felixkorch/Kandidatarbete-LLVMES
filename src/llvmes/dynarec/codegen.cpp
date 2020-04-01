@@ -331,6 +331,7 @@ namespace llvmes {
                 break;
             }
             case 0xA5: { // LDA Zeropage
+
                 break;
             }
             case 0xB5: { // LDA ZeropageX
@@ -363,6 +364,9 @@ namespace llvmes {
                 break;
             }
             case 0xA6: { // LDX Zeropage
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+                c->builder.CreateStore(load_ram, c->reg_x);
                 break;
             }
             case 0xB6: { // LDX ZeropageY
