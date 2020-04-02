@@ -372,7 +372,15 @@ namespace llvmes {
                 break;
             }
             case 0xB6: { // LDX ZeropageY
-                
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                // Loads the Y register into a placeholder
+                llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+                // Adds the Y register to the RAM pointer
+                llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_y);
+                // AND with 0xFF to make sure that the index is 2 byte
+                llvm::Value* zero_page_index =
+                    c->builder.CreateAnd(index_16, 0xFF);
+                llvm::Value* value = c->builder.CreateLoad(zero_page_index);
                 break;
             }
             case 0xAE: { // LDX Absolute
