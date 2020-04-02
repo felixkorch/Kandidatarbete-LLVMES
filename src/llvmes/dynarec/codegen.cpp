@@ -647,9 +647,17 @@ namespace llvmes {
                 break;
             }
             case 0xA8: { // TAY Implied
+
+                llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+                llvm::Value* result = c->builder.CreateStore(load_a, c->reg_y);
+
+                // flag test
+                DynamicTestZ(result);
+                DynamicTestN(result);
                 break;
             }
             case 0xBA: { // TSX Implied
+
                 break;
             }
             case 0x8A: { // TXA Implied
