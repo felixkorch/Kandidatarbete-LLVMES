@@ -352,6 +352,15 @@ namespace llvmes {
                 break;
             }
             case 0xBD: { // LDA AbsoluteX
+                llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+                // Loads the X register into a placeholder
+                llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+                // Adds the X register to the RAM pointer
+                llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
+                // AND with 0xFFF to make sure that the index is 3 byte
+                llvm::Value* zero_page_index =
+                    c->builder.CreateAnd(index_16, 0xFFF);
+                llvm::Value* value = c->builder.CreateLoad(zero_page_index);
                 break;
             }
             case 0xB9: { // LDA AbsoluteY
