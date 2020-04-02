@@ -73,13 +73,31 @@ class Compiler {
 
     void SetRAM(std::vector<uint8_t>&& data) { c->ram = std::move(data); }
 
-    llvm::Constant* GetConstant1(bool v) { return llvm::ConstantInt::get(int1, v); }
-    llvm::Constant* GetConstant8(uint8_t v) { return llvm::ConstantInt::get(int8, v); }
-    llvm::Constant* GetConstant16(uint16_t v) { return llvm::ConstantInt::get(int16, v); }
-    llvm::Constant* GetConstant32(uint32_t v) { return llvm::ConstantInt::get(int32, v); }
-    llvm::Constant* GetConstant64(uint64_t v) { return llvm::ConstantInt::get(int64, v); }
+    llvm::Constant* GetConstant1(bool v)
+    {
+        return llvm::ConstantInt::get(int1, v);
+    }
+    llvm::Constant* GetConstant8(uint8_t v)
+    {
+        return llvm::ConstantInt::get(int8, v);
+    }
+    llvm::Constant* GetConstant16(uint16_t v)
+    {
+        return llvm::ConstantInt::get(int16, v);
+    }
+    llvm::Constant* GetConstant32(uint32_t v)
+    {
+        return llvm::ConstantInt::get(int32, v);
+    }
+    llvm::Constant* GetConstant64(uint64_t v)
+    {
+        return llvm::ConstantInt::get(int64, v);
+    }
 
-    void SetDumpDir(const std::string& path) { c->jitter.set_external_ir_dump_directory(path); }
+    void SetDumpDir(const std::string& path)
+    {
+        c->jitter.set_external_ir_dump_directory(path);
+    }
 
     std::function<int()> GetMain(bool optimize);
 
@@ -97,7 +115,8 @@ class Compiler {
 
     void DynamicTestZ(llvm::Value* v)
     {
-        llvm::Value* is_zero = c->builder.CreateICmpEQ(v, GetConstant8(0), "eq");
+        llvm::Value* is_zero =
+            c->builder.CreateICmpEQ(v, GetConstant8(0), "eq");
         c->builder.CreateStore(is_zero, c->status_z);
     }
     void DynamicTestN(llvm::Value* v)
@@ -107,7 +126,12 @@ class Compiler {
         llvm::Value* is_negative = c->builder.CreateICmpEQ(do_and, c_0x80);
         c->builder.CreateStore(is_negative, c->status_n);
     }
-
+    void DynamicTestCCmp(llvm::Value* v)
+    {
+        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
+        llvm::Value* lesThen = c->builder.CreateICmpULT(v, c_0x0100);
+        c->builder.CreateStore(lesThen, c->status_c);
+    }
     // Calculates the ram-address as a constant-expr
     llvm::Value* GetRAMPtr(uint16_t addr)
     {
@@ -140,7 +164,6 @@ class Compiler {
     // Can be called by LLVM on runtime
     void Write(uint16_t addr, uint8_t val) { c->ram[addr] = val; }
     uint16_t Read(uint16_t addr) { return c->ram[addr]; }
-
 
     // These two functions are used to write/read -
     // to addresses that are known on compile-time

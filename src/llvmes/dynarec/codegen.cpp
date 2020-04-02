@@ -94,21 +94,106 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xC9: {  // CMP Immediate
+            int arg = i.arg;
+            llvm::Value* operand = llvm::ConstantInt::get(int8, arg);
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* result = c->builder.CreateSub(reg_a, operand);
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xC5: {  // CMP Zeropage
+            // in data
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            // get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // compare
+            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
+            // flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xD5: {  // CMP ZeropageX
+            // in data
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            // get reg_a and reg_x
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+            // add data and reg_x
+            llvm::Value* memPoiter = c->builder.CreateAdd(ram_ptr, reg_x);
+            // modulus constant
+            llvm::Constant* mod = llvm::ConstantInt::get(int8, 0xFF);
+            // modulus and compare
+            llvm::Value* result;
+            if (c->builder.CreateICmpUGT(memPoiter, mod)) {
+                llvm::Value* memPoiterCh = c->builder.CreateSub(memPoiter, mod);
+                llvm::Value* load_ram = c->builder.CreateLoad(memPoiterCh);
+                result = c->builder.CreateSub(reg_a, load_ram);
+            }
+            else {
+                llvm::Value* load_ram = c->builder.CreateLoad(memPoiter);
+                result = c->builder.CreateSub(reg_a, load_ram);
+            }
+            // flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xCD: {  // CMP Absolute
+            // in data
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            // get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // compare
+            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xDD: {  // CMP AbsoluteX
+            // in data
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            // get reg_x
+            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+            // add reg_x and ram_ptr
+            llvm::Value* memPoiter = c->builder.CreateAdd(ram_ptr, reg_x);
+            // get date from pointer
+            llvm::Value* load_ram = c->builder.CreateLoad(memPoiter);
+            // get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // compare
+            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xD9: {  // CMP AbsoluteY
+            // in data
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            // get reg_y
+            llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
+            // add reg_y and ram_ptr
+            llvm::Value* memPoiter = c->builder.CreateAdd(ram_ptr, reg_y);
+            // get date from pointer
+            llvm::Value* load_ram = c->builder.CreateLoad(memPoiter);
+            // get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // compare
+            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xC1: {  // CMP IndirectX
@@ -118,21 +203,87 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xE0: {  // CPX Immediate
+            // set arg to value
+            int arg = i.arg;
+            llvm::Value* operand = llvm::ConstantInt::get(int8, arg);
+            // get reg_x
+            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+            // compare
+            llvm::Value* result = c->builder.CreateSub(reg_x, operand);
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xE4: {  // CPX Zeropage
+            // in data
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            // get reg_x
+            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+            // compare
+            llvm::Value* result = c->builder.CreateSub(reg_x, load_ram);
+            // flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xEC: {  // CPX Absolute
+            // in data
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            // get reg_x
+            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+            // compare
+            llvm::Value* result = c->builder.CreateSub(reg_x, load_ram);
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xC0: {  // CPY Immediate
+            // set arg to value
+            int arg = i.arg;
+            llvm::Value* operand = llvm::ConstantInt::get(int8, arg);
+            // get reg_y
+            llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
+            // compare
+            llvm::Value* result = c->builder.CreateSub(reg_y, operand);
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xC4: {  // CPY Zeropage
+            // in data
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            // get reg_y
+            llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
+            // compare
+            llvm::Value* result = c->builder.CreateSub(reg_y, load_ram);
+            // flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xCC: {  // CPY Absolute
+            // in data
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            // get reg_y
+            llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
+            // compare
+            llvm::Value* result = c->builder.CreateSub(reg_y, load_ram);
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xC6: {  // DEC Zeropage
@@ -172,12 +323,28 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xA9: {  // LDA Immediate
+            int arg = i.arg;
+            llvm::Value* a = llvm::ConstantInt::get(int8, arg);
+            c->builder.CreateStore(a, c->reg_a);
+            StaticTestZ(arg);
+            StaticTestN(arg);
             break;
         }
         case 0xA5: {  // LDA Zeropage
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            c->builder.CreateStore(load_ram, c->reg_a);
             break;
         }
         case 0xB5: {  // LDA ZeropageX
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            // Loads the X register into a placeholder
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            // Adds the X register to the RAM pointer
+            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
+            // AND with 0xFF to make sure that the index is 2 byte
+            llvm::Value* zero_page_index = c->builder.CreateAnd(index_16, 0xFF);
+            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
             break;
         }
         case 0xA1: {  // LDA IndirectX
@@ -186,29 +353,82 @@ void Compiler::CodeGen(Instruction& i)
         case 0xB1: {  // LDA IndirectY
             break;
         }
+
+            // case 0xAD: { // LDA Absolute
+            //     llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            //     llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            //     c->builder.CreateStore(load_ram, c->reg_a);
+            //     break;
+            // }
         case 0xAD: {  // LDA Absolute
             c->builder.CreateStore(ReadMemory(i.arg), c->reg_a);
             break;
         }
         case 0xBD: {  // LDA AbsoluteX
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            // Loads the X register into a placeholder
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            // Adds the X register to the RAM pointer
+            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
+            // AND with 0xFFF to make sure that the index is 3 byte
+            llvm::Value* zero_page_index =
+                c->builder.CreateAnd(index_16, 0xFFF);
+            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
             break;
         }
         case 0xB9: {  // LDA AbsoluteY
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            // Loads the Y register into a placeholder
+            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            // Adds the Y register to the RAM pointer
+            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_y);
+            // AND with 0xFFF to make sure that the index is 3 byte
+            llvm::Value* zero_page_index =
+                c->builder.CreateAnd(index_16, 0xFFF);
+            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
             break;
         }
         case 0xA2: {  // LDX Immediate
+            int arg = i.arg;
+            llvm::Value* x = llvm::ConstantInt::get(int8, arg);
+            c->builder.CreateStore(x, c->reg_x);
+            StaticTestZ(arg);
+            StaticTestN(arg);
             break;
         }
         case 0xA6: {  // LDX Zeropage
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            c->builder.CreateStore(load_ram, c->reg_x);
             break;
         }
         case 0xB6: {  // LDX ZeropageY
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            // Loads the Y register into a placeholder
+            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            // Adds the Y register to the RAM pointer
+            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_y);
+            // AND with 0xFF to make sure that the index is 2 byte
+            llvm::Value* zero_page_index = c->builder.CreateAnd(index_16, 0xFF);
+            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
             break;
         }
         case 0xAE: {  // LDX Absolute
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            c->builder.CreateStore(load_ram, c->reg_x);
             break;
         }
         case 0xBE: {  // LDX AbsoluteY
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            // Loads the Y register into a placeholder
+            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            // Adds the Y register to the RAM pointer
+            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_y);
+            // AND with 0xFFF to make sure that the index is 3 byte
+            llvm::Value* zero_page_index =
+                c->builder.CreateAnd(index_16, 0xFFF);
+            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
             break;
         }
         case 0xA0: {  // LDY Immediate
@@ -219,15 +439,38 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xA4: {  // LDY Zeropage
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            c->builder.CreateStore(load_ram, c->reg_y);
             break;
         }
         case 0xB4: {  // LDY ZeropageX
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            // Loads the X register into a placeholder
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            // Adds the X register to the RAM pointer
+            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
+            // AND with 0xFF to make sure that the index is 2 byte
+            llvm::Value* zero_page_index = c->builder.CreateAnd(index_16, 0xFF);
+            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
             break;
         }
         case 0xAC: {  // LDY Absolute
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
+            c->builder.CreateStore(load_ram, c->reg_y);
             break;
         }
         case 0xBC: {  // LDY AbsoluteX
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            // Loads the X register into a placeholder
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            // Adds the X register to the RAM pointer
+            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
+            // AND with 0xFFF to make sure that the index is 3 byte
+            llvm::Value* zero_page_index =
+                c->builder.CreateAnd(index_16, 0xFFF);
+            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
             break;
         }
         case 0x4A: {  // ACC Accumulator
@@ -409,6 +652,9 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x86: {  // STX Zeropage
+            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            c->builder.CreateStore(load_x, ram_ptr);
             break;
         }
         case 0x96: {  // STX ZeropageY
@@ -416,7 +662,8 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             llvm::Constant* zpg_addr = GetConstant8(i.arg);
             llvm::Value* target_addr = c->builder.CreateAdd(load_y, zpg_addr);
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(target_addr, int16);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
             c->builder.CreateCall(c->write_fn, {target_addr_16, load_x});
             break;
         }
@@ -431,7 +678,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x94: {  // STY ZeropageX
-            llvm::Value* X = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* X = c->builder.CreateLoad(c->reg_x);
             llvm::Value* ram_ptr = GetRAMPtr(i.arg);
             llvm::Value* sty_X = c->builder.CreateAdd(ram_ptr, X);
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
@@ -445,9 +692,23 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xAA: {  // TAX Implied
+
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* result = c->builder.CreateStore(load_a, c->reg_x);
+
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0xA8: {  // TAY Implied
+
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* result = c->builder.CreateStore(load_a, c->reg_y);
+
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0xBA: {  // TSX Implied
