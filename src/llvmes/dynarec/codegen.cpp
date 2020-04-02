@@ -605,7 +605,9 @@ namespace llvmes {
             case 0x96: { // STX ZeropageY
                 llvm::Value* Y = c->builder.CreateLoad(c->reg_y);
                 llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-                llvm::Value* stx_Y = c->builder.CreateAdd(ram_ptr, Y);
+                llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, Y);
+                llvm::Value* stx_Y =
+                    c->builder.CreateAnd(index_16, 0xFFF);
                 llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
                 c->builder.CreateStore(load_x, stx_Y);
                 break;
