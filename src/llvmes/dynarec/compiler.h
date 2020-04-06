@@ -19,6 +19,7 @@ struct Compilation {
     llvm::Value* reg_y = nullptr;
     llvm::Value* reg_a = nullptr;
     llvm::Value* reg_sp = nullptr;
+    llvm::Value* reg_idr = nullptr;
     llvm::Value* status_v = nullptr;
     llvm::Value* status_n = nullptr;
     llvm::Value* status_c = nullptr;
@@ -128,5 +129,4 @@ class Compiler {
     llvm::Value* AddressModeImplied();
     llvm::Value* AddressModeAccumulator();
 };
-
 }  // namespace llvmes
