@@ -55,6 +55,10 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x70: {  // BVS Immediate
+            llvm::Value* load_v = c->builder.CreateLoad(c->status_v);
+            llvm::Value* is_overflow_set =
+                c->builder.CreateICmpEQ(load_v, GetConstant1(1), "eq");
+            CreateCondBranch(is_overflow_set, c->basicblocks[i.target_label]);
             break;
         }
         case 0xE8: {  // INX Implied
