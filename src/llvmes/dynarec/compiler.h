@@ -207,12 +207,14 @@ class Compiler {
 
     void addDynJumpTable()
     {
+        // Since we modify the insert point while inserting panic block and 
+        // jump table, we need to restore the insert point before returning
+        llvm::BasicBlock* originalInsertPoint = c->builder.GetInsertBlock();
+
         // Panic Block. Print reg_a if we fail - this is useless
         c->panicBlock =
             llvm::BasicBlock::Create(c->m->getContext(), "PanicBlock");
         c->builder.SetInsertPoint(c->panicBlock);
-        llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-        c->builder.CreateCall(c->putchar_fn, {load_a});
 
         c->dynJumpBlock =
             llvm::BasicBlock::Create(c->m->getContext(), "DynJumpTable");
@@ -227,6 +229,8 @@ class Compiler {
                 (u_int64_t)addr.first, false);
             sw->addCase(addrVal, addr.second);
         }
+
+        c->builder.SetInsertPoint(originalInsertPoint);
     }
 
     void PassOne();
