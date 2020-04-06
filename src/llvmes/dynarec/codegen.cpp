@@ -20,6 +20,10 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x30: {  // BMI Immediate
+            llvm::Value* load_n = c->builder.CreateLoad(c->status_n);
+            llvm::Value* is_negative =
+                c->builder.CreateICmpEQ(load_n, GetConstant1(1), "eq");
+            CreateCondBranch(is_negative, c->basicblocks[i.target_label]);
             break;
         }
         case 0x90: {  // BCC Immediate
