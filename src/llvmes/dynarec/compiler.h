@@ -96,6 +96,7 @@ class Compiler {
     void DynamicTestCCmp(llvm::Value* v);
     // Calculates the ram-address as a constant-expr
     llvm::Value* GetRAMPtr(uint16_t addr);
+    llvm::Value* GetRAMPtr16(uint16_t addr);
 
     // Can be called by LLVM on runtime
     void Write(uint16_t addr, uint8_t val) { c->ram[addr] = val; }
@@ -108,6 +109,11 @@ class Compiler {
     // to addresses that are known on compile-time
     void WriteMemory(uint16_t addr, llvm::Value* v);
     llvm::Value* ReadMemory(uint16_t addr);
+    llvm::Value* ReadMemory16(uint16_t addr);
+    {
+        llvm::Value* ram_ptr = GetRAMPtr16(addr);
+        return c->builder.CreateLoad(ram_ptr);
+    }
 
     llvm::Value* GetStackAddress(llvm::Value* sp);
     void StackPush(llvm::Value* v);
