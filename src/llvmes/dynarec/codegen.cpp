@@ -27,6 +27,10 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x90: {  // BCC Immediate
+            llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            llvm::Value* is_carry_clear =
+                c->builder.CreateICmpEQ(load_c, GetConstant1(0), "eq");
+            CreateCondBranch(is_carry_clear, c->basicblocks[i.target_label]);
             break;
         }
         case 0xB0: {  // BCS Immediate
