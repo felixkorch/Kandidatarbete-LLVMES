@@ -314,10 +314,6 @@ class Disassembler {
 
                 instr->target_label = ss.str();
                 instr->target_addr = target_index;
-
-                // JMP ends a branch
-                if (JMP_Abs || JMP_Idr)
-                    break;
             }
 
             it = std::next(it);
