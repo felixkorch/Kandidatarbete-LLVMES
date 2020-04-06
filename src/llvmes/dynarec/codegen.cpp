@@ -41,6 +41,10 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x10: {  // BPL Immediate
+            llvm::Value* load_n = c->builder.CreateLoad(c->status_n);
+            llvm::Value* is_positive =
+                c->builder.CreateICmpEQ(load_n, GetConstant1(0), "eq");
+            CreateCondBranch(is_positive, c->basicblocks[i.target_label]);
             break;
         }
         case 0x50: {  // BVC Immediate
