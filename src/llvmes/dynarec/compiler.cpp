@@ -188,6 +188,7 @@ void Compiler::Compile()
 {
     PassOne();
     PassTwo();
+    addDynJumpTable();
 }
 
 }  // namespace llvmes
