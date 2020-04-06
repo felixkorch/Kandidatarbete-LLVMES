@@ -1,7 +1,6 @@
 #include "llvmes/dynarec/compiler.h"
 #include "llvmes/dynarec/disassembler.h"
 
-
 #define PRINT_A 0x8D, 0x09, 0x20
 #define PRINT_X 0x4C, 0x14, 0x00
 #define LDY_IMM(V) 0xA0, V
@@ -12,7 +11,7 @@
 #define BNE(V) 0xD0, REL(V)
 #define LDA_ABS(B1, B2) 0xAD, B2, B1
 
-std::vector<uint8_t> program1 {
+std::vector<uint8_t> program1{
     0xA0, 0x0A,        // LDY, # 0x0A
     0xE8,              // INX -- Begin
     0x88,              // DEY
@@ -20,7 +19,7 @@ std::vector<uint8_t> program1 {
     0xD0, 0xF9,        // BNE, Begin
 };
 
-std::vector<uint8_t> program2 {
+std::vector<uint8_t> program2{
     0xA0, 0x0A,        // LDY, # 0x0A
     0xE8,              // INX -- Begin
     0x88,              // DEY
@@ -30,27 +29,36 @@ std::vector<uint8_t> program2 {
     0x8D, 0x09, 0x20,  // Print A - should print 10
 };
 
-std::vector<uint8_t> program3 {
-    LDY_IMM(0x0A),
-    INX,                   // Loop
-    DEY,
-    STX_ZPG_Y(0x00),       // Write X to address 9-0
-    BNE(-4),               // Br -> Loop
-    LDA_ABS(0x00, 0x00),
-    PRINT_A,               // 10
-    LDA_ABS(0x00, 0x01),
-    PRINT_A,               // 9
-    LDA_ABS(0x00, 0x02),
-    PRINT_A,               // 8
-    LDA_ABS(0x00, 0x03),
-    PRINT_A,               // 7
+std::vector<uint8_t> program3{
+    0x8D, 0x09, 0x20,  // Print A - should print 0
+    // 0x4C, 0x06, 0x00, // JMP to next instruction
+    // 0x4C, 0x09, 0x00, // JMP to next instruction
+
+    // 0x4C, 0x0B, 0x00, // JMP Abs
+    // 0x6C, 0x00, 0x05, // JMP Indirect
+
+    0x8D, 0x09, 0x20,  // Print A - should print 0
+    0xA0, 0x1A,        // LDY, # 0x16 (22)
+    0xE8,              // INX -- Begin
+    0x88,              // DEY
+    0x8D, 0x0A, 0x20,  // Print X
+    0xD0, 0xF9,        // BNE, Begin 15
+    0x8E, 0x06, 0x00,  // STX, #0x05
+
+    // 0x6C, 0x00, 0x08, // JMP Indirect
+    0x4C, 0x1A, 0x00,  // JMP Abs
+
+    // 22
+    0xAD, 0x06, 0x00,  // LDA, $0005
+    0x8D, 0x09, 0x20,  // Print A - should print 22
+    // 0x00, 0x0B // Data for JMP Indirect
 };
 
 using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(program3));
+    auto d = llvmes::make_unique<Disassembler>(std::move(program2));
 
     AST ast;
     std::vector<uint8_t> ram;
@@ -71,7 +79,7 @@ int main()
     c->SetRAM(std::move(ram));
     c->Compile();
 
-    bool optimized = true;
+    bool optimized = false;
     c->GetMain(optimized)();
 
     return 0;
