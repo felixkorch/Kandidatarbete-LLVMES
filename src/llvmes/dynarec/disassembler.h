@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+#include <cassert>
 #include <iomanip>
 #include <iostream>
 #include <list>
@@ -8,12 +10,9 @@
 #include <sstream>
 #include <unordered_map>
 #include <vector>
-#include <algorithm>
-#include <cassert>
 
-#include "llvmes/dynarec/6502_opcode.h"
 #include "llvmes/common.h"
-
+#include "llvmes/dynarec/6502_opcode.h"
 
 namespace llvmes {
 
@@ -284,7 +283,8 @@ class Disassembler {
 
             bool JMP_Abs = instr->opcode == 0x4C;
             if (IsBranch(instr_info.op) || JMP_Abs) {
-                std::cout << ToHexString(instr_info.op) << std::endl;;
+                std::cout << ToHexString(offs) << ": " << ToHexString(opcode)
+                          << " " << ToHexString(instr->arg) << std::endl;
                 instr->is_branchinstruction = true;
                 uint16_t target_index = 0;
 
