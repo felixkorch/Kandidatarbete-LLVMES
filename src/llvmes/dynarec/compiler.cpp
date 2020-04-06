@@ -158,7 +158,7 @@ void Compiler::PassOne()
 
 void Compiler::PassTwo()
 {
-    c->builder.CreateBr(c->basicblocks[0]);  // 0 == "Reset"
+    c->builder.CreateBr(c->basicblocks[0x8000]);  // 0 == "Reset"
 
     for (auto it = ast.begin(); it != ast.end(); ++it) {
         if ((*it)->GetType() == StatementType::Instruction) {
@@ -187,8 +187,8 @@ void Compiler::PassTwo()
 void Compiler::Compile()
 {
     PassOne();
-    PassTwo();
     addDynJumpTable();
+    PassTwo();
 }
 
 }  // namespace llvmes
