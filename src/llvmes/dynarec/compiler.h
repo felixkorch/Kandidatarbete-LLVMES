@@ -24,6 +24,7 @@ struct Compilation {
     llvm::Value* reg_y = nullptr;
     llvm::Value* reg_a = nullptr;
     llvm::Value* reg_sp = nullptr;
+    llvm::Value* reg_idr = nullptr;
     llvm::Value* status_v = nullptr;
     llvm::Value* status_n = nullptr;
     llvm::Value* status_c = nullptr;
@@ -207,21 +208,29 @@ class Compiler {
 
     void addDynJumpTable()
     {
-        // Since we modify the insert point while inserting panic block and 
+        // Since we modify the insert point while inserting panic block and
         // jump table, we need to restore the insert point before returning
         llvm::BasicBlock* originalInsertPoint = c->builder.GetInsertBlock();
 
-        // Panic Block. Print reg_a if we fail - this is useless
-        c->panicBlock =
-            llvm::BasicBlock::Create(c->m->getContext(), "PanicBlock");
-        c->builder.SetInsertPoint(c->panicBlock);
+        // Panic Block. Returns -1 for now.
+        c->panicBlock = llvm::BasicBlock::Create(
+            c->m->getContext(), "PanicBlock", (llvm::Function*)c->main_fn);
+        c->basicblocks[0x999] = c->panicBlock;
+        c->builder.SetInsertPoint(c->basicblocks[0x999]);
+        c->builder.CreateRet(GetConstant32(
+            -1));  // This block should instead handle the case where the adress
+                   // being jumped to by JMP Indirect does not exist, ie we need
+                   // to create it, add it to the module and to the jumptable,
+                   // and try again. Not it just returns -1.
 
-        c->dynJumpBlock =
-            llvm::BasicBlock::Create(c->m->getContext(), "DynJumpTable");
-        c->builder.SetInsertPoint(c->dynJumpBlock);
-        llvm::LoadInst* reg_a = c->builder.CreateLoad(c->reg_a, "");
+        // Create Dynamic Jump Table
+        c->dynJumpBlock = llvm::BasicBlock::Create(
+            c->m->getContext(), "DynJumpTable", (llvm::Function*)c->main_fn);
+        c->basicblocks[0x666] = c->dynJumpBlock;
+        c->builder.SetInsertPoint(c->basicblocks[0x666]);
+        llvm::LoadInst* reg_idr = c->builder.CreateLoad(c->reg_idr, "");
         // Here, panic block causes a runtime error and crashes.
-        llvm::SwitchInst* sw = c->builder.CreateSwitch(reg_a, c->panicBlock,
+        llvm::SwitchInst* sw = c->builder.CreateSwitch(reg_idr, c->panicBlock,
                                                        c->basicblocks.size());
         for (auto& addr : c->basicblocks) {
             llvm::ConstantInt* addrVal = llvm::ConstantInt::get(
@@ -229,13 +238,11 @@ class Compiler {
                 (u_int64_t)addr.first, false);
             sw->addCase(addrVal, addr.second);
         }
-
         c->builder.SetInsertPoint(originalInsertPoint);
-    }
+    };
 
     void PassOne();
     void PassTwo();
     void Compile();
 };
-
 }  // namespace llvmes

@@ -89,6 +89,7 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->reg_x = c->builder.CreateAlloca(int8, 0, "X");
     c->reg_y = c->builder.CreateAlloca(int8, 0, "Y");
     c->reg_a = c->builder.CreateAlloca(int8, 0, "A");
+    c->reg_idr = c->builder.CreateAlloca(int16, 0, "IDR");
     c->status_z = c->builder.CreateAlloca(int1, 0, "Z");
     c->status_n = c->builder.CreateAlloca(int1, 0, "N");
     c->status_v = c->builder.CreateAlloca(int1, 0, "V");

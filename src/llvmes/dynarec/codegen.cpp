@@ -78,9 +78,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x6C: {  // JMP Indirect
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* target_addr = c->builder.CreateLoad(ram_ptr);
-            c->builder.CreateStore(target_addr, c->reg_a);
+            c->builder.CreateStore(ReadMemory(i.arg), c->reg_idr);
             c->builder.CreateBr(c->dynJumpBlock);
             break;
         }
