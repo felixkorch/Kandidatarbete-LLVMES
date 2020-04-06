@@ -487,15 +487,13 @@ void Compiler::CodeGen(Instruction& i)
             break;
          }
         case 0x46: { // LSR Zeropage
-            uint8_t addr = i.arg;
-            llvm::Value* ram_ptr = GetRAMPtr(addr);
-            llvm::Value* value = c->builder.CreateLoad(ram_ptr);
+            llvm::Value* value = ReadMemory(i.arg);
             // Set carry flag to bit 0 of read value
             llvm::Value* least_significant_bit = c->builder.CreateAnd(value, 1); //(value & 1);
             c->builder.CreateStore(least_significant_bit, c->status_c);
             // Do bit shift right and store the value
             llvm::Value* right_shifted_value = c->builder.CreateLShr(value, 1); // value >> 1, logical shift right
-            c->builder.CreateStore(right_shifted_value, ram_ptr);
+            WriteMemory(i.arg, right_shifted_value);
             // Set Zero flag and Negative flag
             DynamicTestZ(value);
             DynamicTestN(value);
@@ -514,22 +512,20 @@ void Compiler::CodeGen(Instruction& i)
             c->builder.CreateStore(least_significant_bit, c->status_c);
             // Do bit shift right and store the value
             llvm::Value* right_shifted_value = c->builder.CreateLShr(value, 1); // value >> 1, logical shift right
-            c->builder.CreateStore(right_shifted_value, zero_page_index);
+            WriteMemory(zero_page_index, right_shifted_value);
             // Set Zero flag and Negative flag
             DynamicTestZ(value);
             DynamicTestN(value);
             break;
         }
         case 0x4E: { // LSR Absolute
-            uint16_t addr = i.arg;
-            llvm::Value* ram_ptr = GetRAMPtr(addr);
-            llvm::Value* value = c->builder.CreateLoad(ram_ptr);
+            llvm::Value* value = ReadMemory(i.arg);
             // Set carry flag to bit 0 of read value
             llvm::Value* least_significant_bit = c->builder.CreateAnd(value, 1);
             c->builder.CreateStore(least_significant_bit, c->status_c);
             // Do bit shift right and store the value
             llvm::Value* right_shifted_value = c->builder.CreateLShr(value, 1); // value >> 1, logical shift right
-            c->builder.CreateStore(right_shifted_value, ram_ptr);
+            WriteMemory(i.arg, right_shifted_value);
             // Set Zero flag and Negative flag
             DynamicTestZ(value);
             DynamicTestN(value);
@@ -546,7 +542,7 @@ void Compiler::CodeGen(Instruction& i)
             c->builder.CreateStore(least_significant_bit, c->status_c);
             // Do bit shift right and store the value
             llvm::Value* right_shifted_value = c->builder.CreateLShr(value, 1); // value >> 1, logical shift right
-            c->builder.CreateStore(right_shifted_value, ram_ptr);
+            WriteMemory(i.arg, right_shifted_value);
             // Set Zero flag and Negative flag
             DynamicTestZ(value);
             DynamicTestN(value);
