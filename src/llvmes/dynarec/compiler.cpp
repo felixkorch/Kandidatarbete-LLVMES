@@ -435,8 +435,7 @@ void addDynJumpTable()
     // Panic Block. Returns -1 for now.
     c->panicBlock = llvm::BasicBlock::Create(c->m->getContext(), "PanicBlock",
                                              (llvm::Function*)c->main_fn);
-    c->basicblocks[0x999] = c->panicBlock;
-    c->builder.SetInsertPoint(c->basicblocks[0x999]);
+    c->builder.SetInsertPoint(c->panicBlock);
     c->builder.CreateRet(
         GetConstant32(-1));  // This block should instead handle the case where the adress
                              // being jumped to by JMP Indirect does not exist, ie we need
@@ -446,8 +445,7 @@ void addDynJumpTable()
     // Create Dynamic Jump Table
     c->dynJumpBlock = llvm::BasicBlock::Create(c->m->getContext(), "DynJumpTable",
                                                (llvm::Function*)c->main_fn);
-    c->basicblocks[0x666] = c->dynJumpBlock;
-    c->builder.SetInsertPoint(c->basicblocks[0x666]);
+    c->builder.SetInsertPoint(c->dynJumpBlock);
     llvm::LoadInst* reg_idr = c->builder.CreateLoad(c->reg_idr, "");
     // Here, panic block causes a runtime error and crashes.
     llvm::SwitchInst* sw =

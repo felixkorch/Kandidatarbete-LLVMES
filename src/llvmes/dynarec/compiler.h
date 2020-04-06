@@ -110,10 +110,6 @@ class Compiler {
     void WriteMemory(uint16_t addr, llvm::Value* v);
     llvm::Value* ReadMemory(uint16_t addr);
     llvm::Value* ReadMemory16(uint16_t addr);
-    {
-        llvm::Value* ram_ptr = GetRAMPtr16(addr);
-        return c->builder.CreateLoad(ram_ptr);
-    }
 
     llvm::Value* GetStackAddress(llvm::Value* sp);
     void StackPush(llvm::Value* v);
