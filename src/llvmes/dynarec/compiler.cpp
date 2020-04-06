@@ -408,14 +408,30 @@ void Compiler::PassTwo()
     c->builder.CreateRet(GetConstant32(0));
 }
 
-<<<<<<< HEAD
-=======
-void Compiler::Compile()
+void addDynJumpTable()
 {
-    PassOne();
-    PassTwo();
-    addDynJumpTable();
+    // Since we modify the insert point while inserting panic block and
+    // jump table, we need to restore the insert point before returning
+    llvm::BasicBlock* originalInsertPoint = c->builder.GetInsertBlock();
+
+    // Panic Block. Print reg_a if we fail - this is useless
+    c->panicBlock = llvm::BasicBlock::Create(c->m->getContext(), "PanicBlock");
+    c->builder.SetInsertPoint(c->panicBlock);
+
+    c->dynJumpBlock = llvm::BasicBlock::Create(c->m->getContext(), "DynJumpTable");
+    c->builder.SetInsertPoint(c->dynJumpBlock);
+    llvm::LoadInst* reg_a = c->builder.CreateLoad(c->reg_a, "");
+    // Here, panic block causes a runtime error and crashes.
+    llvm::SwitchInst* sw =
+        c->builder.CreateSwitch(reg_a, c->panicBlock, c->basicblocks.size());
+    for (auto& addr : c->basicblocks) {
+        llvm::ConstantInt* addrVal =
+            llvm::ConstantInt::get(llvm::IntegerType::getInt16Ty(c->m->getContext()),
+                                   (u_int64_t)addr.first, false);
+        sw->addCase(addrVal, addr.second);
+    }
+
+    c->builder.SetInsertPoint(originalInsertPoint);
 }
 
->>>>>>> 2dd2231... Use dynamic jump table
 }  // namespace llvmes
