@@ -48,6 +48,10 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x50: {  // BVC Immediate
+            llvm::Value* load_v = c->builder.CreateLoad(c->status_v);
+            llvm::Value* is_overflow_clear =
+                c->builder.CreateICmpEQ(load_v, GetConstant1(0), "eq");
+            CreateCondBranch(is_overflow_clear, c->basicblocks[i.target_label]);
             break;
         }
         case 0x70: {  // BVS Immediate
