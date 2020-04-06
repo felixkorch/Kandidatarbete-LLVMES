@@ -408,4 +408,14 @@ void Compiler::PassTwo()
     c->builder.CreateRet(GetConstant32(0));
 }
 
+<<<<<<< HEAD
+=======
+void Compiler::Compile()
+{
+    PassOne();
+    PassTwo();
+    addDynJumpTable();
+}
+
+>>>>>>> 2dd2231... Use dynamic jump table
 }  // namespace llvmes
