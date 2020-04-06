@@ -115,6 +115,7 @@ struct Instruction : public Statement {
 
     bool is_branchinstruction = false;
     std::string target_label;
+    uint16_t target_addr;
 
     StatementType GetType() override { return StatementType::Instruction; }
 
@@ -283,6 +284,7 @@ class Disassembler {
 
             bool JMP_Abs = instr->opcode == 0x4C;
             if (IsBranch(instr_info.op) || JMP_Abs) {
+                std::cout << ToHexString(instr_info.op) << std::endl;;
                 instr->is_branchinstruction = true;
                 uint16_t target_index = 0;
 
@@ -306,6 +308,7 @@ class Disassembler {
                 branches.push(branch_target);
 
                 instr->target_label = ss.str();
+                instr->target_addr = target_index;
 
                 // JMP ends a branch
                 if (JMP_Abs)

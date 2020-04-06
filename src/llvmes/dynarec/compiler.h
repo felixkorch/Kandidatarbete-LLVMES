@@ -33,10 +33,12 @@ struct Compilation {
     llvm::Value* putchar_fn = nullptr;
     llvm::Value* write_fn = nullptr;
     llvm::Value* read_fn = nullptr;
+    llvm::BasicBlock* dynJumpBlock = nullptr;
+    llvm::BasicBlock* panicBlock = nullptr;
 
     std::vector<uint8_t> ram;
 
-    std::unordered_map<std::string, llvm::BasicBlock*> basicblocks;
+    std::unordered_map<u_int16_t, llvm::BasicBlock*> basicblocks;
 
     Compilation(const std::string& program_name)
         : jitter(),
@@ -201,6 +203,30 @@ class Compiler {
             c->m->getContext(), auto_label.str(), (llvm::Function*)c->main_fn);
         c->builder.CreateCondBr(pred, target, continue_block);
         c->builder.SetInsertPoint(continue_block);
+    }
+
+    void addDynJumpTable()
+    {
+        // Panic Block. Print reg_a if we fail - this is useless
+        c->panicBlock =
+            llvm::BasicBlock::Create(c->m->getContext(), "PanicBlock");
+        c->builder.SetInsertPoint(c->panicBlock);
+        llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+        c->builder.CreateCall(c->putchar_fn, {load_a});
+
+        c->dynJumpBlock =
+            llvm::BasicBlock::Create(c->m->getContext(), "DynJumpTable");
+        c->builder.SetInsertPoint(c->dynJumpBlock);
+        llvm::LoadInst* reg_a = c->builder.CreateLoad(c->reg_a, "");
+        // Here, panic block causes a runtime error and crashes.
+        llvm::SwitchInst* sw = c->builder.CreateSwitch(reg_a, c->panicBlock,
+                                                       c->basicblocks.size());
+        for (auto& addr : c->basicblocks) {
+            llvm::ConstantInt* addrVal = llvm::ConstantInt::get(
+                llvm::IntegerType::getInt16Ty(c->m->getContext()),
+                (u_int64_t)addr.first, false);
+            sw->addCase(addrVal, addr.second);
+        }
     }
 
     void PassOne();
