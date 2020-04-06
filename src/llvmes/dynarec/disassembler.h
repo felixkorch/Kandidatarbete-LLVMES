@@ -282,7 +282,8 @@ class Disassembler {
             }
 
             bool JMP_Abs = instr->opcode == 0x4C;
-            if (IsBranch(instr_info.op) || JMP_Abs) {
+            bool JMP_Idr = instr->opcode == 0x6C;
+            if (IsBranch(instr_info.op) || JMP_Abs || JMP_Idr) {
                 std::cout << ToHexString(offs) << ": " << ToHexString(opcode)
                           << " " << ToHexString(instr->arg) << std::endl;
                 instr->is_branchinstruction = true;
@@ -292,6 +293,9 @@ class Disassembler {
                 if (instr_info.op == MOS6502::Op::JSR || JMP_Abs) {
                     target_index = instr->arg;
                 }
+                else if (JMP_Idr) {
+                    target_index = offs + 3;
+                }
                 // Conditional branch
                 else {
                     target_index = (int8_t)instr->arg + offs + 2;
@@ -299,6 +303,7 @@ class Disassembler {
 
                 std::stringstream ss;
                 ss << "Label " << ToHexString(target_index);
+                std::cout << ss.str() << std::endl;
 
                 auto branch_target = InsertLabelBefore(target_index, ss.str());
                 if (branch_target == ast.end())
@@ -311,7 +316,7 @@ class Disassembler {
                 instr->target_addr = target_index;
 
                 // JMP ends a branch
-                if (JMP_Abs)
+                if (JMP_Abs || JMP_Idr)
                     break;
             }
 
