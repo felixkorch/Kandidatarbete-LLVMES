@@ -31,11 +31,9 @@ std::vector<uint8_t> program2{
 
 std::vector<uint8_t> program3{
     0x8D, 0x09, 0x20,  // Print A - should print 0
-    // 0x4C, 0x06, 0x00, // JMP to next instruction
-    // 0x4C, 0x09, 0x00, // JMP to next instruction
-
-    // 0x4C, 0x0B, 0x00, // JMP Abs
-    // 0x6C, 0x00, 0x05, // JMP Indirect
+    // 0x4C, 0x06, 0x80,  // JMP to next instruction
+    // 0x4C, 0x09, 0x80,  // JMP to next instruction
+    0x6C, 0x1E, 0x80,  // JMP Indirect
 
     0x8D, 0x09, 0x20,  // Print A - should print 0
     0xA0, 0x1A,        // LDY, # 0x16 (22)
@@ -43,22 +41,21 @@ std::vector<uint8_t> program3{
     0x88,              // DEY
     0x8D, 0x0A, 0x20,  // Print X
     0xD0, 0xF9,        // BNE, Begin 15
-    0x8E, 0x06, 0x00,  // STX, #0x05
+    0x8E, 0x1E, 0x80,  // STX, #0x05
 
-    // 0x6C, 0x00, 0x08, // JMP Indirect
-    0x4C, 0x1A, 0x00,  // JMP Abs
-
-    // 22
+    0x6C, 0x1E, 0x80,  // JMP Indirect
+    // 0x4C, 0x1A, 0x00,  // JMP Abs
+    // 01 14
     0xAD, 0x06, 0x00,  // LDA, $0005
     0x8D, 0x09, 0x20,  // Print A - should print 22
-    // 0x00, 0x0B // Data for JMP Indirect
+    0x0C, 0x00         // Data for JMP Indirect $0204
 };
 
 using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(program2));
+    auto d = llvmes::make_unique<Disassembler>(std::move(program3));
 
     AST ast;
     std::vector<uint8_t> ram;
