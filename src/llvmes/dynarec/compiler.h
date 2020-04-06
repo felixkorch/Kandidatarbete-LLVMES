@@ -147,6 +147,17 @@ class Compiler {
                                llvm::Type::getInt8Ty(c->m->getContext())));
     }
 
+    llvm::Value* GetRAMPtr16(uint16_t addr)
+    {
+        llvm::Constant* ram_ptr_value =
+            llvm::ConstantInt::get(llvm::Type::getInt64Ty(c->m->getContext()),
+                                   (int64_t)c->ram.data() + (int64_t)addr);
+
+        return llvm::ConstantExpr::getIntToPtr(
+            ram_ptr_value, llvm::PointerType::getUnqual(
+                               llvm::Type::getInt16Ty(c->m->getContext())));
+    }
+
     // Keeping it here for reference
     //
 
@@ -179,6 +190,12 @@ class Compiler {
     llvm::Value* ReadMemory(uint16_t addr)
     {
         llvm::Value* ram_ptr = GetRAMPtr(addr);
+        return c->builder.CreateLoad(ram_ptr);
+    }
+
+    llvm::Value* ReadMemory16(uint16_t addr)
+    {
+        llvm::Value* ram_ptr = GetRAMPtr16(addr);
         return c->builder.CreateLoad(ram_ptr);
     }
 

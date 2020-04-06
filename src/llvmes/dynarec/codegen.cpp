@@ -78,7 +78,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x6C: {  // JMP Indirect
-            c->builder.CreateStore(ReadMemory(i.arg), c->reg_idr);
+            c->builder.CreateStore(ReadMemory16(i.arg), c->reg_idr);
             c->builder.CreateBr(c->dynJumpBlock);
             break;
         }
