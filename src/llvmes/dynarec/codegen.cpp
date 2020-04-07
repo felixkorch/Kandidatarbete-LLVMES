@@ -363,9 +363,6 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             // Adds the X register to the RAM pointer
             llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
-            // AND with 0xFFF to make sure that the index is 3 byte
-            llvm::Value* zero_page_index =
-                c->builder.CreateAnd(index_16, 0xFFF);
             llvm::Value* value = c->builder.CreateLoad(zero_page_index);
             break;
         }
@@ -400,10 +397,11 @@ void Compiler::CodeGen(Instruction& i)
             // Loads the Y register into a placeholder
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
             // Adds the Y register to the RAM pointer
-            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_y);
-            // AND with 0xFF to make sure that the index is 2 byte
-            llvm::Value* zero_page_index = c->builder.CreateAnd(index_16, 0xFF);
-            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
+            llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, load_y);
+            // Makes the address a 16 bit by adding 8 zeros
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
+            c->builder.CreateCall(c->write_fn, {target_addr_16, load_y});
             break;
         }
         case 0xAE: {  // LDX Absolute
@@ -447,9 +445,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xAC: {  // LDY Absolute
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            c->builder.CreateStore(load_ram, c->reg_y);
+            c->builder.CreateStore(ReadMemory(i.arg), c->reg_y);
             break;
         }
         case 0xBC: {  // LDY AbsoluteX
