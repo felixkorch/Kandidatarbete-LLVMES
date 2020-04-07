@@ -314,7 +314,9 @@ class Disassembler {
 
             it = std::next(it);
         }
-        branches.pop();
+        if(!branches.empty()) {
+            branches.pop();
+        }
     }
 
    public:
