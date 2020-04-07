@@ -353,13 +353,6 @@ void Compiler::CodeGen(Instruction& i)
         case 0xB1: {  // LDA IndirectY
             break;
         }
-
-            // case 0xAD: { // LDA Absolute
-            //     llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            //     llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            //     c->builder.CreateStore(load_ram, c->reg_a);
-            //     break;
-            // }
         case 0xAD: {  // LDA Absolute
             c->builder.CreateStore(ReadMemory(i.arg), c->reg_a);
             break;
@@ -414,9 +407,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xAE: {  // LDX Absolute
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            c->builder.CreateStore(load_ram, c->reg_x);
+            c->builder.CreateStore(ReadMemory(i.arg), c->reg_x);
             break;
         }
         case 0xBE: {  // LDX AbsoluteY
