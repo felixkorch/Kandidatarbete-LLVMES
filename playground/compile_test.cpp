@@ -46,11 +46,22 @@ std::vector<uint8_t> program3 {
     PRINT_A,               // 7
 };
 
+std::vector<uint8_t> program4{
+    0xA0, 0x0A,        // LDY, # 0x0A
+    0xB6,              // LDX zeropage Y
+    0xE8,              // INX -- Begin
+    0x88,              // DEY
+    0xD0, 0xFC,        // BNE, Begin
+    0x8E, 0x00, 0x00,  // STX, $0000
+    0xAD, 0x00, 0x00,  // LDA, $0000
+    0x8D, 0x09, 0x20,  // Print A - should print 10
+};
+
 using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(program3));
+    auto d = llvmes::make_unique<Disassembler>(std::move(program4));
 
     AST ast;
     std::vector<uint8_t> ram;
