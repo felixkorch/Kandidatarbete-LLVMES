@@ -387,9 +387,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xA6: {  // LDX Zeropage
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            c->builder.CreateStore(load_ram, c->reg_x);
+            c->builder.CreateStore(ReadMemory(i.arg), c->reg_x);
             break;
         }
         case 0xB6: {  // LDX ZeropageY
@@ -413,11 +411,8 @@ void Compiler::CodeGen(Instruction& i)
             // Loads the Y register into a placeholder
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
             // Adds the Y register to the RAM pointer
-            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_y);
-            // AND with 0xFFF to make sure that the index is 3 byte
-            llvm::Value* zero_page_index =
-                c->builder.CreateAnd(index_16, 0xFFF);
-            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
+            llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, load_y);
+            c->builder.CreateCall(c->write_fn, {target_addr, load_y});
             break;
         }
         case 0xA0: {  // LDY Immediate
