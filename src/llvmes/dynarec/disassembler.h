@@ -314,7 +314,6 @@ class Disassembler {
 
             it = std::next(it);
         }
-        branches.pop();
     }
 
    public:
@@ -344,10 +343,12 @@ class Disassembler {
         //
         // Hardcoded to start address 0x8000
         auto it = InsertLabelBefore(0x8000, "Reset");
-
-        ReplaceWithInstruction(it);
-        while (!branches.empty())
-            ReplaceWithInstruction(branches.front());
+        branches.push(it);
+        do {
+            auto entry = branches.front();
+            ReplaceWithInstruction(entry);
+            branches.pop();
+        } while (!branches.empty());
 
         return std::move(ast);
     }
