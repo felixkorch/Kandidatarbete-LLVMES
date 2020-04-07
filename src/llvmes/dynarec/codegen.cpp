@@ -399,7 +399,7 @@ void Compiler::CodeGen(Instruction& i)
             // Makes the address a 16 bit by adding 8 zeros
             llvm::Value* target_addr_16 =
                 c->builder.CreateZExt(target_addr, int16);
-            c->builder.CreateCall(c->write_fn, {target_addr_16, load_y});
+            c->builder.CreateCall(c->read_fn, {target_addr_16, load_y});
             break;
         }
         case 0xAE: {  // LDX Absolute
@@ -412,7 +412,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
             // Adds the Y register to the RAM pointer
             llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, load_y);
-            c->builder.CreateCall(c->write_fn, {target_addr, load_y});
+            c->builder.CreateCall(c->read_fn, {target_addr, load_y});
             break;
         }
         case 0xA0: {  // LDY Immediate
