@@ -362,8 +362,8 @@ void Compiler::CodeGen(Instruction& i)
             // Loads the X register into a placeholder
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             // Adds the X register to the RAM pointer
-            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
-            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
+            llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, load_x);
+            c->builder.CreateCall(c->read_fn, {target_addr, load_x});
             break;
         }
         case 0xB9: {  // LDA AbsoluteY
