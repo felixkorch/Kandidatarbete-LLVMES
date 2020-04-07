@@ -48,10 +48,9 @@ std::vector<uint8_t> program3 {
 
 std::vector<uint8_t> program4{
     0xA0, 0x0A,        // LDY, # 0x0A
-    0xB6,              // LDX zeropage Y
-    0xE8,              // INX -- Begin
-    0x88,              // DEY
-    0xD0, 0xFC,        // BNE, Begin
+    0x8C, 0x10, 0x00,
+    0xA0, 0x05,        // LDY, # 0x05
+    0xB6, 0x0B,        // LDX, $(0x0B + Y) = 0x10
     0x8E, 0x00, 0x00,  // STX, $0000
     0xAD, 0x00, 0x00,  // LDA, $0000
     0x8D, 0x09, 0x20,  // Print A - should print 10
@@ -82,7 +81,7 @@ int main()
     c->SetRAM(std::move(ram));
     c->Compile();
 
-    bool optimized = true;
+    bool optimized = false;
     c->GetMain(optimized)();
 
     return 0;

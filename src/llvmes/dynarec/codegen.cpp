@@ -387,15 +387,14 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xB6: {  // LDX ZeropageY
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // Loads the Y register into a placeholder
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            // Adds the Y register to the RAM pointer
-            llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, load_y);
-            // Makes the address a 16 bit by adding 8 zeros
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_y, zpg_addr);
             llvm::Value* target_addr_16 =
                 c->builder.CreateZExt(target_addr, int16);
-            c->builder.CreateCall(c->read_fn, {target_addr_16, load_y});
+            llvm::Value* answer= c->builder.CreateCall(c->read_fn, target_addr_16);
+            c->builder.CreateStore(answer, c->reg_x);
             break;
         }
         case 0xAE: {  // LDX Absolute
@@ -652,11 +651,13 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x94: {  // STY ZeropageX
-            llvm::Value* X = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* sty_X = c->builder.CreateAdd(ram_ptr, X);
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            c->builder.CreateStore(load_y, sty_X);
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_addr);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
+            c->builder.CreateCall(c->write_fn, {target_addr_16, load_y});
             break;
         }
         case 0x8C: {  // STY Absolute
