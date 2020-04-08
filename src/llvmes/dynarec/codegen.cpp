@@ -111,16 +111,17 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xC5: {  // CMP Zeropage
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            // get reg_a
+            // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
-            // flag Test
+            // Get in data and compare
+            llvm::Value* result =
+                c->builder.CreateSub(reg_a, ReadMemory(i.arg));
+            // Flag Test
             DynamicTestZ(result);
             DynamicTestN(result);
+            // Makes the result a 16 bit by adding 8 zeros needs to be
+            // 16 bit in DynamicTestCCmp.
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
             DynamicTestCCmp(result);
             break;
         }
