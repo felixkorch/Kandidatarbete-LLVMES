@@ -94,12 +94,19 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xC9: {  // CMP Immediate
-            int arg = i.arg;
-            llvm::Value* operand = llvm::ConstantInt::get(int8, arg);
+            // In data
+            llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Compare
             llvm::Value* result = c->builder.CreateSub(reg_a, operand);
+            // Flag Test
             DynamicTestZ(result);
             DynamicTestN(result);
+            // Makes the result a 16 bit by adding 8 zeros needs to be 
+            // 16 bit in DynamicTestCCmp.
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(result, int16);
             DynamicTestCCmp(result);
             break;
         }
