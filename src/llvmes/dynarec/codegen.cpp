@@ -443,8 +443,11 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xBC: {  // LDY AbsoluteX
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
-            llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_addr);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(load_x, int16);
+            llvm::Constant* zpg_addr = GetConstant16(i.arg);
+            llvm::Value* target_addr =
+                c->builder.CreateAdd(target_addr_16, zpg_addr);
             llvm::Value* answer =
                 c->builder.CreateCall(c->read_fn, target_addr);
             c->builder.CreateStore(answer, c->reg_y);
