@@ -752,6 +752,12 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x98: {  // TYA Implied
+            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            llvm::Value* result = c->builder.CreateStore(load_y, c->reg_a);
+
+            // Flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x29: {  // AND Immediate
