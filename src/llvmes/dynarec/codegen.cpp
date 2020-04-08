@@ -163,21 +163,24 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xDD: {  // CMP AbsoluteX
-            // in data
+            // In data
             llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // get reg_x
+            // Get reg_x
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // add reg_x and ram_ptr
-            llvm::Value* memPoiter = c->builder.CreateAdd(ram_ptr, reg_x);
-            // get date from pointer
-            llvm::Value* load_ram = c->builder.CreateLoad(memPoiter);
-            // get reg_a
+            // Add reg_x and ram_ptr
+            llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, reg_x);
+            // Get date from pointer
+            llvm::Value* load_ram = c->builder.CreateLoad(target_addr);
+            // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            // compare
+            // Compare
             llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
-            // flag test
+            // Flag test
             DynamicTestZ(result);
             DynamicTestN(result);
+            // Makes the result a 16 bit by adding 8 zeros needs to be
+            // 16 bit in DynamicTestCCmp.
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
             DynamicTestCCmp(result);
             break;
         }
