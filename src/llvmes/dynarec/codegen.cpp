@@ -729,6 +729,12 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xBA: {  // TSX Implied
+            llvm::Value* load_sp = c->builder.CreateLoad(c->reg_sp);
+            llvm::Value* result = c->builder.CreateStore(load_sp, c->reg_x);
+
+            // Flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x8A: {  // TXA Implied
