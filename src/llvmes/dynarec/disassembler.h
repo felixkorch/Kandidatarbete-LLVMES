@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+#include <cassert>
 #include <iomanip>
 #include <iostream>
 #include <list>
@@ -8,12 +10,9 @@
 #include <sstream>
 #include <unordered_map>
 #include <vector>
-#include <algorithm>
-#include <cassert>
 
-#include "llvmes/dynarec/6502_opcode.h"
 #include "llvmes/common.h"
-
+#include "llvmes/dynarec/6502_opcode.h"
 
 namespace llvmes {
 
@@ -314,9 +313,6 @@ class Disassembler {
 
             it = std::next(it);
         }
-        if(!branches.empty()) {
-            branches.pop();
-        }
     }
 
    public:
@@ -346,10 +342,12 @@ class Disassembler {
         //
         // Hardcoded to start address 0x8000
         auto it = InsertLabelBefore(0x8000, "Reset");
-
-        ReplaceWithInstruction(it);
-        while (!branches.empty())
-            ReplaceWithInstruction(branches.front());
+        branches.push(it);
+        do {
+            auto entry = branches.front();
+            ReplaceWithInstruction(entry);
+            branches.pop();
+        } while (!branches.empty());
 
         return std::move(ast);
     }
