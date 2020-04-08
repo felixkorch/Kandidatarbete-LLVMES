@@ -244,16 +244,16 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xEC: {  // CPX Absolute
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            // get reg_x
+            // Get reg_x
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_x, load_ram);
-            // flag test
+            // Get in datad adn compare
+            llvm::Value* result = c->builder.CreateSub(reg_x, ReadMemory(i.arg));
+            // Flag test
             DynamicTestZ(result);
             DynamicTestN(result);
+            // Makes the result a 16 bit by adding 8 zeros needs to be
+            // 16 bit in DynamicTestCCmp.
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
             DynamicTestCCmp(result);
             break;
         }
