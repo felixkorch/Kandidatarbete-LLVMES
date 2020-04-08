@@ -747,6 +747,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x9A: {  // TXS Implied
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* result = c->builder.CreateStore(load_x, c->reg_sp);
             break;
         }
         case 0x98: {  // TYA Implied
