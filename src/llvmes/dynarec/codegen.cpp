@@ -258,16 +258,18 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xC0: {  // CPY Immediate
-            // set arg to value
-            int arg = i.arg;
-            llvm::Value* operand = llvm::ConstantInt::get(int8, arg);
-            // get reg_y
+            // In data
+            llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            // Get reg_y
             llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
-            // compare
+            // Compare
             llvm::Value* result = c->builder.CreateSub(reg_y, operand);
-            // flag test
+            // Flag test
             DynamicTestZ(result);
             DynamicTestN(result);
+            // Makes the result a 16 bit by adding 8 zeros needs to be
+            // 16 bit in DynamicTestCCmp.
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
             DynamicTestCCmp(result);
             break;
         }
