@@ -126,29 +126,23 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xD5: {  // CMP ZeropageX
-            // in data
+            // In data
             llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // get reg_a and reg_x
+            // Get reg_a and reg_x
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // add data and reg_x
-            llvm::Value* memPoiter = c->builder.CreateAdd(ram_ptr, reg_x);
-            // modulus constant
-            llvm::Constant* mod = llvm::ConstantInt::get(int8, 0xFF);
-            // modulus and compare
-            llvm::Value* result;
-            if (c->builder.CreateICmpUGT(memPoiter, mod)) {
-                llvm::Value* memPoiterCh = c->builder.CreateSub(memPoiter, mod);
-                llvm::Value* load_ram = c->builder.CreateLoad(memPoiterCh);
-                result = c->builder.CreateSub(reg_a, load_ram);
-            }
-            else {
-                llvm::Value* load_ram = c->builder.CreateLoad(memPoiter);
-                result = c->builder.CreateSub(reg_a, load_ram);
-            }
-            // flag Test
+            // Add data and reg_x
+            llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, reg_x);
+            // Get value to compare with
+            llvm::Value* load_ram = c->builder.CreateLoad(target_addr);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
+            // Flag Test
             DynamicTestZ(result);
             DynamicTestN(result);
+            // Makes the result a 16 bit by adding 8 zeros needs to be
+            // 16 bit in DynamicTestCCmp.
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
             DynamicTestCCmp(result);
             break;
         }
