@@ -436,12 +436,12 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xBC: {  // LDY AbsoluteX
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // Loads the X register into a placeholder
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            // Adds the X register to the RAM pointer
-            llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, load_x);
-            c->builder.CreateCall(c->read_fn, {target_addr, load_x});
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_addr);
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr);
+            c->builder.CreateStore(answer, c->reg_y);
             break;
         }
         case 0x4A: {  // ACC Accumulator
