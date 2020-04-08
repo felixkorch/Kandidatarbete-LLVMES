@@ -774,9 +774,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x86: {  // STX Zeropage
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            c->builder.CreateStore(load_x, ram_ptr);
+            WriteMemory(i.arg, load_x);
             break;
         }
         case 0x96: {  // STX ZeropageY
