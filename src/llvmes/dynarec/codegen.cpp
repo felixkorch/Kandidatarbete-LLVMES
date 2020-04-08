@@ -710,6 +710,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x85: {  // STA Zeropage
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            WriteMemory(i.arg, load_a);
             break;
         }
         case 0x95: {  // STA ZeropageX
