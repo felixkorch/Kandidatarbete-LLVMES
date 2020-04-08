@@ -715,6 +715,13 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x95: {  // STA ZeropageX
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_addr);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
+            c->builder.CreateCall(c->write_fn, {target_addr_16, load_a});
             break;
         }
         case 0x8D: {  // STA Absolute
