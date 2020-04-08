@@ -420,15 +420,18 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xB4: {  // LDY ZeropageX
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
             // Loads the X register into a placeholder
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             // Adds the X register to the RAM pointer
-            llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, load_x);
+            llvm::Value* target_addr = c->builder.CreateAdd(zpg_addr, load_x);
             // Makes the address a 16 bit by adding 8 zeros
             llvm::Value* target_addr_16 =
                 c->builder.CreateZExt(target_addr, int16);
-            c->builder.CreateCall(c->read_fn, {target_addr_16, load_x});
+            // create call to read function that returns
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr_16);
+            c->builder.CreateStore(answer, c->reg_y);
             break;
         }
         case 0xAC: {  // LDY Absolute
