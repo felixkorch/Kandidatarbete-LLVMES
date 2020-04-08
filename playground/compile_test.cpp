@@ -46,9 +46,9 @@ std::vector<uint8_t> program3 {
     PRINT_A,               // 7
 };
 
-std::vector<uint8_t> program4{
+std::vector<uint8_t> testLDAXY_zeropageXY{
     0xA0, 0x0A,        // LDY, # 0x0A
-    0x8C, 0x10, 0x00,
+    0x8C, 0x10, 0x00,  // STY absolute
     0xA0, 0x05,        // LDY, # 0x05
     0xB6, 0x0B,        // LDX, $(0x0B + Y) = 0x10
     0x8E, 0x00, 0x00,  // STX, $0000
@@ -60,7 +60,7 @@ using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(program4));
+    auto d = llvmes::make_unique<Disassembler>(std::move(testLDAXY_zeropageXY));
 
     AST ast;
     std::vector<uint8_t> ram;
