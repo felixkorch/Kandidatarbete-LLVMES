@@ -346,6 +346,9 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xA1: {  // LDA IndirectX
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_addr);
             break;
         }
         case 0xB1: {  // LDA IndirectY
