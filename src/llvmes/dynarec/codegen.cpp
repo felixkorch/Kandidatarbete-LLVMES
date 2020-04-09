@@ -70,6 +70,11 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xC8: {  // INY Implied
+            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            llvm::Value* iny = c->builder.CreateAdd(load_y, GetConstant8(1));
+            c->builder.CreateStore(iny, c->reg_y);
+            DynamicTestZ(iny);
+            DynamicTestN(iny);
             break;
         }
         case 0x88: {  // DEY Implied
@@ -81,6 +86,11 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xCA: {  // DEX Implied
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* dex = c->builder.CreateSub(load_x, GetConstant8(1));
+            c->builder.CreateStore(dex, c->reg_x);
+            DynamicTestZ(dex);
+            DynamicTestN(dex);
             break;
         }
         case 0xE6: {  // INC Zeropage
