@@ -66,11 +66,20 @@ std::vector<uint8_t> testLDAXY_absoluteXY{
     0x8D, 0x09, 0x20,  // Print A - should print 10
 };
 
+std::vector<uint8_t> testLDA_indirectXY{
+    0xA2, 0x0A,        // LDX, # 0x0A
+    0x8E, 0x10, 0x00,  // STX absolute
+    0xA2, 0x05,        // LDX, # 0x05
+    0xA1, 0x0B,        // LDA, $(0x0B + Y) = 0x10
+    0x8E, 0x00, 0x00,  // STX, $0000
+    0x8D, 0x09, 0x20,  // Print A - should print 10
+};
+
 using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(testLDAXY_absoluteXY));
+    auto d = llvmes::make_unique<Disassembler>(std::move(testLDA_indirectXY));
 
     AST ast;
     std::vector<uint8_t> ram;
