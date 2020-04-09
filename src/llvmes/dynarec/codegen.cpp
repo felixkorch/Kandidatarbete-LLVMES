@@ -360,8 +360,10 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xBD: {  // LDA AbsoluteX
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
-            llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_addr);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* target_addr =
+                c->builder.CreateAdd(target_addr_16, addr);
             llvm::Value* answer =
                 c->builder.CreateCall(c->read_fn, target_addr);
             c->builder.CreateStore(answer, c->reg_a);
@@ -369,8 +371,10 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xB9: {  // LDA AbsoluteY
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
-            llvm::Value* target_addr = c->builder.CreateAdd(load_y, zpg_addr);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_y, int16);
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* target_addr =
+                c->builder.CreateAdd(target_addr_16, addr);
             llvm::Value* answer =
                 c->builder.CreateCall(c->read_fn, target_addr);
             c->builder.CreateStore(answer, c->reg_a);
@@ -404,8 +408,10 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xBE: {  // LDX AbsoluteY
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
-            llvm::Value* target_addr = c->builder.CreateAdd(load_y, zpg_addr);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_y, int16);
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* target_addr =
+                c->builder.CreateAdd(target_addr_16, addr);
             llvm::Value* answer =
                 c->builder.CreateCall(c->read_fn, target_addr);
             c->builder.CreateStore(answer, c->reg_x);
@@ -445,9 +451,9 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             llvm::Value* target_addr_16 =
                 c->builder.CreateZExt(load_x, int16);
-            llvm::Constant* zpg_addr = GetConstant16(i.arg);
+            llvm::Constant* addr = GetConstant16(i.arg);
             llvm::Value* target_addr =
-                c->builder.CreateAdd(target_addr_16, zpg_addr);
+                c->builder.CreateAdd(target_addr_16, addr);
             llvm::Value* answer =
                 c->builder.CreateCall(c->read_fn, target_addr);
             c->builder.CreateStore(answer, c->reg_y);
@@ -668,9 +674,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x8C: {  // STY Absolute
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            c->builder.CreateStore(load_y, ram_ptr);
+            WriteMemory(i.arg, load_y);
             break;
         }
         case 0xAA: {  // TAX Implied
