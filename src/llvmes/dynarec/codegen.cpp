@@ -105,9 +105,9 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be 
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 =
+            llvm::Value* result_16 =
                 c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+           DynamicTestCCmp(result_16);
             break;
         }
         case 0xC5: {  // CMP Zeropage
