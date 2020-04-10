@@ -46,11 +46,28 @@ std::vector<uint8_t> program3 {
     PRINT_A,               // 7
 };
 
+std::vector<uint8_t> cmp_inderect{
+    0xA9, 0x0A,        // LDA; # 0x0A
+    0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
+    0xC9, 0x0A,        // CMP imidiate #0x0A
+    0x8D, 0x0C, 0x20,  // Print status N - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 01
+    0xC9, 0x0B,        // CMP imidiate #0x0B
+    0x8D, 0x0C, 0x20,  // Print status N - should print 01
+    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 00
+    0xC9, 0x00,        // CMP imidiate #0x00
+    0x8D, 0x0C, 0x20,  // Print status N - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 00
+};
+
 using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(program3));
+    auto d = llvmes::make_unique<Disassembler>(std::move(cmp_inderect));
 
     AST ast;
     std::vector<uint8_t> ram;
