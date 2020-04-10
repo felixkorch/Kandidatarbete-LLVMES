@@ -46,18 +46,44 @@ std::vector<uint8_t> program3 {
     PRINT_A,               // 7
 };
 
-std::vector<uint8_t> cmp_inderect{
+std::vector<uint8_t> cmp_Immidiate{
     0xA9, 0x0A,        // LDA; # 0x0A
     0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
     0xC9, 0x0A,        // CMP imidiate #0x0A
     0x8D, 0x0C, 0x20,  // Print status N - should print 00
     0x8D, 0x0D, 0x20,  // Print status C - should print 00
     0x8D, 0x0E, 0x20,  // Print status Z - should print 01
-    0xC9, 0x0B,        // CMP imidiate #0x0B
+    0xA9, 0x0B,        // LDA; # 0x0B
+    0x8D, 0x09, 0x20,  // Print A - should print 0x0B = 11
+    0xC9, 0x0A,        // CMP imidiate #0x0A
+    0x8D, 0x0C, 0x20,  // Print status N - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 00
+    0xA9, 0x02,        // LDA; # 0x02
+    0x8D, 0x09, 0x20,  // Print A - should print 0x02 = 2
+    0xC9, 0x0A,        // CMP imidiate #0x00
     0x8D, 0x0C, 0x20,  // Print status N - should print 01
     0x8D, 0x0D, 0x20,  // Print status C - should print 00
     0x8D, 0x0E, 0x20,  // Print status Z - should print 00
-    0xC9, 0x00,        // CMP imidiate #0x00
+};
+
+std::vector<uint8_t> cmp_Zeropage{
+    0xA9, 0x0A,        // LDA; # 0x0A
+    0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
+    0x8D, 0x20, 0x00,  // reg_a (=0x0A) to 0x0020 in mem
+    0xC5, 0x20,        // cmp zeropage mem 0x0020 
+    0x8D, 0x0C, 0x20,  // Print status N - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 01
+    0xA9, 0x0B,        // LDA; # 0x0B
+    0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
+    0xC5, 0x20,        // cmp zeropage mem 0x0020
+    0x8D, 0x0C, 0x20,  // Print status N - should print 01
+    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 00
+    0xA9, 0x02,        // LDA; # 0x02
+    0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
+    0xC5, 0x20,        // cmp zeropage mem 0x0020
     0x8D, 0x0C, 0x20,  // Print status N - should print 00
     0x8D, 0x0D, 0x20,  // Print status C - should print 00
     0x8D, 0x0E, 0x20,  // Print status Z - should print 00
@@ -67,7 +93,7 @@ using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(cmp_inderect));
+    auto d = llvmes::make_unique<Disassembler>(std::move(cmp_Immidiate));
 
     AST ast;
     std::vector<uint8_t> ram;
