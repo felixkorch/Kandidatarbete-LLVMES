@@ -142,8 +142,8 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16);
             break;
         }
         case 0xCD: {  // CMP Absolute
@@ -158,8 +158,8 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16);
             break;
         }
         case 0xDD: {  // CMP AbsoluteX
@@ -180,8 +180,8 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16);
             break;
         }
         case 0xD9: {  // CMP AbsoluteY
@@ -202,8 +202,8 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16);
             break;
         }
         case 0xC1: {  // CMP IndirectX
@@ -224,8 +224,8 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16);
             break;
         }
         case 0xE4: {  // CPX Zeropage
@@ -239,8 +239,8 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16);
             break;
         }
         case 0xEC: {  // CPX Absolute
@@ -253,8 +253,8 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16);
             break;
         }
         case 0xC0: {  // CPY Immediate
@@ -269,8 +269,8 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16);
             break;
         }
         case 0xC4: {  // CPY Zeropage
@@ -284,8 +284,8 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16);
             break;
         }
         case 0xCC: {  // CPY Absolute
@@ -299,8 +299,8 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(result);
             // Makes the result a 16 bit by adding 8 zeros needs to be
             // 16 bit in DynamicTestCCmp.
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16);
             break;
         }
         case 0xC6: {  // DEC Zeropage
