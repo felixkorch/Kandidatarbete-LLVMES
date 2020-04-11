@@ -163,19 +163,19 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestCCmp(result_16);
             break;
         }
-        case 0xDD: {  // CMP AbsoluteX
+        case 0xDD: {  // CMP AbosluteX
             // In data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // Get reg_x
-            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // Add reg_x and ram_ptr
-            llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, reg_x);
-            // Get date from pointer
-            llvm::Value* load_ram = c->builder.CreateLoad(target_addr);
-            // Get reg_a
+            llvm::Constant* abos_addr = GetConstant16(i.arg);
+            // Get reg_a and reg_x
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+            // Add reg_x and inpit
+            llvm::Value* reg_x_16 = c->builder.CreateZExt(reg_x, int16);
+            llvm::Value* target = c->builder.CreateAdd(abos_addr, reg_x_16);
+            // Get date from pointer
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, target);
             // Compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
+            llvm::Value* result = c->builder.CreateSub(reg_a, answer);
             // Flag test
             DynamicTestZ(result);
             DynamicTestN(result);
