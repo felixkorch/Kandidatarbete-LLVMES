@@ -46,6 +46,14 @@ std::vector<uint8_t> program3 {
     PRINT_A,               // 7
 };
 
+std::vector<uint8_t> txs_Implied{
+    0xA2, 0x0A,        // LDX, # 0x0A
+    0x8D, 0x0A, 0x20,  // Print X - should be 0x0A = 10
+    //0x8D, 0x0F, 0x20,  // Print Sp - should be 0x?? = ??
+    0x9A,              // TXS Imidiate (9A)
+    //0x8D, 0x0F, 0x20,  // Print Sp - should be 0x0A = 10
+};
+
 std::vector<uint8_t> tya_Implied{
     0xA9, 0x00,        // LDA, # 0x00  
     0xA0, 0x0A,        // LDY, # 0x0A
