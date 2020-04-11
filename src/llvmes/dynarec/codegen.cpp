@@ -187,17 +187,17 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xD9: {  // CMP AbsoluteY
             // In data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // Get reg_y
-            llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
-            // Add reg_y and ram_ptr
-            llvm::Value* target_addr = c->builder.CreateAdd(ram_ptr, reg_y);
-            // Get date from pointer
-            llvm::Value* load_ram = c->builder.CreateLoad(target_addr);
-            // Get reg_a
+            llvm::Constant* abos_addr = GetConstant16(i.arg);
+            // Get reg_a and reg_y
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
+            // Add reg_y and inpit
+            llvm::Value* reg_y_16 = c->builder.CreateZExt(reg_y, int16);
+            llvm::Value* target = c->builder.CreateAdd(abos_addr, reg_y_16);
+            // Get date from pointer
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, target);
             // Compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
+            llvm::Value* result = c->builder.CreateSub(reg_a, answer);
             // Flag test
             DynamicTestZ(result);
             DynamicTestN(result);
