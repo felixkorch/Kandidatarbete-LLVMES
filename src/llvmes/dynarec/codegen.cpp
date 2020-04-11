@@ -148,12 +148,11 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xCD: {  // CMP Absolute
-            // In data
-            llvm::Value* load_ram = ReadMemory(i.arg);
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            // Compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
+            // Compare adn get in data
+            llvm::Value* result =
+                c->builder.CreateSub(reg_a, ReadMemory(i.arg));
             // Flag test
             DynamicTestZ(result);
             DynamicTestN(result);
