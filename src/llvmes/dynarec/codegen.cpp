@@ -650,6 +650,16 @@ void Compiler::CodeGen(Instruction& i)
                 llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
                 c->builder.CreateCall(c->putreg_fn, {load_y});
             }
+            else if (addr == 0x200C) {
+                llvm::Value* load_n = c->builder.CreateLoad(c->status_n);
+                llvm::Value* result = c->builder.CreateZExt(load_n, int8);
+                c->builder.CreateCall(c->putreg_fn, {result});
+            }
+            else if (addr == 0x200E) {
+                llvm::Value* load_z = c->builder.CreateLoad(c->status_z);
+                llvm::Value* result = c->builder.CreateZExt(load_z, int8);
+                c->builder.CreateCall(c->putreg_fn, {result});
+            }
             else {
                 llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
                 WriteMemory(addr, load_a);
