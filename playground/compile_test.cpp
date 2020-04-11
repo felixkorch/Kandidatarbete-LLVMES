@@ -159,12 +159,36 @@ std::vector<uint8_t> cmp_AbsoluteX{
     0x8D, 0x0E, 0x20,  // Print status Z - should print 00
 };
 
+std::vector<uint8_t> cmp_AbsoluteY{
+    0xA9, 0x0A,        // LDA; # 0x0A
+    0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
+    0xA0, 0x02,        // LDX; # 0x02
+    0x8D, 0x0B, 0x20,  // Print Y - should print 0x02 = 2
+    0x8D, 0x02, 0x20,  // STA: reg_a (=0x0A) to 0x2002 in mem
+    0xD9, 0x00, 0x20,  // cmp AbsloluteY mem 0x0020
+    0x8D, 0x0C, 0x20,  // Print status N - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 01
+    0xA9, 0x0B,        // LDA; # 0x0B
+    0x8D, 0x09, 0x20,  // Print A - should print 0x0B = 11
+    0xD9, 0x00, 0x20,  // cmp AbsoluteY mem 0x2000
+    0x8D, 0x0C, 0x20,  // Print status N - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 00
+    0xA9, 0x02,        // LDA; # 0x02
+    0x8D, 0x09, 0x20,  // Print A - should print 0x02 = 2
+    0xD9, 0x00, 0x20,  // cmp AbsolutY mem 0x2000
+    0x8D, 0x0C, 0x20,  // Print status N - should print 01
+    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 00
+};
+
 
 using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(cmp_AbsoluteX));
+    auto d = llvmes::make_unique<Disassembler>(std::move(cmp_AbsoluteY));
 
     AST ast;
     std::vector<uint8_t> ram;
