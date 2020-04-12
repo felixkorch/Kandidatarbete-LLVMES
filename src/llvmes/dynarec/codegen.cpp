@@ -20,21 +20,45 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x30: {  // BMI Immediate
+            llvm::Value* load_n = c->builder.CreateLoad(c->status_n);
+            llvm::Value* is_negative =
+                c->builder.CreateICmpEQ(load_n, GetConstant1(1), "eq");
+            CreateCondBranch(is_negative, c->basicblocks[i.target_label]);
             break;
         }
         case 0x90: {  // BCC Immediate
+            llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            llvm::Value* is_carry_clear =
+                c->builder.CreateICmpEQ(load_c, GetConstant1(0), "eq");
+            CreateCondBranch(is_carry_clear, c->basicblocks[i.target_label]);
             break;
         }
         case 0xB0: {  // BCS Immediate
+            llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            llvm::Value* is_carry_set =
+                c->builder.CreateICmpEQ(load_c, GetConstant1(1), "eq");
+            CreateCondBranch(is_carry_set, c->basicblocks[i.target_label]);
             break;
         }
         case 0x10: {  // BPL Immediate
+            llvm::Value* load_n = c->builder.CreateLoad(c->status_n);
+            llvm::Value* is_positive =
+                c->builder.CreateICmpEQ(load_n, GetConstant1(0), "eq");
+            CreateCondBranch(is_positive, c->basicblocks[i.target_label]);
             break;
         }
         case 0x50: {  // BVC Immediate
+            llvm::Value* load_v = c->builder.CreateLoad(c->status_v);
+            llvm::Value* is_overflow_clear =
+                c->builder.CreateICmpEQ(load_v, GetConstant1(0), "eq");
+            CreateCondBranch(is_overflow_clear, c->basicblocks[i.target_label]);
             break;
         }
         case 0x70: {  // BVS Immediate
+            llvm::Value* load_v = c->builder.CreateLoad(c->status_v);
+            llvm::Value* is_overflow_set =
+                c->builder.CreateICmpEQ(load_v, GetConstant1(1), "eq");
+            CreateCondBranch(is_overflow_set, c->basicblocks[i.target_label]);
             break;
         }
         case 0xE8: {  // INX Implied
