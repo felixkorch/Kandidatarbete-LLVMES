@@ -355,61 +355,66 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xA5: {  // LDA Zeropage
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            c->builder.CreateStore(load_ram, c->reg_a);
+            c->builder.CreateStore(ReadMemory(i.arg), c->reg_a);
             break;
         }
         case 0xB5: {  // LDA ZeropageX
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // Loads the X register into a placeholder
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            // Adds the X register to the RAM pointer
-            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
-            // AND with 0xFF to make sure that the index is 2 byte
-            llvm::Value* zero_page_index = c->builder.CreateAnd(index_16, 0xFF);
-            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_addr);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr_16);
+            c->builder.CreateStore(answer, c->reg_a);
             break;
         }
         case 0xA1: {  // LDA IndirectX
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Constant* addr = GetConstant8(i.arg);
+            llvm::Value* target_addr =
+                c->builder.CreateAdd(load_x, addr);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(target_addr, int16);
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr_16);
+            c->builder.CreateStore(answer, c->reg_a);
             break;
         }
         case 0xB1: {  // LDA IndirectY
+            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            llvm::Constant* addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_y, addr);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr_16);
+            c->builder.CreateStore(answer, c->reg_a);
             break;
         }
-
-            // case 0xAD: { // LDA Absolute
-            //     llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            //     llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            //     c->builder.CreateStore(load_ram, c->reg_a);
-            //     break;
-            // }
         case 0xAD: {  // LDA Absolute
             c->builder.CreateStore(ReadMemory(i.arg), c->reg_a);
             break;
         }
         case 0xBD: {  // LDA AbsoluteX
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // Loads the X register into a placeholder
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            // Adds the X register to the RAM pointer
-            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
-            // AND with 0xFFF to make sure that the index is 3 byte
-            llvm::Value* zero_page_index =
-                c->builder.CreateAnd(index_16, 0xFFF);
-            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* target_addr =
+                c->builder.CreateAdd(target_addr_16, addr);
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr);
+            c->builder.CreateStore(answer, c->reg_a);
             break;
         }
         case 0xB9: {  // LDA AbsoluteY
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // Loads the Y register into a placeholder
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            // Adds the Y register to the RAM pointer
-            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_y);
-            // AND with 0xFFF to make sure that the index is 3 byte
-            llvm::Value* zero_page_index =
-                c->builder.CreateAnd(index_16, 0xFFF);
-            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_y, int16);
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* target_addr =
+                c->builder.CreateAdd(target_addr_16, addr);
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr);
+            c->builder.CreateStore(answer, c->reg_a);
             break;
         }
         case 0xA2: {  // LDX Immediate
@@ -421,38 +426,32 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xA6: {  // LDX Zeropage
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            c->builder.CreateStore(load_ram, c->reg_x);
+            c->builder.CreateStore(ReadMemory(i.arg), c->reg_x);
             break;
         }
         case 0xB6: {  // LDX ZeropageY
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // Loads the Y register into a placeholder
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            // Adds the Y register to the RAM pointer
-            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_y);
-            // AND with 0xFF to make sure that the index is 2 byte
-            llvm::Value* zero_page_index = c->builder.CreateAnd(index_16, 0xFF);
-            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_y, zpg_addr);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
+            llvm::Value* answer= c->builder.CreateCall(c->read_fn, target_addr_16);
+            c->builder.CreateStore(answer, c->reg_x);
             break;
         }
         case 0xAE: {  // LDX Absolute
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            c->builder.CreateStore(load_ram, c->reg_x);
+            c->builder.CreateStore(ReadMemory(i.arg), c->reg_x);
             break;
         }
         case 0xBE: {  // LDX AbsoluteY
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // Loads the Y register into a placeholder
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            // Adds the Y register to the RAM pointer
-            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_y);
-            // AND with 0xFFF to make sure that the index is 3 byte
-            llvm::Value* zero_page_index =
-                c->builder.CreateAnd(index_16, 0xFFF);
-            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_y, int16);
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* target_addr =
+                c->builder.CreateAdd(target_addr_16, addr);
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr);
+            c->builder.CreateStore(answer, c->reg_x);
             break;
         }
         case 0xA0: {  // LDY Immediate
@@ -463,38 +462,38 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xA4: {  // LDY Zeropage
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            c->builder.CreateStore(load_ram, c->reg_y);
+            c->builder.CreateStore(ReadMemory(i.arg), c->reg_y);
             break;
         }
         case 0xB4: {  // LDY ZeropageX
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
             // Loads the X register into a placeholder
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             // Adds the X register to the RAM pointer
-            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
-            // AND with 0xFF to make sure that the index is 2 byte
-            llvm::Value* zero_page_index = c->builder.CreateAnd(index_16, 0xFF);
-            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
+            llvm::Value* target_addr = c->builder.CreateAdd(zpg_addr, load_x);
+            // Makes the address a 16 bit by adding 8 zeros
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
+            // create call to read function that returns
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr_16);
+            c->builder.CreateStore(answer, c->reg_y);
             break;
         }
         case 0xAC: {  // LDY Absolute
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            c->builder.CreateStore(load_ram, c->reg_y);
+            c->builder.CreateStore(ReadMemory(i.arg), c->reg_y);
             break;
         }
         case 0xBC: {  // LDY AbsoluteX
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // Loads the X register into a placeholder
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            // Adds the X register to the RAM pointer
-            llvm::Value* index_16 = c->builder.CreateAdd(ram_ptr, load_x);
-            // AND with 0xFFF to make sure that the index is 3 byte
-            llvm::Value* zero_page_index =
-                c->builder.CreateAnd(index_16, 0xFFF);
-            llvm::Value* value = c->builder.CreateLoad(zero_page_index);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(load_x, int16);
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* target_addr =
+                c->builder.CreateAdd(target_addr_16, addr);
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr);
+            c->builder.CreateStore(answer, c->reg_y);
             break;
         }
         case 0x4A: {  // ACC Accumulator
@@ -702,17 +701,18 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x94: {  // STY ZeropageX
-            llvm::Value* X = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* sty_X = c->builder.CreateAdd(ram_ptr, X);
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            c->builder.CreateStore(load_y, sty_X);
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_addr);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
+            c->builder.CreateCall(c->write_fn, {target_addr_16, load_y});
             break;
         }
         case 0x8C: {  // STY Absolute
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            c->builder.CreateStore(load_y, ram_ptr);
+            WriteMemory(i.arg, load_y);
             break;
         }
         case 0xAA: {  // TAX Implied

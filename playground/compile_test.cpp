@@ -76,11 +76,40 @@ std::vector<uint8_t> program3{
     PRINT_A,  // FF
 };
 
+std::vector<uint8_t> testLDAXY_zeropageXY{
+    0xA0, 0x0A,        // LDY, # 0x0A
+    0x8C, 0x10, 0x00,  // STY absolute
+    0xA0, 0x05,        // LDY, # 0x05
+    0xB6, 0x0B,        // LDX, $(0x0B + Y) = 0x10
+    0x8E, 0x00, 0x00,  // STX, $0000
+    0xAD, 0x00, 0x00,  // LDA, $0000
+    0x8D, 0x09, 0x20,  // Print A - should print 10
+};
+
+std::vector<uint8_t> testLDAXY_absoluteXY{
+    0xA2, 0x0A,        // LDX, # 0x0A
+    0x8E, 0x10, 0x00,  // STX absolute
+    0xA2, 0x05,        // LDX, # 0x05
+    0xBC, 0x0B, 0x00,  // LDY absolute, $(0x0B + X) = 0x10
+    0x8C, 0x00, 0x00,  // STY, $0000
+    0xAD, 0x00, 0x00,  // LDA, $0000
+    0x8D, 0x09, 0x20,  // Print A - should print 10
+};
+
+std::vector<uint8_t> testLDA_indirectXY{
+    0xA2, 0x0A,        // LDX, # 0x0A
+    0x8E, 0x10, 0x00,  // STX absolute
+    0xA2, 0x05,        // LDX, # 0x05
+    0xA1, 0x0B,        // LDA, $(0x0B + Y) = 0x10
+    0x8E, 0x00, 0x00,  // STX, $0000
+    0x8D, 0x09, 0x20,  // Print A - should print 10
+};
+
 using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(program3));
+    auto d = llvmes::make_unique<Disassembler>(std::move(testLDA_indirectXY));
 
     AST ast;
     std::vector<uint8_t> ram;
