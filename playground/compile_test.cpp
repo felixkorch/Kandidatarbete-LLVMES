@@ -155,7 +155,7 @@ std::vector<uint8_t> cmp_AbsoluteX{
     0x8D, 0x09, 0x20,  // Print A - should print 0x02 = 2
     0xDD, 0x00, 0x20,  // cmp AbsolutX mem 0x2000
     0x8D, 0x0C, 0x20,  // Print status N - should print 01
-    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 01
     0x8D, 0x0E, 0x20,  // Print status Z - should print 00
 };
 
@@ -179,7 +179,7 @@ std::vector<uint8_t> cmp_AbsoluteY{
     0x8D, 0x09, 0x20,  // Print A - should print 0x02 = 2
     0xD9, 0x00, 0x20,  // cmp AbsolutY mem 0x2000
     0x8D, 0x0C, 0x20,  // Print status N - should print 01
-    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 01
     0x8D, 0x0E, 0x20,  // Print status Z - should print 00
 };
 

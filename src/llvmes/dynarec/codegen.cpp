@@ -164,21 +164,20 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Constant* abos_addr = GetConstant16(i.arg);
             // Get reg_a and reg_x
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // Add reg_x and inpit
             llvm::Value* reg_x_16 = c->builder.CreateZExt(reg_x, int16);
+            // Add reg_x and abos_addr
             llvm::Value* target = c->builder.CreateAdd(abos_addr, reg_x_16);
-            // Get date from pointer
-            llvm::Value* answer = c->builder.CreateCall(c->read_fn, target);
+            // Get mem data
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, target);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, answer);
-            // Flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            // Makes the result a 16 bit by adding 8 zeros needs to be
-            // 16 bit in DynamicTestCCmp.
-            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16);
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xD9: {  // CMP AbsoluteY
@@ -186,21 +185,20 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Constant* abos_addr = GetConstant16(i.arg);
             // Get reg_a and reg_y
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
             llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
-            // Add reg_y and inpit
             llvm::Value* reg_y_16 = c->builder.CreateZExt(reg_y, int16);
+            // Add reg_y and abos_addr
             llvm::Value* target = c->builder.CreateAdd(abos_addr, reg_y_16);
-            // Get date from pointer
-            llvm::Value* answer = c->builder.CreateCall(c->read_fn, target);
+            // Get mem data
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, target);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, answer);
-            // Flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            // Makes the result a 16 bit by adding 8 zeros needs to be
-            // 16 bit in DynamicTestCCmp.
-            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16);
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xC1: {  // CMP IndirectX
