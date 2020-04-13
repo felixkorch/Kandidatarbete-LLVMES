@@ -119,6 +119,12 @@ class Compiler {
             c->builder.CreateICmpEQ(v, GetConstant8(0), "eq");
         c->builder.CreateStore(is_zero, c->status_z);
     }
+    void DynamicTestZ16(llvm::Value* v)
+    {
+        llvm::Value* is_zero =
+            c->builder.CreateICmpEQ(v, GetConstant16(0), "eq");
+        c->builder.CreateStore(is_zero, c->status_z);
+    }
     void DynamicTestN(llvm::Value* v)
     {
         llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
