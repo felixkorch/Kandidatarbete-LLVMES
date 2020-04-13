@@ -253,7 +253,7 @@ class Compiler {
         llvm::Value* addr_low = c->builder.CreateCall(c->read_fn, addr_base);
 
         //high
-        llvm::Value* addr_get_high = c->builder.CreateAdd(addr_base, GetConstant1(1));
+        llvm::Value* addr_get_high = c->builder.CreateAdd(addr_base, GetConstant8(1));
         llvm::Value* addr_high = c->builder.CreateCall(c->read_fn, addr_get_high);
         llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
         llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
@@ -272,7 +272,7 @@ class Compiler {
         llvm::Value* addr_low = c->builder.CreateCall(c->read_fn, GetConstant8(addr));
 
         //high
-        llvm::Value* addr_get_high = c->builder.CreateAdd(GetConstant8(addr), GetConstant1(1));
+        llvm::Value* addr_get_high = c->builder.CreateAdd(GetConstant8(addr), GetConstant8(1));
         llvm::Value* addr_high = c->builder.CreateCall(c->read_fn, addr_get_high);
         llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
         llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
