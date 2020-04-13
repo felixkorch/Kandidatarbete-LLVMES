@@ -103,8 +103,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xEE: {  // INC Absolute
-            llvm::Constant* zpg_addr = GetConstant16(i.arg);
-            llvm::Value* inc = c->builder.CreateAdd(zpg_addr, GetConstant16(1));
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* inc = c->builder.CreateAdd(addr, GetConstant16(1));
             c->builder.CreateStore(inc, c->reg_sp);
             break;
         }
@@ -483,9 +483,17 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xC6: {  // DEC Zeropage
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* inc = c->builder.CreateSub(zpg_addr, GetConstant8(1));
+            c->builder.CreateStore(inc, c->reg_sp);
             break;
         }
         case 0xD6: {  // DEC ZeropageX
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* zpg_x = c->builder.CreateAdd(zpg_addr, load_x);
+            llvm::Value* inx = c->builder.CreateSub(zpg_x, GetConstant8(1));
+            c->builder.CreateStore(inx, c->reg_sp);
             break;
         }
         case 0xCE: {  // DEC Absolute
