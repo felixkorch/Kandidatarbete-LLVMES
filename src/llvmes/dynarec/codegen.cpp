@@ -888,16 +888,12 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             // Adds the X register to the RAM pointer
             llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_offset);
-            // Makes the address a 16 bit by adding 8 zeros
-            llvm::Value* target_addr_16 =
-                c->builder.CreateZExt(target_addr, int16);
 
-            llvm::Value* load_zero_page_x =
-                c->builder.CreateLoad(target_addr_16);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
 
             llvm::Value* result =
-                c->builder.CreateAnd(load_a, load_zero_page_x);
+                c->builder.CreateAnd(load_a, operand);
             // Set Z to zero if result is zero
             // Set N if bit 7 set
             DynamicTestZ(result);
@@ -920,14 +916,13 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Constant* offset = GetConstant16(i.arg);
             // Loads the X register into a placeholder
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* load_x_16 =
+                c->builder.CreateZExt(load_x, int16);
 
             // Adds the X register to the RAM pointer
-            llvm::Value* target_addr = c->builder.CreateAdd(load_x, offset);
-            // Makes the address a 16 bit by adding 8 zeros
-            llvm::Value* target_addr_16 =
-                c->builder.CreateZExt(target_addr, int16);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_x_16, offset);
 
-            llvm::Value* operand = c->builder.CreateLoad(target_addr_16);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* result = c->builder.CreateAnd(load_a, operand);
             // Set Z to zero if result is zero
@@ -939,16 +934,14 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x39: {  // AND AbsoluteY
             llvm::Constant* offset = GetConstant16(i.arg);
-            // Loads the X register into a placeholder
+            // Loads the Y register into a placeholder
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            llvm::Value* load_y_16 = c->builder.CreateZExt(load_y, int16);
 
             // Adds the X register to the RAM pointer
-            llvm::Value* target_addr = c->builder.CreateAdd(load_y, offset);
-            // Makes the address a 16 bit by adding 8 zeros
-            llvm::Value* target_addr_16 =
-                c->builder.CreateZExt(target_addr, int16);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_y_16, offset);
 
-            llvm::Value* operand = c->builder.CreateLoad(target_addr_16);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* result = c->builder.CreateAnd(load_a, operand);
             // Set Z to zero if result is zero
