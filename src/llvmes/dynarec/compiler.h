@@ -203,13 +203,32 @@ class Compiler {
         c->builder.SetInsertPoint(continue_block);
     }
 
-    void AddressModeImmediate() {}
+    llvm::Value* AddressModeImmediate(uint16_t addr) {
+        return GetConstant8(addr);
+    }
 
-    void AddressModeAbsolute() {}
+    llvm::Value* AddressModeAbsolute(uint16_t addr) {
+        //maybe should be 8?
+        return GetConstant16(addr);
+    }
 
-    void AddressModeAbsoluteX() {}
+    llvm::Value* AddressModeAbsoluteX(uint16_t addr) {
+    
+        llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+        // maybe should be 8?
+        llvm::Value* addr_base = c->builder.CreateAdd(load_x, GetConstant16(addr));
+        return addr_base;
+    }
 
-    void AddressModeAbsoluteY() {}
+     llvm::Value* AddressModeAbsoluteY(uint16_t addr)
+    {
+        llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+        // maybe should be 8?
+        llvm::Value* addr_base =
+            c->builder.CreateAdd(load_y, GetConstant16(addr));
+        return addr_base;
+
+    }
 
     void AddressModeZeropage() {}
 
