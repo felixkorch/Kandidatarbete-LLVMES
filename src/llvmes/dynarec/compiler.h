@@ -244,14 +244,48 @@ class Compiler {
        
     }
 
-    void AddressModeIndirectX()
+    llvm::Value* AddressModeIndirectX(uint16_t addr)
     {
-    
+        llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+        llvm::Value* addr_base = c->builder.CreateAdd(load_x, GetConstant8(addr));
+
+        //low
+        llvm::Value* addr_low = c->builder.CreateCall(c->read_fn, addr_base);
+
+        //high
+        llvm::Value* addr_get_high = c->builder.CreateAdd(addr_base, GetConstant1(1));
+        llvm::Value* addr_high = c->builder.CreateCall(c->read_fn, addr_get_high);
+        llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
+        llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+
+        
+        llvm::Value* addr_hl_or = c->builder.CreateOr(addr_high_shl, addr_low);
+
+        return addr_hl_or;
     }
 
-    void AddressModeIndirectY()
+    llvm::Value* AddressModeIndirectY(uint16_t addr)
     {
-      
+        llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+
+        //low
+        llvm::Value* addr_low = c->builder.CreateCall(c->read_fn, GetConstant8(addr));
+
+        //high
+        llvm::Value* addr_get_high = c->builder.CreateAdd(GetConstant8(addr), GetConstant1(1));
+        llvm::Value* addr_high = c->builder.CreateCall(c->read_fn, addr_get_high);
+        llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
+        llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+
+
+        llvm::Value* addr_hl_or = c->builder.CreateOr(addr_high_shl, addr_low);
+        llvm::Value* addr_or_with_y = c->builder.CreateAdd(addr_hl_or, load_y);
+                                        
+
+        return addr_or_with_y;
+
+
+
     }
 
     void AddressModeImplied()
