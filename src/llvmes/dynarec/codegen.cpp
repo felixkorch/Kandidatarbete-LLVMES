@@ -130,21 +130,20 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Constant* zpg_addr = GetConstant8(i.arg);
             // Get reg_a and reg_x
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
             // Add data and reg_x
             llvm::Value* target = c->builder.CreateAdd(zpg_addr, reg_x);
             // Get value to compare with
             llvm::Value* target_16 = c->builder.CreateZExt(target, int16);
-            llvm::Value* answer = c->builder.CreateCall(c->read_fn, target_16);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, target_16);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, answer);
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, operand_16);
             // Flag Test
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            // Makes the result a 16 bit by adding 8 zeros needs to be
-            // 16 bit in DynamicTestCCmp.
-            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16);
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xCD: {  // CMP Absolute

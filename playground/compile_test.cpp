@@ -109,7 +109,7 @@ std::vector<uint8_t> cmp_ZeropageX{
     0x8D, 0x09, 0x20,  // Print A - should print 0x02 = 2
     0xD5, 0x20,        // cmp zeropageX mem 0x0020
     0x8D, 0x0C, 0x20,  // Print status N - should print 01
-    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 01
     0x8D, 0x0E, 0x20,  // Print status Z - should print 00
     };
 
