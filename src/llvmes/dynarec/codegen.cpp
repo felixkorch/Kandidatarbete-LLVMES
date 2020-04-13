@@ -223,18 +223,18 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xE4: {  // CPX Zeropage
+            // In data
+            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_x
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // Get in data and compare 
-            llvm::Value* result =
-                c->builder.CreateSub(reg_x, ReadMemory(i.arg));
+            llvm::Value* reg_x_16 = c->builder.CreateZExt(reg_x, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_x_16, operand_16);
             // Flag Test
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            // Makes the result a 16 bit by adding 8 zeros needs to be
-            // 16 bit in DynamicTestCCmp.
-            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16);
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xEC: {  // CPX Absolute
