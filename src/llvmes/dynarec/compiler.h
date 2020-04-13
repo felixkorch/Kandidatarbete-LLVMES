@@ -203,6 +203,69 @@ class Compiler {
         c->builder.SetInsertPoint(continue_block);
     }
 
+
+    void AddressModeImmediate()
+    { 
+    
+    }
+
+    void AddressModeAbsolute()
+    {
+       
+    }
+
+    void AddressModeAbsoluteX()
+    {
+       
+    }
+
+    void AddressModeAbsoluteY()
+    {
+        
+    }
+
+    void AddressModeZeropage()
+    {
+    
+    }
+
+    void AddressModeZeropageX()
+    {
+       
+    }
+
+    void AddressModeZeropageY()
+    {
+       
+    }
+
+    void AddressModeIndirect()
+    {
+       
+    }
+
+    void AddressModeIndirectX()
+    {
+    
+    }
+
+    void AddressModeIndirectY()
+    {
+      
+    }
+
+    void AddressModeImplied()
+    {
+        // Simply means the instruction doesn't need an operand
+    }
+
+    void AddressModeAccumulator()
+    {
+        // The operand is the contents of the accumulator(regA)
+    }
+
+
+
     void PassOne();
     void PassTwo();
     void Compile();
