@@ -203,63 +203,45 @@ class Compiler {
         c->builder.SetInsertPoint(continue_block);
     }
 
+    void AddressModeImmediate() {}
 
-    void AddressModeImmediate()
-    { 
-    
-    }
+    void AddressModeAbsolute() {}
 
-    void AddressModeAbsolute()
-    {
-       
-    }
+    void AddressModeAbsoluteX() {}
 
-    void AddressModeAbsoluteX()
-    {
-       
-    }
+    void AddressModeAbsoluteY() {}
 
-    void AddressModeAbsoluteY()
-    {
-        
-    }
+    void AddressModeZeropage() {}
 
-    void AddressModeZeropage()
-    {
-    
-    }
+    void AddressModeZeropageX() {}
 
-    void AddressModeZeropageX()
-    {
-       
-    }
+    void AddressModeZeropageY() {}
 
-    void AddressModeZeropageY()
-    {
-       
-    }
-
-    void AddressModeIndirect()
-    {
-       
-    }
+    void AddressModeIndirect() {}
 
     llvm::Value* AddressModeIndirectX(uint16_t addr)
     {
         llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-        llvm::Value* addr_base = c->builder.CreateAdd(load_x, GetConstant8(addr));
+        llvm::Value* addr_base =
+            c->builder.CreateAdd(load_x, GetConstant8(addr));
 
-        //low
-        llvm::Value* addr_low = c->builder.CreateCall(c->read_fn, addr_base);
+        // low
+        llvm::Value* addr_base_16 = c->builder.CreateZExt(addr_base, int16);
+        llvm::Value* addr_low = c->builder.CreateCall(c->read_fn, addr_base_16);
+        llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
 
-        //high
-        llvm::Value* addr_get_high = c->builder.CreateAdd(addr_base, GetConstant8(1));
-        llvm::Value* addr_high = c->builder.CreateCall(c->read_fn, addr_get_high);
+        // high
+        llvm::Value* addr_get_high =
+            c->builder.CreateAdd(addr_base, GetConstant8(1));
+        llvm::Value* addr_get_high_16 =
+            c->builder.CreateZExt(addr_get_high, int16);
+        llvm::Value* addr_high =
+            c->builder.CreateCall(c->read_fn, addr_get_high_16);
         llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
         llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
 
-        
-        llvm::Value* addr_hl_or = c->builder.CreateOr(addr_high_shl, addr_low);
+        llvm::Value* addr_hl_or =
+            c->builder.CreateOr(addr_high_shl, addr_low_16);
 
         return addr_hl_or;
     }
@@ -267,25 +249,29 @@ class Compiler {
     llvm::Value* AddressModeIndirectY(uint16_t addr)
     {
         llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+        llvm::Value* load_y_16 = c->builder.CreateZExt(load_y, int16);
 
-        //low
-        llvm::Value* addr_low = c->builder.CreateCall(c->read_fn, GetConstant8(addr));
+        // low
+        llvm::Value* addr_low =
+            c->builder.CreateCall(c->read_fn, GetConstant8(addr));
+        llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
 
-        //high
-        llvm::Value* addr_get_high = c->builder.CreateAdd(GetConstant8(addr), GetConstant8(1));
-        llvm::Value* addr_high = c->builder.CreateCall(c->read_fn, addr_get_high);
+        // high
+        llvm::Value* addr_get_high =
+            c->builder.CreateAdd(GetConstant8(addr), GetConstant8(1));
+        llvm::Value* addr_get_high_16 =
+            c->builder.CreateZExt(addr_get_high, int16);
+        llvm::Value* addr_high =
+            c->builder.CreateCall(c->read_fn, addr_get_high);
         llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
         llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
 
-
-        llvm::Value* addr_hl_or = c->builder.CreateOr(addr_high_shl, addr_low);
-        llvm::Value* addr_or_with_y = c->builder.CreateAdd(addr_hl_or, load_y);
-                                        
+        llvm::Value* addr_hl_or =
+            c->builder.CreateOr(addr_high_shl, addr_low_16);
+        llvm::Value* addr_or_with_y =
+            c->builder.CreateAdd(addr_hl_or, load_y_16);
 
         return addr_or_with_y;
-
-
-
     }
 
     void AddressModeImplied()
@@ -297,8 +283,6 @@ class Compiler {
     {
         // The operand is the contents of the accumulator(regA)
     }
-
-
 
     void PassOne();
     void PassTwo();
