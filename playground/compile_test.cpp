@@ -293,7 +293,7 @@ std::vector<uint8_t> cpy_Zeropage{
     0x8D, 0x0B, 0x20,  // Print Y - should print 0x02 = 2
     0xC4, 0x20,        // cpy zeropage mem 0x0020
     0x8D, 0x0C, 0x20,  // Print status N - should print 01
-    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 01
     0x8D, 0x0E, 0x20,  // Print status Z - should print 00
 };
 
