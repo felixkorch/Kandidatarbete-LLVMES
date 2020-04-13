@@ -38,7 +38,7 @@ std::vector<uint8_t> program2{
     0x8D, 0x09, 0x20,  // Print A - should print 10
 };
 
-std::vector<uint8_t> program3{
+std::vector<uint8_t> testBranches{
     // Test BNE
     LDY_IMM(0x02),  // loop
     DEY,
