@@ -210,17 +210,16 @@ void Compiler::CodeGen(Instruction& i)
         case 0xE0: {  // CPX Immediate
             // In data
             llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_x
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* reg_x_16 = c->builder.CreateZExt(reg_x, int16);
             // Compare
-            llvm::Value* result = c->builder.CreateSub(reg_x, operand);
-            // Flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            // Makes the result a 16 bit by adding 8 zeros needs to be
-            // 16 bit in DynamicTestCCmp.
-            llvm::Value* result_16 = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16);
+            llvm::Value* result = c->builder.CreateSub(reg_x_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xE4: {  // CPX Zeropage
