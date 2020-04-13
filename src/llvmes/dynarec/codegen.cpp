@@ -202,6 +202,37 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xC1: {  // CMP IndirectX
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* addr_base =
+                c->builder.CreateAdd(load_x, GetConstant8(i.arg));
+
+            // low
+            llvm::Value* addr_base_16 = c->builder.CreateZExt(addr_base, int16);
+            llvm::Value* addr_low =
+                c->builder.CreateCall(c->read_fn, addr_base_16);
+            llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
+
+            // high
+            llvm::Value* addr_get_high =
+                c->builder.CreateAdd(addr_base, GetConstant8(1));
+            llvm::Value* addr_get_high_16 =
+                c->builder.CreateZExt(addr_get_high, int16);
+            llvm::Value* addr_high =
+                c->builder.CreateCall(c->read_fn, addr_get_high_16);
+            llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
+            llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+
+            llvm::Value* addr_hl_or =
+                c->builder.CreateOr(addr_high_shl, addr_low_16);
+            // reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, addr_hl_or);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xD1: {  // CMP IndirectY
