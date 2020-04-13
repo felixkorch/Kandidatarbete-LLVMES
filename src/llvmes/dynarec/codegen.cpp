@@ -89,9 +89,17 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xE6: {  // INC Zeropage
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* inc = c->builder.CreateAdd(zpg_addr, GetConstant8(1));
+            c->builder.CreateStore(inc, c->reg_sp);
             break;
         }
         case 0xF6: {  // INC ZeropageX
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* zpg_x = c->builder.CreateAdd(zpg_addr, load_x);
+            llvm::Value* inx = c->builder.CreateAdd(zpg_x, GetConstant8(1));
+            c->builder.CreateStore(inx, c->reg_sp);
             break;
         }
         case 0xEE: {  // INC Absolute
