@@ -1,0 +1,13 @@
+---
+arch: x86_64
+distro: fedora:latest
+base_config: |
+  RUN dnf install -y \
+  git \
+  make \
+  curl \
+  python3 \
+  cmake \
+  ninja-build \
+  clang-devel \
+  llvm-devel
