@@ -96,18 +96,16 @@ void Compiler::CodeGen(Instruction& i)
         case 0xC9: {  // CMP Immediate
             // In data
             llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
             // Compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, operand);
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, operand_16);
             // Flag Test
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            // Makes the result a 16 bit by adding 8 zeros needs to be 
-            // 16 bit in DynamicTestCCmp.
-            llvm::Value* result_16 =
-                c->builder.CreateZExt(result, int16);
-           DynamicTestCCmp(result_16);
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xC5: {  // CMP Zeropage
