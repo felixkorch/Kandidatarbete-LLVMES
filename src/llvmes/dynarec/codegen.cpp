@@ -500,7 +500,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xC6: {  // DEC Zeropage
             llvm::Value* zpg_value = ReadMemory(i.arg);
-            llvm::Value* dec = c->builder.CreateSub(zpg_addr, GetConstant8(1));
+            llvm::Value* dec = c->builder.CreateSub(zpg_value, GetConstant8(1));
             WriteMemory(i.arg, dec);
             DynamicTestZ(dec);
             DynamicTestN(dec);
