@@ -853,6 +853,14 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x29: {  // AND Immediate
+            llvm::Constant* operand = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* result = c->builder.CreateAnd(load_a, operand);
+            // Set Z to zero if result is zero
+            // Set N if bit 7 set
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x25: {  // AND Zeropage
