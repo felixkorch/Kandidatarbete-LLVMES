@@ -888,12 +888,16 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             // Adds the X register to the RAM pointer
             llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_offset);
+            // Makes the address a 16 bit by adding 8 zeros
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
 
-            llvm::Value* operand = c->builder.CreateLoad(target_addr);
+            llvm::Value* load_zero_page_x =
+                c->builder.CreateLoad(target_addr_16);
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
 
             llvm::Value* result =
-                c->builder.CreateAnd(load_a, operand);
+                c->builder.CreateAnd(load_a, load_zero_page_x);
             // Set Z to zero if result is zero
             // Set N if bit 7 set
             DynamicTestZ(result);
