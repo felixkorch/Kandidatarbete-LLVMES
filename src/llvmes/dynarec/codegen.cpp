@@ -781,6 +781,11 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x9D: {  // STA AbsoluteX
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(target_addr_16, addr);
+            c->builder.CreateCall(c->write_fn, {target_addr, load_x});
             break;
         }
         case 0x99: {  // STA AbsoluteY
