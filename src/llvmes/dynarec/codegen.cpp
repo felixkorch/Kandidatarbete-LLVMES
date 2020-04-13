@@ -626,6 +626,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x18: {  // CLC Implied
+            llvm::Constant* cary = llvm::ConstantInt::get(int1, 0x1);
+            c->builder.CreateStore(cary, c->status_c);
             break;
         }
         case 0xD8: {  // CLD Implied
