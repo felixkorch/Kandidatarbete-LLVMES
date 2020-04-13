@@ -89,33 +89,36 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xE6: {  // INC Zeropage
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* zpg_addr = ReadMemory(i.arg);
             llvm::Value* inc = c->builder.CreateAdd(zpg_addr, GetConstant8(1));
-            c->builder.CreateStore(inc, c->reg_sp);
+            WriteMemory(i.arg, inc);
             break;
         }
         case 0xF6: {  // INC ZeropageX
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* zpg_addr = GetConstant8(i.arg);
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* zpg_x = c->builder.CreateAdd(zpg_addr, load_x);
-            llvm::Value* inx = c->builder.CreateAdd(zpg_x, GetConstant8(1));
-            c->builder.CreateStore(inx, c->reg_sp);
+            llvm::Value* zpg_x_addr = c->builder.CreateAdd(zpg_addr, load_x);
+            llvm::Value* zpg_x_value = c->builder.CreateLoad(zpg_x_addr);
+            llvm::Value* inc =
+                c->builder.CreateAdd(zpg_x_value, GetConstant8(1));
+            WriteMemory(i.arg, inc);
             break;
         }
         case 0xEE: {  // INC Absolute
-            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* addr = ReadMemory(i.arg);
             llvm::Value* inc = c->builder.CreateAdd(addr, GetConstant16(1));
-            c->builder.CreateStore(inc, c->reg_sp);
+            WriteMemory(i.arg, inc);
             break;
         }
         case 0xFE: {  // INC AbsoluteX
             llvm::Constant* addr = GetConstant16(i.arg);
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* target_addr_16 =
-                c->builder.CreateZExt(load_x, int16);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
             llvm::Value* addr_x = c->builder.CreateAdd(addr, load_x);
-            llvm::Value* inx = c->builder.CreateAdd(addr_x, GetConstant16(1));
-            c->builder.CreateStore(inx, c->reg_sp);
+            llvm::Value* addr_x_value = c->builder.CreateLoad(addr_x);
+            llvm::Value* inx =
+                c->builder.CreateAdd(addr_x_value, GetConstant16(1));
+            WriteMemory(i.arg, inx);
             break;
         }
         case 0x4C: {  // JMP Absolute
@@ -483,23 +486,24 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xC6: {  // DEC Zeropage
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* zpg_addr = ReadMemory(i.arg);
             llvm::Value* inc = c->builder.CreateSub(zpg_addr, GetConstant8(1));
-            c->builder.CreateStore(inc, c->reg_sp);
+            WriteMemory(i.arg, inc);
             break;
         }
         case 0xD6: {  // DEC ZeropageX
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* zpg_addr = GetConstant8(i.arg);
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* zpg_x = c->builder.CreateAdd(zpg_addr, load_x);
-            llvm::Value* inx = c->builder.CreateSub(zpg_x, GetConstant8(1));
-            c->builder.CreateStore(inx, c->reg_sp);
+            llvm::Value* zpg_x_addr = c->builder.CreateAdd(zpg_addr, load_x);
+            llvm::Value* zpg_x_value = c->builder.CreateLoad(zpg_x_addr);
+            llvm::Value* inc = c->builder.CreateSub(zpg_x_value, GetConstant8(1));
+            WriteMemory(i.arg, inc);
             break;
         }
         case 0xCE: {  // DEC Absolute
-            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* addr = ReadMemory(i.arg);
             llvm::Value* inc = c->builder.CreateSub(addr, GetConstant16(1));
-            c->builder.CreateStore(inc, c->reg_sp);
+            WriteMemory(i.arg, inc);
             break;
         }
         case 0xDE: {  // DEC AbsoluteX
@@ -507,8 +511,9 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
             llvm::Value* addr_x = c->builder.CreateAdd(addr, load_x);
-            llvm::Value* inx = c->builder.CreateSub(addr_x, GetConstant16(1));
-            c->builder.CreateStore(inx, c->reg_sp);
+            llvm::Value* addr_x_value = c->builder.CreateLoad(addr_x);
+            llvm::Value* inx = c->builder.CreateSub(addr_x_value, GetConstant16(1));
+            WriteMemory(i.arg, inx);
             break;
         }
         case 0x49: {  // EOR Immediate
