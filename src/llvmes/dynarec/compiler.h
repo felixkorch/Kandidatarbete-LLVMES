@@ -126,6 +126,13 @@ class Compiler {
         llvm::Value* is_negative = c->builder.CreateICmpEQ(do_and, c_0x80);
         c->builder.CreateStore(is_negative, c->status_n);
     }
+    void DynamicTestN16(llvm::Value* v)
+    {
+        llvm::Constant* c_0x8000 = llvm::ConstantInt::get(int16, 0x8000);
+        llvm::Value* do_and = c->builder.CreateAnd(v, c_0x8000);
+        llvm::Value* is_negative = c->builder.CreateICmpEQ(do_and, c_0x8000);
+        c->builder.CreateStore(is_negative, c->status_n);
+    }
     void DynamicTestCCmp(llvm::Value* v)
     {
         llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
