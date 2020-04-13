@@ -864,7 +864,23 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x25: {  // AND Zeropage
-         break;
+            llvm::Constant* zpg_offset = GetConstant8(i.arg);
+            // Makes the address a 16 bit by adding 8 zeros
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(zpg_offset, int16);
+
+            llvm::Value* load_zero_page =
+                c->builder.CreateLoad(target_addr_16);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+
+            llvm::Value* result =
+                c->builder.CreateAnd(load_a, load_zero_page_x);
+            // Set Z to zero if result is zero
+            // Set N if bit 7 set
+            DynamicTestZ(result);
+            DynamicTestN(result);
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
+            break;
         }
         case 0x35: {  // AND ZeropageX
             llvm::Constant* zpg_offset = GetConstant8(i.arg);
