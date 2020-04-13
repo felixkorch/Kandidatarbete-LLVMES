@@ -371,12 +371,19 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xA1: {  // LDA IndirectX
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Constant* addr = GetConstant8(i.arg);
-            llvm::Value* target_addr =
-                c->builder.CreateAdd(load_x, addr);
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(target_addr, int16);
-            llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, target_addr_16);
+            llvm::Value* addr_base =
+                c->builder.CreateAdd(load_x, GetConstant8(i.arg));
+            llvm::Value* addr_low =
+                c->builder.CreateCall(c->read_fn, addr_base);
+            llvm::Value* addr_get_high =
+                c->builder.CreateAdd(addr_base, GetConstant1(1));
+            llvm::Value* addr_high =
+                c->builder.CreateCall(c->read_fn, addr_get_high);
+            llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
+            llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+            llvm::Value* addr_hl_or =
+                c->builder.CreateOr(addr_high_shl, addr_low);
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr_hl_or);
             c->builder.CreateStore(answer, c->reg_a);
             break;
         }
