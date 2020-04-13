@@ -103,9 +103,19 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xEE: {  // INC Absolute
+            llvm::Constant* zpg_addr = GetConstant16(i.arg);
+            llvm::Value* inc = c->builder.CreateAdd(zpg_addr, GetConstant16(1));
+            c->builder.CreateStore(inc, c->reg_sp);
             break;
         }
         case 0xFE: {  // INC AbsoluteX
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(load_x, int16);
+            llvm::Value* addr_x = c->builder.CreateAdd(addr, load_x);
+            llvm::Value* inx = c->builder.CreateAdd(addr_x, GetConstant16(1));
+            c->builder.CreateStore(inx, c->reg_sp);
             break;
         }
         case 0x4C: {  // JMP Absolute
