@@ -489,9 +489,18 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xCE: {  // DEC Absolute
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* inc = c->builder.CreateSub(addr, GetConstant16(1));
+            c->builder.CreateStore(inc, c->reg_sp);
             break;
         }
         case 0xDE: {  // DEC AbsoluteX
+            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
+            llvm::Value* addr_x = c->builder.CreateAdd(addr, load_x);
+            llvm::Value* inx = c->builder.CreateSub(addr_x, GetConstant16(1));
+            c->builder.CreateStore(inx, c->reg_sp);
             break;
         }
         case 0x49: {  // EOR Immediate
