@@ -801,9 +801,23 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x81: {  // STA IndirectX
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Constant* addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_x, addr);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
+            c->builder.CreateCall(c->write_fn, {target_addr_16, load_a});
             break;
         }
         case 0x91: {  // STA IndirectY
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            llvm::Constant* addr = GetConstant8(i.arg);
+            llvm::Value* target_addr = c->builder.CreateAdd(load_y, addr);
+            llvm::Value* target_addr_16 =
+                c->builder.CreateZExt(target_addr, int16);
+            c->builder.CreateCall(c->write_fn, {target_addr_16, load_a});
             break;
         }
         case 0x86: {  // STX Zeropage
