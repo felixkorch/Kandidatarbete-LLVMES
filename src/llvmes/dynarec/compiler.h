@@ -119,6 +119,12 @@ class Compiler {
             c->builder.CreateICmpEQ(v, GetConstant8(0), "eq");
         c->builder.CreateStore(is_zero, c->status_z);
     }
+    void DynamicTestZ16(llvm::Value* v)
+    {
+        llvm::Value* is_zero =
+            c->builder.CreateICmpEQ(v, GetConstant16(0), "eq");
+        c->builder.CreateStore(is_zero, c->status_z);
+    }
     void DynamicTestN(llvm::Value* v)
     {
         llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
@@ -126,11 +132,18 @@ class Compiler {
         llvm::Value* is_negative = c->builder.CreateICmpEQ(do_and, c_0x80);
         c->builder.CreateStore(is_negative, c->status_n);
     }
+    void DynamicTestN16(llvm::Value* v)
+    {
+        llvm::Constant* c_0x8000 = llvm::ConstantInt::get(int16, 0x8000);
+        llvm::Value* do_and = c->builder.CreateAnd(v, c_0x8000);
+        llvm::Value* is_negative = c->builder.CreateICmpEQ(do_and, c_0x8000);
+        c->builder.CreateStore(is_negative, c->status_n);
+    }
     void DynamicTestCCmp(llvm::Value* v)
     {
         llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
-        llvm::Value* lesThen = c->builder.CreateICmpULT(v, c_0x0100);
-        c->builder.CreateStore(lesThen, c->status_c);
+        llvm::Value* lessThan = c->builder.CreateICmpUGT(v, c_0x0100);
+        c->builder.CreateStore(lessThan, c->status_c);
     }
     // Calculates the ram-address as a constant-expr
     llvm::Value* GetRAMPtr(uint16_t addr)

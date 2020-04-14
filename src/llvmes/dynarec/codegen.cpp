@@ -118,195 +118,269 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xC9: {  // CMP Immediate
-            int arg = i.arg;
-            llvm::Value* operand = llvm::ConstantInt::get(int8, arg);
+            // In data
+            llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateSub(reg_a, operand);
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
         case 0xC5: {  // CMP Zeropage
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            // get reg_a
+            // In data
+            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
-            // flag Test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
         case 0xD5: {  // CMP ZeropageX
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // get reg_a and reg_x
+            // In data
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            // Get reg_a and reg_x
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // add data and reg_x
-            llvm::Value* memPoiter = c->builder.CreateAdd(ram_ptr, reg_x);
-            // modulus constant
-            llvm::Constant* mod = llvm::ConstantInt::get(int8, 0xFF);
-            // modulus and compare
-            llvm::Value* result;
-            if (c->builder.CreateICmpUGT(memPoiter, mod)) {
-                llvm::Value* memPoiterCh = c->builder.CreateSub(memPoiter, mod);
-                llvm::Value* load_ram = c->builder.CreateLoad(memPoiterCh);
-                result = c->builder.CreateSub(reg_a, load_ram);
-            }
-            else {
-                llvm::Value* load_ram = c->builder.CreateLoad(memPoiter);
-                result = c->builder.CreateSub(reg_a, load_ram);
-            }
-            // flag Test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            // Add data and reg_x
+            llvm::Value* target = c->builder.CreateAdd(zpg_addr, reg_x);
+            // Get value to compare with
+            llvm::Value* target_16 = c->builder.CreateZExt(target, int16);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, target_16);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
         case 0xCD: {  // CMP Absolute
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            // get reg_a
+            // In data
+            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
-            // flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
-        case 0xDD: {  // CMP AbsoluteX
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // get reg_x
-            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // add reg_x and ram_ptr
-            llvm::Value* memPoiter = c->builder.CreateAdd(ram_ptr, reg_x);
-            // get date from pointer
-            llvm::Value* load_ram = c->builder.CreateLoad(memPoiter);
-            // get reg_a
+        case 0xDD: {  // CMP AbosluteX
+            // In data
+            llvm::Constant* abos_addr = GetConstant16(i.arg);
+            // Get reg_a and reg_x
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
-            // flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
+            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* reg_x_16 = c->builder.CreateZExt(reg_x, int16);
+            // Add reg_x and abos_addr
+            llvm::Value* target = c->builder.CreateAdd(abos_addr, reg_x_16);
+            // Get mem data
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, target);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
         case 0xD9: {  // CMP AbsoluteY
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            // get reg_y
-            llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
-            // add reg_y and ram_ptr
-            llvm::Value* memPoiter = c->builder.CreateAdd(ram_ptr, reg_y);
-            // get date from pointer
-            llvm::Value* load_ram = c->builder.CreateLoad(memPoiter);
-            // get reg_a
+            // In data
+            llvm::Constant* abs_addr = GetConstant16(i.arg);
+            // Get reg_a and reg_y
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_a, load_ram);
-            // flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
+            llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
+            llvm::Value* reg_y_16 = c->builder.CreateZExt(reg_y, int16);
+            // Add reg_y and abos_addr
+            llvm::Value* target = c->builder.CreateAdd(abos_addr, reg_y_16);
+            // Get mem data
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, target);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
         case 0xC1: {  // CMP IndirectX
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* addr_base =
+                c->builder.CreateAdd(load_x, GetConstant8(i.arg));
+
+            // low
+            llvm::Value* addr_base_16 = c->builder.CreateZExt(addr_base, int16);
+            llvm::Value* addr_low =
+                c->builder.CreateCall(c->read_fn, addr_base_16);
+            llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
+
+            // high
+            llvm::Value* addr_get_high =
+                c->builder.CreateAdd(addr_base, GetConstant8(1));
+            llvm::Value* addr_get_high_16 =
+                c->builder.CreateZExt(addr_get_high, int16);
+            llvm::Value* addr_high =
+                c->builder.CreateCall(c->read_fn, addr_get_high_16);
+            llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
+            llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+
+            llvm::Value* addr_hl_or =
+                c->builder.CreateOr(addr_high_shl, addr_low_16);
+            // reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_a_16, addr_hl_or);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xD1: {  // CMP IndirectY
+            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            llvm::Value* load_y_16 = c->builder.CreateZExt(load_y, int16);
+
+            // low
+            llvm::Value* addr_low =
+                c->builder.CreateCall(c->read_fn, GetConstant8(i.arg));
+            llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
+
+            // high
+            llvm::Value* addr_get_high =
+                c->builder.CreateAdd(GetConstant8(i.arg), GetConstant8(1));
+            llvm::Value* addr_get_high_16 =
+                c->builder.CreateZExt(addr_get_high, int16);
+            llvm::Value* addr_high =
+                c->builder.CreateCall(c->read_fn, addr_get_high);
+            llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
+            llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+
+            llvm::Value* addr_hl_or =
+                c->builder.CreateOr(addr_high_shl, addr_low_16);
+            llvm::Value* addr_or_with_y =
+                c->builder.CreateAdd(addr_hl_or, load_y_16);
+            // reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
+            // Compare
+            llvm::Value* result =
+                c->builder.CreateSub(reg_a_16, addr_or_with_y);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
+            DynamicTestCCmp(result);
             break;
         }
         case 0xE0: {  // CPX Immediate
-            // set arg to value
-            int arg = i.arg;
-            llvm::Value* operand = llvm::ConstantInt::get(int8, arg);
-            // get reg_x
+            // In data
+            llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Get reg_x
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_x, operand);
-            // flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_x_16 = c->builder.CreateZExt(reg_x, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_x_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
         case 0xE4: {  // CPX Zeropage
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            // get reg_x
+            // In data
+            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Get reg_x
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_x, load_ram);
-            // flag Test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_x_16 = c->builder.CreateZExt(reg_x, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_x_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
         case 0xEC: {  // CPX Absolute
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            // get reg_x
+            // In data
+            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Get reg_x
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_x, load_ram);
-            // flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_x_16 = c->builder.CreateZExt(reg_x, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_x_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
         case 0xC0: {  // CPY Immediate
-            // set arg to value
-            int arg = i.arg;
-            llvm::Value* operand = llvm::ConstantInt::get(int8, arg);
-            // get reg_y
+            // In data
+            llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Get reg_y
             llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_y, operand);
-            // flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_y_16 = c->builder.CreateZExt(reg_y, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_y_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
         case 0xC4: {  // CPY Zeropage
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            // get reg_y
+            // In data
+            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Get reg_y
             llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_y, load_ram);
-            // flag Test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_y_16 = c->builder.CreateZExt(reg_y, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_y_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
         case 0xCC: {  // CPY Absolute
-            // in data
-            llvm::Value* ram_ptr = GetRAMPtr(i.arg);
-            llvm::Value* load_ram = c->builder.CreateLoad(ram_ptr);
-            // get reg_y
+            // In data
+            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
+            // Get reg_y
             llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
-            // compare
-            llvm::Value* result = c->builder.CreateSub(reg_y, load_ram);
-            // flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* reg_y_16 = c->builder.CreateZExt(reg_y, int16);
+            // Compare
+            llvm::Value* result = c->builder.CreateSub(reg_y_16, operand_16);
+            // Flag Test
+            DynamicTestZ16(result);
+            DynamicTestN16(result);
             DynamicTestCCmp(result);
             break;
         }
@@ -662,6 +736,24 @@ void Compiler::CodeGen(Instruction& i)
             else if (addr == 0x200B) {
                 llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
                 c->builder.CreateCall(c->putreg_fn, {load_y});
+            }
+            // Write N to stdout
+            else if (addr == 0x200C) {
+                llvm::Value* load_n = c->builder.CreateLoad(c->status_n);
+                llvm::Value* n_8bit = c->builder.CreateZExt(load_n, int8);
+                c->builder.CreateCall(c->putreg_fn, {n_8bit});
+            }
+            // Write C to stdout
+            else if (addr == 0x200D) {
+                llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+                llvm::Value* c_8bit = c->builder.CreateZExt(load_c, int8);
+                c->builder.CreateCall(c->putreg_fn, {c_8bit});
+            }
+            // Write Z to stdout
+            else if (addr == 0x200E) {
+                llvm::Value* load_z = c->builder.CreateLoad(c->status_z);
+                llvm::Value* z_8bit = c->builder.CreateZExt(load_z, int8);
+                c->builder.CreateCall(c->putreg_fn, {z_8bit});
             }
             else {
                 llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
