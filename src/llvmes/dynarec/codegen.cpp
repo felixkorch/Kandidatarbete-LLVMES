@@ -749,11 +749,11 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x8A: {  // TXA Implied
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* result = c->builder.CreateStore(load_x, c->reg_a);
+            c->builder.CreateStore(load_x, c->reg_a);
 
             // Flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            DynamicTestZ(load_x);
+            DynamicTestN(load_x);
             break;
         }
         case 0x9A: {  // TXS Implied
