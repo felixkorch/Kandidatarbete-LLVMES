@@ -106,10 +106,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x24: {  // BIT Zeropage
-            // Makes the address a 16 bit by adding 8 zeros
-            llvm::Value* target_addr_16 =
-                c->builder.CreateZExt(GetConstant8(i.arg), int16);
-            llvm::Value* load_zero_page = c->builder.CreateLoad(target_addr_16);
+            llvm::Value* load_zero_page =
+                c->builder.CreateLoad(AddressModeZeropage(i.arg));
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* result = c->builder.CreateAnd(load_a, load_zero_page);
             // Set Z to zero if result is zero
