@@ -225,7 +225,11 @@ class Compiler {
         return addr_base;
     }
 
-    void AddressModeZeropage() {}
+    llvm::Value* AddressModeZeropage(uint16_t addr)
+    {
+        // Zero page addressing only has an 8 bit operand
+        return GetConstant8(addr);
+    }
 
     void AddressModeZeropageX() {}
 
