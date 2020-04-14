@@ -203,6 +203,121 @@ class Compiler {
         c->builder.SetInsertPoint(continue_block);
     }
 
+    llvm::Value* AddressModeImmediate(uint16_t addr) {
+        return GetConstant8(addr);
+    }
+
+    llvm::Value* AddressModeAbsolute(uint16_t addr) {
+        return GetConstant16(addr);
+    }
+
+    llvm::Value* AddressModeAbsoluteX(uint16_t addr)
+    {
+        llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+        llvm::Value* load_x_16 = c->builder.CreateZExt(load_x, int16);
+        llvm::Value* addr_base =
+            c->builder.CreateAdd(load_x_16, GetConstant16(addr));
+        return addr_base;
+    }
+
+    llvm::Value* AddressModeAbsoluteY(uint16_t addr)
+    {
+        llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+        llvm::Value* load_y_16 = c->builder.CreateZExt(load_y, int16);
+        llvm::Value* addr_base =
+            c->builder.CreateAdd(load_y_16, GetConstant16(addr));
+        return addr_base;
+    }
+
+    llvm::Value* AddressModeZeropage(uint16_t addr)
+    {
+        // Zero page addressing only has an 8 bit operand
+        return GetConstant8(addr);
+    }
+
+    llvm::Value* AddressModeZeropageX(uint16_t addr)
+    {
+        llvm::Constant* addr_trunc = GetConstant8(addr);
+        llvm::Value* load_x = c->builder->CreateLoad(c->reg_x);
+        llvm::Value* target_addr = c->builder.CreateAdd(addr_trunc, load_x);
+        return target_addr;
+    }
+
+    llvm::Value* AddressModeZeropageY(uint16_t addr)
+    {
+        llvm::Constant* addr_trunc = GetConstant8(addr);
+        llvm::Value* load_y = c->builder->CreateLoad(c->reg_y);
+        llvm::Value* target_addr = c->builder.CreateAdd(addr_trunc, load_y);
+        return target_addr;
+    }
+
+    void AddressModeIndirect() {}
+
+    llvm::Value* AddressModeIndirectX(uint16_t addr)
+    {
+        llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+        llvm::Value* addr_base =
+            c->builder.CreateAdd(load_x, GetConstant8(addr));
+
+        // low
+        llvm::Value* addr_base_16 = c->builder.CreateZExt(addr_base, int16);
+        llvm::Value* addr_low = c->builder.CreateCall(c->read_fn, addr_base_16);
+        llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
+
+        // high
+        llvm::Value* addr_get_high =
+            c->builder.CreateAdd(addr_base, GetConstant8(1));
+        llvm::Value* addr_get_high_16 =
+            c->builder.CreateZExt(addr_get_high, int16);
+        llvm::Value* addr_high =
+            c->builder.CreateCall(c->read_fn, addr_get_high_16);
+        llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
+        llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+
+        llvm::Value* addr_hl_or =
+            c->builder.CreateOr(addr_high_shl, addr_low_16);
+
+        return addr_hl_or;
+    }
+
+    llvm::Value* AddressModeIndirectY(uint16_t addr)
+    {
+        llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+        llvm::Value* load_y_16 = c->builder.CreateZExt(load_y, int16);
+
+        // low
+        llvm::Value* addr_low =
+            c->builder.CreateCall(c->read_fn, GetConstant8(addr));
+        llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
+
+        // high
+        llvm::Value* addr_get_high =
+            c->builder.CreateAdd(GetConstant8(addr), GetConstant8(1));
+        llvm::Value* addr_get_high_16 =
+            c->builder.CreateZExt(addr_get_high, int16);
+        llvm::Value* addr_high =
+            c->builder.CreateCall(c->read_fn, addr_get_high);
+        llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
+        llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+
+        llvm::Value* addr_hl_or =
+            c->builder.CreateOr(addr_high_shl, addr_low_16);
+        llvm::Value* addr_or_with_y =
+            c->builder.CreateAdd(addr_hl_or, load_y_16);
+
+        return addr_or_with_y;
+    }
+
+    void AddressModeImplied()
+    {
+        // Simply means the instruction doesn't need an operand
+    }
+
+    void AddressModeAccumulator()
+    {
+        // The operand is the contents of the accumulator(regA)
+    }
+
     void PassOne();
     void PassTwo();
     void Compile();
