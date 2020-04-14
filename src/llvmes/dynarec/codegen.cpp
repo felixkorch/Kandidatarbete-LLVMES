@@ -368,6 +368,16 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x4D: {  // EOR Absolute
+            // In data
+            llvm::Value* operand = ReadMemory(i.arg);
+            // Get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateOr(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x5D: {  // EOR AbsoluteX
