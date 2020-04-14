@@ -328,7 +328,7 @@ void Compiler::CodeGen(Instruction& i)
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             // Exclusive or
-            llvm::Value* result = c->builder.CreateOr(reg_a, operand);
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
             c->builder.CreateStore(result, c->reg_a);
             // Flag Test
             DynamicTestZ(result);
@@ -341,7 +341,7 @@ void Compiler::CodeGen(Instruction& i)
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             // Exclusive or
-            llvm::Value* result = c->builder.CreateOr(reg_a, operand);
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
             c->builder.CreateStore(result, c->reg_a);
             // Flag Test
             DynamicTestZ(result);
@@ -360,7 +360,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* target_16 = c->builder.CreateZExt(target, int16);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, target_16);
             // Exclusive or
-            llvm::Value* result = c->builder.CreateOr(reg_a, operand);
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
             c->builder.CreateStore(result, c->reg_a);
             // Flag Test
             DynamicTestZ(result);
@@ -373,7 +373,7 @@ void Compiler::CodeGen(Instruction& i)
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             // Exclusive or
-            llvm::Value* result = c->builder.CreateOr(reg_a, operand);
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
             c->builder.CreateStore(result, c->reg_a);
             // Flag Test
             DynamicTestZ(result);
@@ -392,7 +392,7 @@ void Compiler::CodeGen(Instruction& i)
             // Get mem data
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, target);
             // Exclusive or
-            llvm::Value* result = c->builder.CreateOr(reg_a, operand);
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
             c->builder.CreateStore(result, c->reg_a);
             // Flag Test
             DynamicTestZ(result);
@@ -411,7 +411,7 @@ void Compiler::CodeGen(Instruction& i)
             // Get mem data
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, target);
             // Exclusive or
-            llvm::Value* result = c->builder.CreateOr(reg_a, operand);
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
             c->builder.CreateStore(result, c->reg_a);
             // Flag Test
             DynamicTestZ(result);
