@@ -937,14 +937,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x39: {  // AND AbsoluteY
-            llvm::Constant* offset = GetConstant16(i.arg);
-            // Loads the Y register into a placeholder
-            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            llvm::Value* load_y_16 = c->builder.CreateZExt(load_y, int16);
-
-            // Adds the X register to the RAM pointer
-            llvm::Value* target_addr = c->builder.CreateAdd(load_y_16, offset);
-
+            llvm::Value* target_addr = AddressModeAbsoluteY(i.arg);
             llvm::Value* operand = c->builder.CreateLoad(target_addr);
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* result = c->builder.CreateAnd(load_a, operand);
