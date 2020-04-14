@@ -400,6 +400,22 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x59: {  // EOR AbsoluteY
+            // In data
+            llvm::Constant* abos_addr = GetConstant16(i.arg);
+            // Get reg_a and reg_y
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
+            llvm::Value* reg_y_16 = c->builder.CreateZExt(reg_y, int16);
+            // Add reg_y and abos_addr
+            llvm::Value* target = c->builder.CreateAdd(abos_addr, reg_y_16);
+            // Get mem data
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, target);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateOr(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x41: {  // EOR IndirectX
