@@ -420,10 +420,25 @@ void Compiler::CodeGen(Instruction& i)
             // Flag Test
             DynamicTestZ(result);
             DynamicTestN(result);
-            
             break;
         }
         case 0x55: {  // EOR ZeropageX
+            // In data
+            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            // Get reg_a and reg_x
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+            // Add data and reg_x
+            llvm::Value* target = c->builder.CreateAdd(zpg_addr, reg_x);
+            // Ge value from mem
+            llvm::Value* target_16 = c->builder.CreateZExt(target, int16);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, target_16);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateOr(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x4D: {  // EOR Absolute
