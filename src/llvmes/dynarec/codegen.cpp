@@ -106,33 +106,40 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x24: {  // BIT Zeropage
-            llvm::Value* load_zero_page =
-                c->builder.CreateLoad(AddressModeZeropage(i.arg));
+            llvm::Value* load_zero_page = ReadMemory(i.arg);
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* result = c->builder.CreateAnd(load_a, load_zero_page);
             // Set Z to zero if result is zero
             DynamicTestZ(result);
-            // Set V to Bit 6 of Memory value
-            llvm::Value* shifted_v = c->builder.CreateLShr(load_zero_page, 6);
-            llvm::Value* v = c->builder.CreateAnd(shifted_v, GetConstant8(1));
+            // Set V to Bit 6 of Memory value - I'm not sure if this way of
+            // calculating the V-flag is unique for BIT or if it should be
+            // abstracted into a function
+            llvm::Constant* c_0x40 = llvm::ConstantInt::get(int8, 0x40);
+            llvm::Value* do_and_v =
+                c->builder.CreateAnd(load_zero_page, c_0x40);
+            llvm::Value* is_overflow =
+                c->builder.CreateICmpEQ(do_and_v, c_0x40);
+            c->builder.CreateStore(is_overflow, c->status_v);
             // Set N to Bit 7 of Memory value
-            llvm::Value* shifted_n = c->builder.CreateLShr(load_zero_page, 7);
-            llvm::Value* n = c->builder.CreateAnd(shifted_v, GetConstant8(1));
+            DynamicTestN(load_zero_page);
             break;
         }
         case 0x2C: {  // BIT Absolute
-            llvm::Value* load_addr =
-                c->builder.CreateLoad(AddressModeAbsolute(i.arg));
+            llvm::Value* load_addr = ReadMemory(i.arg);
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* result = c->builder.CreateAnd(load_a, load_addr);
             // Set Z to zero if result is zero
             DynamicTestZ(result);
-            // Set V to Bit 6 of Memory value
-            llvm::Value* shifted_v = c->builder.CreateLShr(load_addr, 6);
-            llvm::Value* v = c->builder.CreateAnd(shifted_v, GetConstant8(1));
+            // Set V to Bit 6 of Memory value - I'm not sure if this way of
+            // calculating the V-flag is unique for BIT or if it should be
+            // abstracted into a function
+            llvm::Constant* c_0x40 = llvm::ConstantInt::get(int8, 0x40);
+            llvm::Value* do_and_v = c->builder.CreateAnd(load_addr, c_0x40);
+            llvm::Value* is_overflow =
+                c->builder.CreateICmpEQ(do_and_v, c_0x40);
+            c->builder.CreateStore(is_overflow, c->status_v);
             // Set N to Bit 7 of Memory value
-            llvm::Value* shifted_n = c->builder.CreateLShr(load_addr, 7);
-            llvm::Value* n = c->builder.CreateAnd(shifted_v, GetConstant8(1));
+            DynamicTestN(load_addr);
             break;
         }
         case 0x00: {  // BRK Implied
@@ -779,6 +786,13 @@ void Compiler::CodeGen(Instruction& i)
                 llvm::Value* z_8bit = c->builder.CreateZExt(load_z, int8);
                 c->builder.CreateCall(c->putreg_fn, {z_8bit});
             }
+            // Write V to stdout
+            else if (addr == 0x200F) {
+                llvm::Value* load_v = c->builder.CreateLoad(c->status_v);
+                llvm::Value* v_8bit = c->builder.CreateZExt(load_v, int8);
+                c->builder.CreateCall(c->putreg_fn, {v_8bit});
+            }
+            // Store normally
             else {
                 llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
                 WriteMemory(addr, load_a);
