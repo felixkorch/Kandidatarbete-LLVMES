@@ -183,16 +183,16 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestCCmp(result);
             break;
         }
-        case 0xDD: {  // CMP AbosluteX
+        case 0xDD: {  // CMP AbsoluteX
             // In data
-            llvm::Constant* abos_addr = GetConstant16(i.arg);
+            llvm::Constant* abs_addr = GetConstant16(i.arg);
             // Get reg_a and reg_x
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
             llvm::Value* reg_x_16 = c->builder.CreateZExt(reg_x, int16);
-            // Add reg_x and abos_addr
-            llvm::Value* target = c->builder.CreateAdd(abos_addr, reg_x_16);
+            // Add reg_x and abs_addr
+            llvm::Value* target = c->builder.CreateAdd(abs_addr, reg_x_16);
             // Get mem data
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, target);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
@@ -212,8 +212,8 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
             llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
             llvm::Value* reg_y_16 = c->builder.CreateZExt(reg_y, int16);
-            // Add reg_y and abos_addr
-            llvm::Value* target = c->builder.CreateAdd(abos_addr, reg_y_16);
+            // Add reg_y and abs_addr
+            llvm::Value* target = c->builder.CreateAdd(abs_addr, reg_y_16);
             // Get mem data
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, target);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
@@ -516,7 +516,8 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* target_addr = c->builder.CreateAdd(load_y, zpg_addr);
             llvm::Value* target_addr_16 =
                 c->builder.CreateZExt(target_addr, int16);
-            llvm::Value* answer= c->builder.CreateCall(c->read_fn, target_addr_16);
+            llvm::Value* answer =
+                c->builder.CreateCall(c->read_fn, target_addr_16);
             c->builder.CreateStore(answer, c->reg_x);
             break;
         }
@@ -567,8 +568,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xBC: {  // LDY AbsoluteX
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* target_addr_16 =
-                c->builder.CreateZExt(load_x, int16);
+            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
             llvm::Constant* addr = GetConstant16(i.arg);
             llvm::Value* target_addr =
                 c->builder.CreateAdd(target_addr_16, addr);
