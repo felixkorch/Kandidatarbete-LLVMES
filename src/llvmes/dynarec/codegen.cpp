@@ -182,7 +182,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xD9: {  // CMP AbsoluteY
             // In data
-            llvm::Constant* abos_addr = GetConstant16(i.arg);
+            llvm::Constant* abs_addr = GetConstant16(i.arg);
             // Get reg_a and reg_y
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
@@ -716,8 +716,7 @@ void Compiler::CodeGen(Instruction& i)
             // Write C to stdout
             else if (addr == 0x200D) {
                 llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-                llvm::Value* c_8bit = 
-                    c->builder.CreateZExt(load_c, int8);
+                llvm::Value* c_8bit = c->builder.CreateZExt(load_c, int8);
                 c->builder.CreateCall(c->putreg_fn, {c_8bit});
             }
             // Write Z to stdout
