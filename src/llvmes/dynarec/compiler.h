@@ -239,7 +239,13 @@ class Compiler {
         return target_addr;
     }
 
-    void AddressModeZeropageY() {}
+    llvm::Value* AddressModeZeropageY(uint16_t addr)
+    {
+        llvm::Constant* addr_trunc = GetConstant8(addr);
+        llvm::Value* load_y = c->builder->CreateLoad(c->reg_y);
+        llvm::Value* target_addr = c->builder.CreateAdd(addr_trunc, load_y);
+        return target_addr;
+    }
 
     void AddressModeIndirect() {}
 
