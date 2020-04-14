@@ -956,16 +956,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x21: {  // AND IndirectX
-            // Load byte from some address in zero_page
-            llvm::Constant* offset = GetConstant8(i.arg);
-            // Loads the Y register into a placeholder
-            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-
-            // Adds the X register to the RAM pointer
-            llvm::Value* zero_page_addr = c->builder.CreateAdd(load_x, offset);
-            llvm::Value* target_addr = c->builder.CreateLoad(zero_page_addr);
+            llvm::Value* target_addr = AddressModeIndirectX(i.arg);
             llvm::Value* operand = c->builder.CreateLoad(target_addr);
-
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* result = c->builder.CreateAnd(load_a, operand);
             // Set Z to zero if result is zero
