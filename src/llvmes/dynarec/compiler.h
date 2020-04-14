@@ -208,26 +208,21 @@ class Compiler {
     }
 
     llvm::Value* AddressModeAbsolute(uint16_t addr) {
-        //maybe should be 8?
         return GetConstant16(addr);
     }
 
     llvm::Value* AddressModeAbsoluteX(uint16_t addr) {
-    
         llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-        // maybe should be 8?
-        llvm::Value* addr_base = c->builder.CreateAdd(load_x, GetConstant16(addr));
+        llvm::Value* load_x_16 = c->builder.CreateZExt(load_x, int16);
+        llvm::Value* addr_base = c->builder.CreateAdd(load_x_16, GetConstant16(addr));
         return addr_base;
     }
 
-     llvm::Value* AddressModeAbsoluteY(uint16_t addr)
-    {
+     llvm::Value* AddressModeAbsoluteY(uint16_t addr) {
         llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-        // maybe should be 8?
-        llvm::Value* addr_base =
-            c->builder.CreateAdd(load_y, GetConstant16(addr));
+        llvm::Value* load_y_16 = c->builder.CreateZExt(load_y, int16);
+        llvm::Value* addr_base = c->builder.CreateAdd(load_y_16, GetConstant16(addr));
         return addr_base;
-
     }
 
     void AddressModeZeropage() {}
