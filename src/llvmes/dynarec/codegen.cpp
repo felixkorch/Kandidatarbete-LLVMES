@@ -123,6 +123,18 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x2C: {  // BIT Absolute
+            llvm::Value* load_addr =
+                c->builder.CreateLoad(AddressModeAbsolute(i.arg));
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* result = c->builder.CreateAnd(load_a, load_addr);
+            // Set Z to zero if result is zero
+            DynamicTestZ(result);
+            // Set V to Bit 6 of Memory value
+            llvm::Value* shifted_v = c->builder.CreateLShr(load_addr, 6);
+            llvm::Value* v = c->builder.CreateAnd(shifted_v, GetConstant8(1));
+            // Set N to Bit 7 of Memory value
+            llvm::Value* shifted_n = c->builder.CreateLShr(load_addr, 7);
+            llvm::Value* n = c->builder.CreateAnd(shifted_v, GetConstant8(1));
             break;
         }
         case 0x00: {  // BRK Implied
