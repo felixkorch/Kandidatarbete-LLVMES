@@ -203,8 +203,8 @@ class Compiler {
         c->builder.SetInsertPoint(continue_block);
     }
 
-    llvm::Value* AddressModeImmediate(uint16_t addr) {
-        return GetConstant8(addr);
+    llvm::Value* AddressModeImmediate(uint16_t operand) {
+        return GetConstant8(operand);
     }
 
     llvm::Value* AddressModeAbsolute(uint16_t addr) {
