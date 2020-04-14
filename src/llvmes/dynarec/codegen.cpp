@@ -917,15 +917,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x3D: {  // AND AbsoluteX
-            llvm::Constant* offset = GetConstant16(i.arg);
-            // Loads the X register into a placeholder
-            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* load_x_16 =
-                c->builder.CreateZExt(load_x, int16);
-
-            // Adds the X register to the RAM pointer
-            llvm::Value* target_addr = c->builder.CreateAdd(load_x_16, offset);
-
+            llvm::Value* target_addr = AddressModeAbsoluteX(i.arg);
             llvm::Value* operand = c->builder.CreateLoad(target_addr);
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* result = c->builder.CreateAnd(load_a, operand);
