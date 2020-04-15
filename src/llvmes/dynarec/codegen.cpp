@@ -643,7 +643,24 @@ void Compiler::CodeGen(Instruction& i)
         case 0x3E: {  // ROL AbsoluteX
             break;
         }
-        case 0x6A: {  // ACC Accumulator
+        case 0x6A: {  // ROR Accumulator
+            // Get reg_a and status_c
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);  
+            // Get carry_out
+            llvm::Value* carry_out =
+                c->builder.CreateAnd(reg_a, GetConstant8(0x01));
+            // Shift reg_a
+            llvm::Value* reg_a_Shr = c->builder.CreateLShr(reg_a, 1);
+            // Add carry_in
+            llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
+            llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
+            llvm::Value* result = c->builder.CreateOr(reg_a_Shr, carry_in_shl);
+            // Stor reg_a 
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x66: {  // ROR Zeropage
