@@ -395,6 +395,13 @@ std::vector<uint8_t> ora_Absolute
     PRINT_A,           // Print A - should print 0xAA = 170
 };
 
+std::vector<uint8_t> ora_Immediate
+{
+    LDA_IMM(0x0A),     // LDA #0x0A
+    PRINT_A,           // Print A - should print 0x0A = 10
+    0x09, 0xA0,        // ORA #0xA0
+    PRINT_A,           // Print A - should print 0xAA = 170
+};
 
 using namespace llvmes;
 
