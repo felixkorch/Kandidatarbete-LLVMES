@@ -443,11 +443,26 @@ std::vector<uint8_t> eor_AbsoluteY{
     0x8D, 0x09, 0x20,  // Print A - should print 0x0F = 15
 };
 
+std::vector<uint8_t> eor_IndirectY{
+    0xA9, 0x20,        // LDA; # 0x20  
+    0x8D, 0x09, 0x20,  // Print A - should print 0x20 
+    0x8D, 0x02, 0x00,  // STA reg_a (=0x20) to 0x0002 in mem
+    0xA0, 0x02,        // LDY; # 0x02
+    0x8D, 0x0B, 0x20,  // Print Y - should print 0x02 
+    0xA9, 0x03,        // LDA; # 0x03
+    0x8D, 0x09, 0x20,  // Print A - should print 0x03
+    0x8D, 0x22, 0x00,  // STA reg_a (=0x03) to 0x0022 in mem
+    0xA9, 0x0C,        // LDA; # 0x0C
+    0x8D, 0x09, 0x20,  // Print A - should print 0x0C
+    0x51, 0x02,        // EOR, (IndirectY) # 0x02
+    0x8D, 0x09, 0x20,  // Print A - should print 0x0F 
+};
+
 using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(eor_AbsoluteY));
+    auto d = llvmes::make_unique<Disassembler>(std::move(eor_IndirectY));
 
     AST ast;
     std::vector<uint8_t> ram;
