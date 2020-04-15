@@ -658,6 +658,10 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* result = c->builder.CreateOr(reg_a_Shr, carry_in_shl);
             // Stor reg_a 
             c->builder.CreateStore(result, c->reg_a);
+            // Set status_c
+            llvm::Value* carry_out_1 =
+                c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
+            c->builder.CreateStore(carry_out_1, c->status_c);
             // Flag test
             DynamicTestZ(result);
             DynamicTestN(result);
