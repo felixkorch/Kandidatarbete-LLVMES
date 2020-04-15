@@ -707,8 +707,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xB8: {  // CLV Implied
-            llvm::Value* load_v = c->builder.CreateLoad(c->status_v);
-            c->builder.CreateStore(0, load_v);
+            c->builder.CreateStore(GetConstant1(0), c->status_v);
             break;
         }
         case 0x85: {  // STA Zeropage
