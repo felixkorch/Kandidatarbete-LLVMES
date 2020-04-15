@@ -105,6 +105,23 @@ std::vector<uint8_t> testLDA_indirectXY{
     0x8D, 0x09, 0x20,  // Print A - should print 10
 };
 
+std::vector<uint8_t> ror_Accumulator{
+    // ROR C=0 in
+    0xA9, 0xFF,        // LDA; # 0x01
+    0x8D, 0x09, 0x20,  // Print A - should print 0xFF
+    0x6A,              // ROR (accumulator)
+    0x8D, 0x09, 0x20,  // Print A - should print 0x7F
+    // CMP imidiate to set C
+    0xA9, 0x02,        // LDA; # 0x02
+    0xC9, 0x0A,        // CMP imidiate #0x0A
+    // ROR C=1 in
+    0xA9, 0xFF,        // LDA; # 0x01
+    0x8D, 0x09, 0x20,  // Print A - should print 0xFF
+    0x6A,              // ROR (accumulator)
+    0x8D, 0x09, 0x20,  // Print A - should print 0xFF
+};
+
+
 std::vector<uint8_t> cmp_Immidiate{
     0xA9, 0x0A,        // LDA; # 0x0A
     0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
@@ -385,7 +402,7 @@ using namespace llvmes;
 int main()
 {
 
-    auto d = llvmes::make_unique<Disassembler>(std::move(cmp_AbsoluteY));
+    auto d = llvmes::make_unique<Disassembler>(std::move(ror_Accumulator));
 
     AST ast;
     std::vector<uint8_t> ram;
