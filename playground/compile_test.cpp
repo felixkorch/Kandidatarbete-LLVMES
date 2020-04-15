@@ -2,12 +2,16 @@
 #include "llvmes/dynarec/disassembler.h"
 
 #define PRINT_A 0x8D, 0x09, 0x20
-#define PRINT_X 0x4C, 0x14, 0x00
+#define PRINT_X 0x8D, 0x0A, 0x20
+#define PRINT_Y 0x8D, 0x0B, 0x20
 #define LDY_IMM(V) 0xA0, V
+#define LDX_IMM(V) 0xA2, V
 #define INX 0xE8
 #define DEY 0x88
 #define STX_ZPG_Y(V) 0x96, V
 #define STY_ZPG(V) 0x84, V
+#define STY_ABS(B1, B2) 0x8C, B2, B1
+#define STX_ABS(B1, B2) 0x8E, B2, B1
 #define REL(X) 0xFE X
 #define LDA_IMM(V) 0xA9, V
 #define LDA_ABS(B1, B2) 0xAD, B2, B1
@@ -379,6 +383,18 @@ std::vector<uint8_t> cpy_Absolute{
     0x8D, 0x0D, 0x20,  // Print status C - should print 01
     0x8D, 0x0E, 0x20,  // Print status Z - should print 00
 };
+
+std::vector<uint8_t> ora_Absolute
+{
+    LDA_IMM(0x0A),     // LDA #0x0A
+    PRINT_A,           // Print A - should print 0x0A = 10
+    LDX_IMM(0xA0),     // LDX #0xA0
+    PRINT_X,           // Print X - should print 0xA0 = 160
+    STX_ABS(0x12, 0x34),// STX $1234
+    0x0D, 0x34, 0x12,  // ORA $1234
+    PRINT_A,           // Print A - should print 0xAA = 170
+};
+
 
 using namespace llvmes;
 
