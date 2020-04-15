@@ -647,6 +647,17 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x1D: {  // ORA AbsoluteX
+            // Fetch operands
+            llvm::Value* target_addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            // Compure OR between operands
+            llvm::Value* result = c->builder.CreateOr(operand, load_a);
+            // Set affected CPU flags
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            // Store result in accumulator
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x19: {  // ORA AbsoluteY
