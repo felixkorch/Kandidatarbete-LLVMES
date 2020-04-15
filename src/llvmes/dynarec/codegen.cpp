@@ -493,6 +493,36 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x41: {  // EOR IndirectX
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            llvm::Value* addr_base =
+                c->builder.CreateAdd(load_x, GetConstant8(i.arg));
+            // low
+            llvm::Value* addr_base_16 = c->builder.CreateZExt(addr_base, int16);
+            llvm::Value* mem_addr_low =
+                c->builder.CreateCall(c->read_fn, addr_base_16);
+            llvm::Value* mem_addr_low_16 =
+                c->builder.CreateZExt(mem_addr_low, int16);
+            // high
+            llvm::Value* addr_high =
+                c->builder.CreateAdd(addr_base_16, GetConstant16(1));
+            llvm::Value* mem_addr_high =
+                c->builder.CreateCall(c->read_fn, addr_high);
+            llvm::Value* mem_addr_high_16 =
+                c->builder.CreateZExt(mem_addr_high, int16);
+            llvm::Value* mem_addr_high_shl =
+                c->builder.CreateShl(mem_addr_high_16, 8);
+            llvm::Value* mem_addr_hl_or =
+                c->builder.CreateOr(mem_addr_high_shl, mem_addr_low_16);
+            llvm::Value* operand =
+                c->builder.CreateCall(c->read_fn, mem_addr_hl_or);
+            // reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x51: {  // EOR IndirectY
