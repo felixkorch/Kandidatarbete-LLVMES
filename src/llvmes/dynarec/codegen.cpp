@@ -674,7 +674,7 @@ void Compiler::CodeGen(Instruction& i)
 
         // Loads Carry register into a placeholder
         llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-       
+        load_c = c->builder.CreateNeg(load_c);
 
         // Subtract ram & carry from A
         llvm::Value* result_a_ram = c->builder.CreateSub(load_a, load_value);
@@ -721,6 +721,7 @@ void Compiler::CodeGen(Instruction& i)
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            load_c = c->builder.CreateNeg(load_c);
             load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
@@ -761,6 +762,7 @@ void Compiler::CodeGen(Instruction& i)
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            load_c = c->builder.CreateNeg(load_c);
             load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
@@ -801,6 +803,7 @@ void Compiler::CodeGen(Instruction& i)
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            load_c = c->builder.CreateNeg(load_c);
             load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
@@ -841,6 +844,7 @@ void Compiler::CodeGen(Instruction& i)
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            load_c = c->builder.CreateNeg(load_c);
             load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
@@ -881,6 +885,7 @@ void Compiler::CodeGen(Instruction& i)
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            load_c = c->builder.CreateNeg(load_c);
             load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
@@ -922,6 +927,7 @@ void Compiler::CodeGen(Instruction& i)
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            load_c = c->builder.CreateNeg(load_c);
             load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
@@ -962,6 +968,7 @@ void Compiler::CodeGen(Instruction& i)
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            load_c = c->builder.CreateNeg(load_c);
             load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
