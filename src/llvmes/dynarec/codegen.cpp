@@ -620,6 +620,17 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x15: {  // ORA ZeropageX
+            // Fetch operands
+            llvm::Value* target_addr = AddressModeZeropageX(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            // Compure OR between operands
+            llvm::Value* result = c->builder.CreateOr(operand, load_a);
+            // Set affected CPU flags
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            // Store result in accumulator
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x0D: {  // ORA Absolute
