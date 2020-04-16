@@ -87,6 +87,16 @@ std::vector<uint8_t> testBranches{
     PRINT_A,  // FF
 };
 
+std::vector<uint8_t> testINC_zeropage{
+    0xA9, 0x0A,  // LDA; # 0x0A
+    0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
+    0x8D, 0x20, 0x00,  // reg_a (=0x0A) to 0x0020 in mem
+    LDX_IMM(0x01),
+    0xF6, 0x20,  // inc zeropage mem 0x0020 + x
+    0x8D, 0x0C, 0x20,  // Print status N - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 01
+};
+
 std::vector<uint8_t> testLDAXY_zeropageXY{
     0xA0, 0x0A,        // LDY, # 0x0A
     0x8C, 0x10, 0x00,  // STY absolute
