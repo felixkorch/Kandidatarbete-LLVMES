@@ -180,7 +180,6 @@ def assemble(test_directory):
     for source_file in list_source_files:
         print(source_file)
         source_file_path = os.path.join(list_sources_path, Path(source_file))
-        # print("path to source file: " + str(source_file_path))
         subprocess.run(["lua", assembler_path, source_file_path])
         print()
 
@@ -200,8 +199,6 @@ def assemble(test_directory):
         shutil.move(bin_file_path, os.path.join(list_bins_path, bin_file))
         print()
 
-    # subprocess.run(["lua", assembler_path, list_source_files])
-    # print(list_sources_path)
     os.chdir(test_directory)
 
 
