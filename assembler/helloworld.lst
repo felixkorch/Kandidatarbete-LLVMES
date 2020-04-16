@@ -1,0 +1,18 @@
+.org $8000
+
+helloworld: 
+.db "Hello, world", 10, 0
+
+start:
+LDA helloworld, X
+BEQ exit ; Jump to exit on '\0'
+STA $2008
+INX
+JMP start
+
+exit:
+LDA #0
+STA $200C ; Write 0 as exit code
+
+.org $fffc
+.dw start ; Reset vector
