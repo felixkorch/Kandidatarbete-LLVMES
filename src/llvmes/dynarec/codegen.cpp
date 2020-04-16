@@ -628,7 +628,27 @@ void Compiler::CodeGen(Instruction& i)
         case 0x28: {  // PLP Implied
             break;
         }
-        case 0x2A: {  // ACC Accumulator
+        case 0x2A: {  // ROL Accumulator
+            // Get reg_a and status_c
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
+            // Get carry_out
+            llvm::Value* carry_out =
+                c->builder.CreateAnd(reg_a, GetConstant8(0x80));
+            // Shift reg_a left
+            llvm::Value* reg_a_Shr = c->builder.CreateShl(reg_a, 1);
+            // Add carry_in
+            llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
+            llvm::Value* result = c->builder.CreateOr(reg_a_Shr, carry_in_8);
+            // Stor reg_a 
+            c->builder.CreateStore(result, c->reg_a);
+            // Set status_c
+            llvm::Value* carry_out_1 =
+                c->builder.CreateICmpEQ(carry_out, GetConstant8(0x80));
+            c->builder.CreateStore(carry_out_1, c->status_c);
+            // Flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x26: {  // ROL Zeropage
