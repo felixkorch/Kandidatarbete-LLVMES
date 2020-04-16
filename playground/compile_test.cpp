@@ -380,6 +380,14 @@ std::vector<uint8_t> cpy_Absolute{
     0x8D, 0x0E, 0x20,  // Print status Z - should print 00
 };
 
+std::vector<uint8_t> eor_Immediate{
+    0xA9, 0x03,        // LDA, # 0x03
+    0x8D, 0x09, 0x20,  // Print A - should print 3
+    0x49, 0x0C,        // EOR, # 0x0C
+    0x8D, 0x09, 0x20,  // Print A - should print 15
+};
+
+
 using namespace llvmes;
 
 int main()
