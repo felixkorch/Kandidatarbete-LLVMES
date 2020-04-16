@@ -24,7 +24,7 @@ std::vector<uint8_t> program1{
     0xA0, 0x0A,        // LDY, # 0x0A
     0xE8,              // INX -- Begin
     0x88,              // DEY
-    0x4C, 0x14, 0x00,  // Print X
+    0x8D, 0x0A, 0x20,  // Print X
     0xD0, 0xF9,        // BNE, Begin
 };
 
@@ -109,7 +109,7 @@ using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(testLDA_indirectXY));
+    auto d = llvmes::make_unique<Disassembler>(std::move(program1));
 
     AST ast;
     std::vector<uint8_t> ram;
@@ -125,6 +125,9 @@ int main()
         std::cerr << e.what() << std::endl;
         return 1;
     }
+
+
+    ast.Print();
 
     auto c = llvmes::make_unique<Compiler>(std::move(ast), "load_store");
     c->SetRAM(std::move(ram));
