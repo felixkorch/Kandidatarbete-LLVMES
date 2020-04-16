@@ -29,6 +29,8 @@ struct Compilation {
     llvm::Value* status_c = nullptr;
     llvm::Value* status_z = nullptr;
     llvm::Value* status_i = nullptr;
+    llvm::Value* status_b = nullptr;
+    llvm::Value* status_d = nullptr;
     llvm::Value* main_fn = nullptr;
     llvm::Value* putreg_fn = nullptr;
     llvm::Value* putchar_fn = nullptr;
@@ -199,12 +201,27 @@ class Compiler {
             c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
         llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
         llvm::Constant* c1_16 = llvm::ConstantInt::get(int16, 1);
-        llvm::Value* addr = c->builder.CreateOr(
+        llvm::Value* sp_addr = c->builder.CreateOr(
             {load_sp, c_0x0100});  // addr <- load_sp or 0x0100
         load_sp =
             c->builder.CreateSub(load_sp, c1_16);    // load_sp <- load_sp - 1
         c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
-        // WriteMemory(addr, v);                        // [addr] <- v
+        c->builder.CreateCall(c->write_fn, {sp_addr, v});  // [addr] <- v
+    }
+
+    llvm::Value* StackPull()
+    {
+        // llvm::Value* value = ReadMemory(addr);
+        llvm::Value* load_sp =
+            c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
+        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
+        llvm::Constant* c1_16 = llvm::ConstantInt::get(int16, 1);
+        llvm::Value* sp_addr = c->builder.CreateOr(
+            {load_sp, c_0x0100});  // addr <- load_sp or 0x0100
+        load_sp =
+            c->builder.CreateAdd(load_sp, c1_16);    // load_sp <- load_sp + 1
+        c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
+        return c->builder.CreateCall(c->read_fn, {sp_addr});  // [addr] <- v
     }
 
     void CreateCondBranch(llvm::Value* pred, llvm::BasicBlock* target)
@@ -217,11 +234,13 @@ class Compiler {
         c->builder.SetInsertPoint(continue_block);
     }
 
-    llvm::Constant* AddressModeImmediate(uint16_t operand) {
+    llvm::Constant* AddressModeImmediate(uint16_t operand)
+    {
         return GetConstant8(operand);
     }
 
-    llvm::Constant* AddressModeAbsolute(uint16_t addr) {
+    llvm::Constant* AddressModeAbsolute(uint16_t addr)
+    {
         return GetConstant16(addr);
     }
 

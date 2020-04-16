@@ -737,12 +737,60 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x08: {  // PHP Implied
+            llvm::Value* status_z = c->builder.CreateLoad(c->status_z);
+            status_z = c->builder.CreateZExt(status_z, int8);
+            // we don't shift the z register
+            llvm::Value* status_c = c->builder.CreateLoad(c->status_c);
+            status_c = c->builder.CreateZExt(status_c, int8);
+            status_c = c->builder.CreateShl(status_c, 1);
+            llvm::Value* status_i = c->builder.CreateLoad(c->status_i);
+            status_i = c->builder.CreateZExt(status_i, int8);
+            status_i = c->builder.CreateShl(status_i, 2);
+            llvm::Value* status_d = c->builder.CreateLoad(c->status_d);
+            status_d = c->builder.CreateZExt(status_d, int8);
+            status_d = c->builder.CreateShl(status_d, 3);
+            // In the byte pushed, bit 5 is always set to 1, and bit 4
+            // is 1 if from an instruction (PHP or BRK)
+            llvm::Value* status_b = GetConstant8(0x30);
+            llvm::Value* status_v = c->builder.CreateLoad(c->status_v);
+            status_v = c->builder.CreateZExt(status_v, int8);
+            status_v = c->builder.CreateShl(status_v, 6);
+            llvm::Value* status_n = c->builder.CreateLoad(c->status_n);
+            status_n = c->builder.CreateZExt(status_n, int8);
+            status_n = c->builder.CreateShl(status_n, 7);
+            llvm::Value* status = c->builder.CreateOr(status_z, status_c);
+            status = c->builder.CreateOr(status, status_i);
+            status = c->builder.CreateOr(status, status_d);
+            status = c->builder.CreateOr(status, status_b);
+            status = c->builder.CreateOr(status, status_v);
+            status = c->builder.CreateOr(status, status_n);
+            StackPush(status);
             break;
         }
         case 0x68: {  // PLA Implied
             break;
         }
         case 0x28: {  // PLP Implied
+            // PLP ignore bits 4 and 5 from the stack
+            llvm::Value* status = StackPull();
+            llvm::Value* status_z =
+                c->builder.CreateICmpEQ(status, GetConstant8(0x01));
+            c->builder.CreateStore(status_z, c->status_z);
+            llvm::Value* status_c =
+                c->builder.CreateICmpEQ(status, GetConstant8(0x02));
+            c->builder.CreateStore(status_c, c->status_c);
+            llvm::Value* status_i =
+                c->builder.CreateICmpEQ(status, GetConstant8(0x04));
+            c->builder.CreateStore(status_i, c->status_i);
+            llvm::Value* status_d =
+                c->builder.CreateICmpEQ(status, GetConstant8(0x08));
+            c->builder.CreateStore(status_d, c->status_d);
+            llvm::Value* status_v =
+                c->builder.CreateICmpEQ(status, GetConstant8(0x04));
+            c->builder.CreateStore(status_v, c->status_v);
+            llvm::Value* status_n =
+                c->builder.CreateICmpEQ(status, GetConstant8(0x08));
+            c->builder.CreateStore(status_n, c->status_n);
             break;
         }
         case 0x2A: {  // ACC Accumulator
@@ -837,7 +885,8 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x8D: {  // STA Absolute
             uint16_t addr = i.arg;
-            // Write to '0x2008' and 'A' will be written to stdout as char
+            // Write to '0x2008' and 'A' will be written to stdout as
+            // char
             if (addr == 0x2008) {
                 llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
                 c->builder.CreateCall(c->putchar_fn, {load_a});
