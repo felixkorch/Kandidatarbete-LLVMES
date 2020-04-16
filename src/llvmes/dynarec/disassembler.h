@@ -288,6 +288,10 @@ class Disassembler {
                 instr->arg = data[offs + 1] | data[offs + 2] << 8;
             }
 
+            // According to our ABI, this is a return statement
+            if (instr->opcode == 0x8D && instr->arg == 0x200F)
+                break;
+
             bool JMP_Abs = instr->opcode == 0x4C;
             if (IsBranch(instr_info.op) || JMP_Abs) {
                 instr->is_branchinstruction = true;
