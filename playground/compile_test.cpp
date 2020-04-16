@@ -109,7 +109,7 @@ std::vector<uint8_t> ror_Accumulator{
     // ROR C=0 in
     0xA9, 0xFF,        // LDA; # 0x01
     0x8D, 0x09, 0x20,  // Print A - should print 0xFF
-    0x6A,              // ROR (accumulator)
+    0x6A,              // ROR; (accumulator)
     0x8D, 0x09, 0x20,  // Print A - should print 0x7F
     // CMP imidiate to set C
     0xA9, 0x02,        // LDA; # 0x02
@@ -117,10 +117,26 @@ std::vector<uint8_t> ror_Accumulator{
     // ROR C=1 in
     0xA9, 0xFF,        // LDA; # 0x01
     0x8D, 0x09, 0x20,  // Print A - should print 0xFF
-    0x6A,              // ROR (accumulator)
+    0x6A,              // ROR; (accumulator)
     0x8D, 0x09, 0x20,  // Print A - should print 0xFF
 };
 
+std::vector<uint8_t> ror_Zeropage{
+    // ROR C=0 in
+    0xA9, 0xFF,        // LDA; # 0xFF
+    0x8D, 0x09, 0x20,  // Print A - should print 0xFF
+    0x8D, 0x20, 0x00,  // reg_a (=0xFF) to 0x0020 in mem
+    0x66, 0x20,        // ROR: (zeropage) # 0x20
+    0x8D, 0x09, 0x20,  // Print A - should print 0x7F
+    // CMP imidiate to set C
+    0xA9, 0x02,        // LDA; # 0x02
+    0xC9, 0x0A,        // CMP imidiate #0x0A
+    // ROR C=1 in
+    0xA9, 0xFF,        // LDA; # 0xFF
+    0x8D, 0x09, 0x20,  // Print A - should print 0xFF
+    0x66, 0x20,        // ROR; (zeropage) # 0x20
+    0x8D, 0x09, 0x20,  // Print A - should print 0xFF
+};
 
 std::vector<uint8_t> cmp_Immidiate{
     0xA9, 0x0A,        // LDA; # 0x0A
