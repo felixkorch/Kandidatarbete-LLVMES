@@ -440,7 +440,8 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x4D: {  // EOR Absolute
             // In data
-            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* addr = AddressModeAbsolute(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             // Exclusive or
