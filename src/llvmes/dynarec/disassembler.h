@@ -223,6 +223,8 @@ class Disassembler {
     std::vector<uint8_t> data;
     std::queue<AST::iterator> branches;
     size_t program_size;
+    uint16_t start_location;
+    uint16_t reset_address;
 
     AST::iterator InsertLabelBefore(uint16_t index, const std::string& name)
     {
@@ -263,7 +265,6 @@ class Disassembler {
 
             // Get a pointer since it will be moved into the AST
             Instruction* instr = new_instr.get();
-            instr->Print();
             *it = std::move(new_instr);
 
             // Delete the "argument databytes" and replace with instruction
@@ -304,14 +305,15 @@ class Disassembler {
                 std::stringstream ss;
                 ss << "Label " << ToHexString(target_index);
 
-                auto branch_target = InsertLabelBefore(target_index, ss.str());
+                auto branch_target = InsertLabelBefore(target_index, target_index == reset_address ? "Reset" : ss.str());
                 if (branch_target == ast.end())
                     throw ParseException(
                         "Trying to insert a label before a node that doesn't "
                         "exist");
                 branches.push(branch_target);
 
-                instr->target_label = ss.str();
+                instr->target_label =
+                    target_index == reset_address ? "Reset" : ss.str();
 
                 // JMP ends a branch
                 if (JMP_Abs)
@@ -323,11 +325,13 @@ class Disassembler {
     }
 
    public:
-    Disassembler(std::vector<uint8_t>&& data_in)
-        : data(0x10000), program_size(data_in.size())
+    Disassembler(std::vector<uint8_t>&& data_in, uint16_t start_location)
+        : data(0x10000), program_size(data_in.size()), start_location(start_location)
     {
+        if (start_location + program_size >= 0xFFFF)
+            throw ParseException("Program doens't fit in that space");
         std::vector<uint8_t> temp = data_in;
-        std::copy(temp.begin(), temp.end(), data.begin() + 0x8000);
+        std::copy(temp.begin(), temp.end(), data.begin() + start_location);
     }
 
     std::vector<uint8_t> GetRAM() { return data; }
@@ -335,20 +339,17 @@ class Disassembler {
     AST&& Disassemble()
     {
         // Set all the statements to "data bytes"
-        for (int i = 0x8000; i < (0x8000 + program_size); i++) {
+        for (int i = start_location; i < (start_location + program_size); i++) {
             auto db = make_unique<DataByte>(data[i]);
             db->offset = i;
             ast.Insert(ast.end(), std::move(db));
         }
 
-        // TODO: Figure out where the program will be in the address space
-        // Will it be in 0x8000 -> 0xFFFF like the NES or in any place, if so
-        // can we reserve some address for a custom ABI such as 'putchar'.
-        // How will the system look? Amount of RAM etc, the program itself has
-        // to be written for some system in mind?
-        //
-        // Hardcoded to start address 0x8000
-        auto it = InsertLabelBefore(0x8000, "Reset");
+        uint16_t reset_address = data[0xFFFC] << 8 | data[0xFFFD];
+        this->reset_address = reset_address;
+        auto it = ast.FindNodeByIndex( // TODO: Not very effective searching every time
+            reset_address);
+
         branches.push(it);
         do {
             auto entry = branches.front();

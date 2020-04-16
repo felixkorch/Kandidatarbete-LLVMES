@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     auto in_file = std::vector<uint8_t>{std::istreambuf_iterator<char>(in),
                                      std::istreambuf_iterator<char>()};
 
-    auto d = llvmes::make_unique<Disassembler>(std::move(in_file));
+    auto d = llvmes::make_unique<Disassembler>(std::move(in_file), 0x8000);
 
     AST ast;
     std::vector<uint8_t> ram;
@@ -39,13 +39,11 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    ast.Print();
-
-    auto c = llvmes::make_unique<Compiler>(std::move(ast), "load_store");
+    auto c = llvmes::make_unique<Compiler>(std::move(ast), argv[1]);
     c->SetRAM(std::move(ram));
     c->Compile();
 
-    bool optimized = false;
+    bool optimized = true;
     c->GetMain(optimized)();
 
     return 0;

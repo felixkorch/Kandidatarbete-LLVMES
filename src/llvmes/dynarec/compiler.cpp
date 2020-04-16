@@ -23,7 +23,7 @@ inline void putreg(int8_t r)
 
 inline void putchar(int8_t c)
 {
-    printf("%c", c);
+    std::cout << c;
 }
 
 Compiler::Compiler(AST&& ast, const std::string& program_name)
