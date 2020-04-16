@@ -3,7 +3,8 @@
 namespace llvmes {
 
 // Only one compiler can exist atm
-// This is a static ref to the compiler, a hack to keep the "read/write" functions static
+// This is a static ref to the compiler, a hack to keep the "read/write"
+// functions static
 static Compiler* s_compiler = nullptr;
 
 void write_memory(int16_t addr, int8_t val)
@@ -163,16 +164,6 @@ void Compiler::PassTwo()
         if ((*it)->GetType() == StatementType::Instruction) {
             Instruction& instr = (Instruction&)*(*it);
             CodeGen(instr);
-
-            // TODO: Don't know if this is a one-case scenario or not
-            auto next = std::next(it);
-            if (next != ast.end()) {
-                if ((*next)->GetType() == StatementType::Label &&
-                    instr.is_branchinstruction == false) {
-                    c->builder.CreateBr(
-                        c->basicblocks[(*next)->GetAs<Label>().name]);
-                }
-            }
         }
         else if ((*it)->GetType() == StatementType::Label) {
             Label& l = (Label&)*(*it);
@@ -189,4 +180,4 @@ void Compiler::Compile()
     PassTwo();
 }
 
-}
+}  // namespace llvmes
