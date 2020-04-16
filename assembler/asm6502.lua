@@ -326,9 +326,9 @@ local function parse(tokens)
             if arg.type == "Name" then
                 local label = labels[arg.data]
                 assert(label, "Undefined reference to label '"..arg.data.."'")
-                b1, b2 = str_to_bytes(label.address)
+                b2, b1 = str_to_bytes(label.address)
             elseif arg.type == "Value" or arg.type == "ImmediateValue" then
-                b1, b2 = str_to_bytes(arg.data)
+                b2, b1 = str_to_bytes(arg.data)
             end
 
             if b1 ~= nil then machine_code[#machine_code + 1] = b1 end
