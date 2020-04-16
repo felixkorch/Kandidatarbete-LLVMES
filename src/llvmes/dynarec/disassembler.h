@@ -325,15 +325,21 @@ class Disassembler {
     }
 
    public:
-    Disassembler(std::vector<uint8_t>&& data_in, uint16_t start_location)
-        : data(0x10000), program_size(data_in.size()), start_location(start_location)
-    {
-        if (start_location + program_size >= 0xFFFF)
-            throw ParseException("Program doens't fit in that space");
-        std::vector<uint8_t> temp = data_in;
-        std::copy(temp.begin(), temp.end(), data.begin() + start_location);
-    }
-
+   Disassembler(std::vector<uint8_t>&& data_in, uint16_t start_location)
+       : data(0x10000),
+         program_size(data_in.size()),
+         start_location(start_location)
+   {
+       if (start_location + program_size >= 0xFFFF)
+           throw ParseException("Program doens't fit in that space");
+       std::vector<uint8_t> temp = data_in;
+       std::copy(temp.begin(), temp.end(), data.begin() + start_location);
+       // Add startlocation to reset vector
+       uint8_t higher = start_location >> 8;     // 0x8000 -> 0x80
+       uint8_t lower = start_location & 0x00FF;  // 0x8000 -> 0x00
+       data[0xFFFC] = higher;
+       data[0xFFFD] = lower;
+   }
     std::vector<uint8_t> GetRAM() { return data; }
 
     AST&& Disassemble()
