@@ -1,0 +1,15 @@
+#+TITLE: Guide on testing
+
+** Assemble test programs
+
+#+COMMENT: Add link to reference card of assembler syntax
+
+This project ships with an assembler, ~asm6502.lua~, which can be used to
+produce binaries from your test program(s). To use the included assembler your
+program needs to be written in our flavor of 6502. Valid programs follow this
+syntax and has the extension ~.lst~.
+
+Place your test files in ~list-sources/~ and run =python autobuild -t lua= from the
+root of this project. This will produce binary files for all of your source
+files included in ~list-sources~ and place them in ~list-bins~, creating the
+output folder if necessary.

@@ -34,3 +34,5 @@ cmake-build-debug/
 .cmake/
 
 *.cbp
+# Ignore binary files
+*.bin
