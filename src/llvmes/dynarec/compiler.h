@@ -28,6 +28,7 @@ struct Compilation {
     llvm::Value* status_n = nullptr;
     llvm::Value* status_c = nullptr;
     llvm::Value* status_z = nullptr;
+    llvm::Value* status_i = nullptr;
     llvm::Value* main_fn = nullptr;
     llvm::Value* putreg_fn = nullptr;
     llvm::Value* putchar_fn = nullptr;

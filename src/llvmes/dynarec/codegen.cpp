@@ -812,6 +812,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x78: {  // SEI Implied
+            c->builder.CreateStore(GetConstant1(1), c->status_i);
             break;
         }
         case 0x18: {  // CLC Implied
@@ -821,6 +822,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x58: {  // CLI Implied
+            c->builder.CreateStore(GetConstant1(0), c->status_i);
             break;
         }
         case 0xB8: {  // CLV Implied
