@@ -624,27 +624,113 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x09: {  // ORA Immediate
+            // Fetch operands
+            llvm::Value* operand = AddressModeImmediate(i.arg);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            // Compure OR between operands
+            llvm::Value* result = c->builder.CreateOr(operand, load_a);
+            // Set affected CPU flags
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            // Store result in accumulator
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x05: {  // ORA Zeropage
+            // Fetch operands
+            llvm::Value* target_addr = AddressModeZeropage(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            // Compure OR between operands
+            llvm::Value* result = c->builder.CreateOr(operand, load_a);
+            // Set affected CPU flags
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            // Store result in accumulator
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x15: {  // ORA ZeropageX
+            // Fetch operands
+            llvm::Value* target_addr = AddressModeZeropageX(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            // Compure OR between operands
+            llvm::Value* result = c->builder.CreateOr(operand, load_a);
+            // Set affected CPU flags
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            // Store result in accumulator
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x0D: {  // ORA Absolute
+            // Fetch operands
+            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            // Compure OR between operands
+            llvm::Value* result = c->builder.CreateOr(operand, load_a);
+            // Set affected CPU flags
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            // Store result in accumulator
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x1D: {  // ORA AbsoluteX
+            // Fetch operands
+            llvm::Value* target_addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            // Compure OR between operands
+            llvm::Value* result = c->builder.CreateOr(operand, load_a);
+            // Set affected CPU flags
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            // Store result in accumulator
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x19: {  // ORA AbsoluteY
+            // Fetch operands
+            llvm::Value* target_addr = AddressModeAbsoluteY(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            // Compure OR between operands
+            llvm::Value* result = c->builder.CreateOr(operand, load_a);
+            // Set affected CPU flags
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            // Store result in accumulator
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x01: {  // ORA IndirectX
+            // Fetch operands
+            llvm::Value* target_addr = AddressModeIndirectX(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            // Compure OR between operands
+            llvm::Value* result = c->builder.CreateOr(operand, load_a);
+            // Set affected CPU flags
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            // Store result in accumulator
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x11: {  // ORA IndirectY
+            // Fetch operands
+            llvm::Value* target_addr = AddressModeIndirectY(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(target_addr);
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            // Compure OR between operands
+            llvm::Value* result = c->builder.CreateOr(operand, load_a);
+            // Set affected CPU flags
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            // Store result in accumulator
+            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x48: {  // PHA Implied
@@ -738,6 +824,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xB8: {  // CLV Implied
+            c->builder.CreateStore(GetConstant1(0), c->status_v);
             break;
         }
         case 0x85: {  // STA Zeropage
@@ -882,6 +969,12 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x98: {  // TYA Implied
+            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            llvm::Value* result = c->builder.CreateStore(load_y, c->reg_a);
+
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x29: {  // AND Immediate

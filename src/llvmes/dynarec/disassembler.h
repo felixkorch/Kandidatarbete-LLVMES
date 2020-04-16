@@ -62,7 +62,7 @@ struct DataWord : public Statement {
 
     void Print() override
     {
-        std::cout << "[" << offset << "]: "
+        std::cout << "[" << ToHexString(offset) << "]: "
                   << ".dw " << ToHexString(word) << std::endl;
     }
 
@@ -88,7 +88,7 @@ struct DataByte : public Statement {
 
     void Print() override
     {
-        std::cout << "[" << offset << "]: "
+        std::cout << "[" << ToHexString(offset) << "]: "
                   << ".db " << ToHexString(byte) << std::endl;
     }
 
@@ -105,7 +105,7 @@ inline std::ostream& operator<<(std::ostream& os, const DataByte& db)
 
 struct Instruction : public Statement {
     int size = 0;
-    int offset = 0;
+    uint16_t offset = 0;
     uint8_t opcode = 0xFF;
     uint16_t arg = 0;
     std::string name;
@@ -119,7 +119,7 @@ struct Instruction : public Statement {
 
     void Print() override
     {
-        std::cout << "[" << offset << "]: " << ToHexString(opcode) << std::endl;
+        std::cout << "[" << ToHexString(offset) << "]: " << ToHexString(opcode) << std::endl;
     }
 
     int GetOffset() override { return offset; }
@@ -167,6 +167,12 @@ class AST {
         return *this;
     }
 
+    void Print()
+    {
+        for (const auto& node : list)
+            node->Print();
+    }
+
     iterator FindNodeByIndex(uint16_t index)
     {
         auto it = std::find_if(list.begin(), list.end(),
@@ -176,7 +182,7 @@ class AST {
 
         if (it == list.end()) {
             std::stringstream ss;
-            ss << "Node at index " << index << "doesn't exist";
+            ss << "Node at index " << index << " doesn't exist";
             throw ParseException(ss.str());
         }
 
@@ -257,6 +263,7 @@ class Disassembler {
 
             // Get a pointer since it will be moved into the AST
             Instruction* instr = new_instr.get();
+            instr->Print();
             *it = std::move(new_instr);
 
             // Delete the "argument databytes" and replace with instruction

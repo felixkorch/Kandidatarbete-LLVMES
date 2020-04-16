@@ -521,9 +521,15 @@ void CPU::Reset()
     m_illegal_opcode = false;
 }
 
+void CPU::Halt()
+{
+    m_should_run = false;
+}
+
 void CPU::Run()
 {
-    while (!m_illegal_opcode) Step();
+    while (!m_illegal_opcode && m_should_run)
+        Step();
 }
 
 void CPU::IllegalOP()
