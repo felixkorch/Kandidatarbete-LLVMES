@@ -119,7 +119,8 @@ struct Instruction : public Statement {
 
     void Print() override
     {
-        std::cout << "[" << ToHexString(offset) << "]: " << ToHexString(opcode) << std::endl;
+        std::cout << "[" << ToHexString(offset) << "]: " << ToHexString(opcode)
+                  << std::endl;
     }
 
     int GetOffset() override { return offset; }
@@ -225,6 +226,7 @@ class Disassembler {
     size_t program_size;
     uint16_t start_location;
     uint16_t reset_address;
+    std::unordered_map<uint16_t, std::string> address_to_label;
 
     AST::iterator InsertLabelBefore(uint16_t index, const std::string& name)
     {
@@ -306,18 +308,25 @@ class Disassembler {
                     target_index = (int8_t)instr->arg + offs + 2;
                 }
 
-                std::stringstream ss;
-                ss << "Label " << ToHexString(target_index);
+                // Only add label if it doesn't exist
+                if (address_to_label.count(target_index) == 0) {
+                    std::stringstream ss;
+                    ss << "Label " << ToHexString(target_index);
 
-                auto branch_target = InsertLabelBefore(target_index, target_index == reset_address ? "Reset" : ss.str());
-                if (branch_target == ast.end())
-                    throw ParseException(
-                        "Trying to insert a label before a node that doesn't "
-                        "exist");
-                branches.push(branch_target);
-
-                instr->target_label =
-                    target_index == reset_address ? "Reset" : ss.str();
+                    auto branch_target =
+                        InsertLabelBefore(target_index, ss.str());
+                    if (branch_target == ast.end())
+                        throw ParseException(
+                            "Trying to insert a label before a node that "
+                            "doesn't "
+                            "exist");
+                    branches.push(branch_target);
+                    instr->target_label = ss.str();
+                    address_to_label[target_index] = ss.str();
+                }
+                else {
+                    instr->target_label = address_to_label[target_index];
+                }
 
                 // JMP ends a branch
                 if (JMP_Abs)
@@ -330,10 +339,12 @@ class Disassembler {
 
    public:
     Disassembler(std::vector<uint8_t>&& data_in, uint16_t start_location)
-        : data(0x10000), program_size(data_in.size()), start_location(start_location)
+        : data(0x10000),
+          program_size(data_in.size()),
+          start_location(start_location)
     {
         if (start_location + program_size >= 0xFFFF)
-            throw ParseException("Program doens't fit in that space");
+            throw ParseException("Program doesn't fit in that space");
         std::vector<uint8_t> temp = data_in;
         std::copy(temp.begin(), temp.end(), data.begin() + start_location);
     }
@@ -349,10 +360,10 @@ class Disassembler {
             ast.Insert(ast.end(), std::move(db));
         }
 
-        uint16_t reset_address = data[0xFFFC] << 8 | data[0xFFFD];
+        uint16_t reset_address = data[0xFFFC] | (data[0xFFFD] << 8);
         this->reset_address = reset_address;
-        auto it = ast.FindNodeByIndex( // TODO: Not very effective searching every time
-            reset_address);
+        auto it = InsertLabelBefore(reset_address, "Reset");
+        address_to_label[reset_address] = "Reset";
 
         branches.push(it);
         do {
