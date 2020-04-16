@@ -16,6 +16,6 @@ foreach (file ${PLAYGROUND_FILES})
     )
 
     set_target_properties(${file} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${LLVM_PLAYGROUND_OUTPUT_DIR}
+        RUNTIME_OUTPUT_DIRECTORY ${LLVM_PLAYGROUND_OUTPUT_DIR}/${file}
     )    
 endforeach()
