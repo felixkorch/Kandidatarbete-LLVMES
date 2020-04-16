@@ -12,7 +12,7 @@ JMP start
 
 exit:
 LDA #0
-STA $200C ; Write 0 as exit code
+STA $200F ; Write 0 as exit code
 
 .org $fffc
 .dw start ; Reset vector
