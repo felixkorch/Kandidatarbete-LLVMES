@@ -192,7 +192,7 @@ def assemble(test_directory):
         print(f"Moving {bin_file}")
         bin_file_path = os.path.join(list_sources_path, Path(bin_file))
         # shutil.move(os.path.join(sourcepath,'Test_Folder'), os.path.join(destinationpath,'Archive'))
-        shutil.move(bin_file_path, list_bins_path)
+        shutil.move(bin_file_path, os.path.join(list_bins_path, bin_file))
         print()
 
     # subprocess.run(["lua", assembler_path, list_source_files])
