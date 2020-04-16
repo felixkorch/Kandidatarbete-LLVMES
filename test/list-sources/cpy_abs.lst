@@ -29,7 +29,8 @@ STA $200C ; Print status N - should print 01
 STA $200D ; Print status C - should print 01
 STA $200E ; Print status Z - should print 00
 
+LDA #0
+STA $200F ; Write 0 as exit code
+
 .org $FFFC
 .dw main ; Reset routine
-
-.org $FFFF
