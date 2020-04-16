@@ -398,7 +398,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x49: {  // EOR Immediate
             // In data
-            llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* operand = AddressModeImmediate(i.arg);
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             // Exclusive or
