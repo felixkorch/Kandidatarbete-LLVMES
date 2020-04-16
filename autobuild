@@ -188,6 +188,11 @@ def assemble(test_directory):
     list_bin_files = [
         file for file in files(list_sources_path) if file.endswith(".bin")
     ]
+
+    # Create bin folder if not exist
+    if not os.path.exists(list_bins_path):
+        os.makedirs(list_bins_path)
+
     for bin_file in list_bin_files:
         print(f"Moving {bin_file}")
         bin_file_path = os.path.join(list_sources_path, Path(bin_file))
