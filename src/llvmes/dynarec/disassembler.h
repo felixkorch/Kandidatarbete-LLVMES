@@ -119,7 +119,7 @@ struct Instruction : public Statement {
 
     void Print() override
     {
-        std::cout << "[" << offset << "]: " << ToHexString(opcode) << std::endl;
+        std::cout << "[" << ToHexString(offset) << "]: " << ToHexString(opcode) << std::endl;
     }
 
     int GetOffset() override { return offset; }
