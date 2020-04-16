@@ -105,6 +105,22 @@ std::vector<uint8_t> testLDA_indirectXY{
     0x8D, 0x09, 0x20,  // Print A - should print 10
 };
 
+std::vector<uint8_t> rol_Accumulator{
+    // ROL C=0 in
+    0xA9, 0xFF,        // LDA; # 0xFF
+    0x8D, 0x09, 0x20,  // Print A - should print 0xFF
+    0x2A,              // ROR; (accumulator)
+    0x8D, 0x09, 0x20,  // Print A - should print 0xFE
+    // CMP imidiate to set C
+    0xA9, 0x02,  // LDA; # 0x02
+    0xC9, 0x0A,  // CMP imidiate #0x0A
+    // ROL C=1 in
+    0xA9, 0xFF,        // LDA; # 0xFF
+    0x8D, 0x09, 0x20,  // Print A - should print 0xFF
+    0x2A,              // ROR; (accumulator)
+    0x8D, 0x09, 0x20,  // Print A - should print 0xFF
+};
+
 std::vector<uint8_t> cmp_Immidiate{
     0xA9, 0x0A,        // LDA; # 0x0A
     0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
