@@ -616,7 +616,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x38: {  // SEC Implied
             llvm::Constant* carry = llvm::ConstantInt::get(int1, 0x1);
-            c->builder.CreateStore(cary, c->status_c);
+            c->builder.CreateStore(carry, c->status_c);
             break;
         }
         case 0xF8: {  // SED Implied
