@@ -656,6 +656,10 @@ void Compiler::CodeGen(Instruction& i)
                 llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
                 c->builder.CreateCall(c->putreg_fn, {load_y});
             }
+            // Exit program with exit code from reg A
+            else if (addr == 0x200C) {
+                // TODO
+            }
             else {
                 llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
                 WriteMemory(addr, load_a);
@@ -745,6 +749,12 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x98: {  // TYA Implied
+            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+            llvm::Value* result = c->builder.CreateStore(load_y, c->reg_a);
+
+            // flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x29: {  // AND Immediate
