@@ -2,8 +2,12 @@
 #include "llvmes/dynarec/disassembler.h"
 
 #define PRINT_A 0x8D, 0x09, 0x20
-#define PRINT_X 0x8D, 0x0A, 0x20
+#define PRINT_X 0x4C, 0x14, 0x00
 #define PRINT_Y 0x8D, 0x0B, 0x20
+#define PRINT_N 0x8D, 0x0C, 0x20
+#define PRINT_C 0x8D, 0x0D, 0x20
+#define PRINT_Z 0x8D, 0x0E, 0x20
+#define PRINT_V 0x8D, 0x0F, 0x20
 #define LDY_IMM(V) 0xA0, V
 #define LDX_IMM(V) 0xA2, V
 #define INX 0xE8
@@ -15,6 +19,7 @@
 #define REL(X) 0xFE X
 #define LDA_IMM(V) 0xA9, V
 #define LDA_ABS(B1, B2) 0xAD, B2, B1
+#define STA_ABS(B1, B2) 0x8D, B2, B1
 #define BNE(V) 0xD0, REL(V)
 #define BEQ(V) 0xF0, REL(V)
 #define BMI(V) 0x30, REL(V)
@@ -23,6 +28,8 @@
 #define BPL(V) 0x10, REL(V)
 #define BVC(V) 0x50, REL(V)
 #define BVS(V) 0x70, REL(V)
+#define BIT_ZPG(V) 0x24, V
+#define BIT_ABS(B1, B2) 0x2C, B2, B1
 
 std::vector<uint8_t> program1{
     0xA0, 0x0A,        // LDY, # 0x0A
@@ -134,7 +141,7 @@ std::vector<uint8_t> cmp_Zeropage{
     0xA9, 0x0A,        // LDA; # 0x0A
     0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
     0x8D, 0x20, 0x00,  // reg_a (=0x0A) to 0x0020 in mem
-    0xC5, 0x20,        // cmp zeropage mem 0x0020 
+    0xC5, 0x20,        // cmp zeropage mem 0x0020
     0x8D, 0x0C, 0x20,  // Print status N - should print 00
     0x8D, 0x0D, 0x20,  // Print status C - should print 00
     0x8D, 0x0E, 0x20,  // Print status Z - should print 01
@@ -174,7 +181,7 @@ std::vector<uint8_t> cmp_ZeropageX{
     0x8D, 0x0C, 0x20,  // Print status N - should print 01
     0x8D, 0x0D, 0x20,  // Print status C - should print 01
     0x8D, 0x0E, 0x20,  // Print status Z - should print 00
-    };
+};
 
 std::vector<uint8_t> cmp_Absolute{
     0xA9, 0x0A,        // LDA; # 0x0A
@@ -403,12 +410,32 @@ std::vector<uint8_t> ora_Immediate
     PRINT_A,           // Print A - should print 0xAA = 170
 };
 
+std::vector<uint8_t> testBIT{
+    // Test BIT_ZPG
+    LDA_IMM(0xFF), STA_ABS(0x00, 0x00), LDA_IMM(0xFF), BIT_ZPG(0x00),
+    PRINT_N,  // should print 1
+    PRINT_V,  // should print 1
+    PRINT_Z,  // should print 0
+    LDA_IMM(0x01), STA_ABS(0x00, 0x00), LDA_IMM(0x00), BIT_ZPG(0x00),
+    PRINT_N,  // should print 0
+    PRINT_V,  // should print 0
+    PRINT_Z,  // should print 1
+    // Test BIT_ABS
+    LDA_IMM(0xFF), STA_ABS(0xF0, 0xF0), LDA_IMM(0xFF), BIT_ABS(0xF0, 0xF0),
+    PRINT_N,  // should print 1
+    PRINT_V,  // should print 1
+    PRINT_Z,  // should print 0
+    LDA_IMM(0x01), STA_ABS(0xF0, 0xF0), LDA_IMM(0x00), BIT_ABS(0xF0, 0xF0),
+    PRINT_N,  // should print 0
+    PRINT_V,  // should print 0
+    PRINT_Z,  // should print 1
+}
+
 using namespace llvmes;
 
 int main()
 {
-
-    auto d = llvmes::make_unique<Disassembler>(std::move(cmp_AbsoluteY));
+    auto d = llvmes::make_unique<Disassembler>(std::move(testBIT));
 
     AST ast;
     std::vector<uint8_t> ram;
