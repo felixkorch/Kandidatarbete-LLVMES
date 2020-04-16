@@ -69,7 +69,8 @@ local addressing_mode_size = {
 
 local map_op = {
     LDA = { IMM = "A9", ZP = "A5", ZPX = "B5", ABS = "AD", ABSX = "BD", ABSY = "B9", INDX = "A1", INDY = "B1" },
-    LDY = { IMM = "A0", ZP = "A5", ZPX = "B5", ABS = "AD", ABSX = "BD", ABSY = "B9", INDX = "A1", INDY = "B1" },
+    LDY = { IMM = "A0", ZP = "A4", ZPX = "B4", ABS = "AC", ABSX = "BC" },
+    CPY = { IMM = "C0", ZP = "C4", ABS = "CC" },
     DEX = { IMP = "CA" },
     DEY = { IMP = "88" },
     INX = { IMP = "E8" },
