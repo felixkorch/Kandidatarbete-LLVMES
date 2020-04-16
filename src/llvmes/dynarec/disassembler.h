@@ -167,6 +167,12 @@ class AST {
         return *this;
     }
 
+    void Print()
+    {
+        for (const auto& node : list)
+            node->Print();
+    }
+
     iterator FindNodeByIndex(uint16_t index)
     {
         auto it = std::find_if(list.begin(), list.end(),
