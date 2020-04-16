@@ -454,15 +454,10 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x5D: {  // EOR AbsoluteX
             // In data
-            llvm::Constant* abos_addr = GetConstant16(i.arg);
-            // Get reg_a and reg_x
+            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
+            // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* reg_x_16 = c->builder.CreateZExt(reg_x, int16);
-            // Add reg_x and abos_addr
-            llvm::Value* target = c->builder.CreateAdd(abos_addr, reg_x_16);
-            // Get mem data
-            llvm::Value* operand = c->builder.CreateCall(c->read_fn, target);
             // Exclusive or
             llvm::Value* result = c->builder.CreateXor(reg_a, operand);
             c->builder.CreateStore(result, c->reg_a);
