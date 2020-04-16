@@ -115,7 +115,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xEE: {  // INC Absolute
             llvm::Value* value = ReadMemory(i.arg);
-            llvm::Value* inca = c->builder.CreateAdd(value, GetConstant16(1));
+            llvm::Value* inca = c->builder.CreateAdd(value, GetConstant8(1));
             WriteMemory(i.arg, inca);
             DynamicTestZ(inca);
             DynamicTestN(inca);
@@ -128,7 +128,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* addr_x = c->builder.CreateAdd(addr, load_x);
             llvm::Value* addr_x_value = c->builder.CreateLoad(addr_x);
             llvm::Value* incax =
-                c->builder.CreateAdd(addr_x_value, GetConstant16(1));
+                c->builder.CreateAdd(addr_x_value, GetConstant8(1));
             c->builder.CreateCall(c->write_fn, {incax, addr_x});
             DynamicTestZ(incax);
             DynamicTestN(incax);
@@ -519,7 +519,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xCE: {  // DEC Absolute
             llvm::Value* value = ReadMemory(i.arg);
-            llvm::Value* deca = c->builder.CreateSub(value, GetConstant16(1));
+            llvm::Value* deca = c->builder.CreateSub(value, GetConstant8(1));
             WriteMemory(i.arg, deca);
             DynamicTestZ(deca);
             DynamicTestN(deca);
@@ -531,7 +531,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
             llvm::Value* addr_x = c->builder.CreateAdd(addr, load_x);
             llvm::Value* addr_x_value = c->builder.CreateLoad(addr_x);
-            llvm::Value* decax = c->builder.CreateSub(addr_x_value, GetConstant16(1));
+            llvm::Value* decax = c->builder.CreateSub(addr_x_value, GetConstant8(1));
             c->builder.CreateCall(c->write_fn, {decax, addr_x});
             DynamicTestZ(decax);
             DynamicTestN(decax);
