@@ -92,6 +92,7 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->status_n = c->builder.CreateAlloca(int1, 0, "N");
     c->status_v = c->builder.CreateAlloca(int1, 0, "V");
     c->status_c = c->builder.CreateAlloca(int1, 0, "C");
+    c->status_i = c->builder.CreateAlloca(int1, 0, "I");
 
     // llvm::Type* array_ty = llvm::ArrayType::get(int8, 0xFFFF);
     // c->ram = c->builder.CreateAlloca(array_ty, nullptr, "ram");
