@@ -734,6 +734,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x48: {  // PHA Implied
+            llvm::Value* a = c->builder.CreateLoad(c->reg_a);
+            StackPush(a);
             break;
         }
         case 0x08: {  // PHP Implied
