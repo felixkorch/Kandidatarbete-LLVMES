@@ -411,7 +411,8 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x45: {  // EOR Zeropage
             // In data
-            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* addr = AddressModeZeropage(i.arg); 
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             // Exclusive or
