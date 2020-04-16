@@ -697,7 +697,12 @@ void Compiler::CodeGen(Instruction& i)
         llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
         llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-        llvm::Value* overflow = c->builder.CreateAnd(and_1, and_2);
+        llvm::Value* SGT_1 =
+            c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
+        llvm::Value* SGT_2 =
+            c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
+
+        llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
          c->builder.CreateStore(overflow, c->status_v);
 
@@ -740,7 +745,12 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            llvm::Value* overflow = c->builder.CreateAnd(and_1, and_2);
+            llvm::Value* SGT_1 =
+                c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
+            llvm::Value* SGT_2 =
+                c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
+
+            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
             c->builder.CreateStore(overflow, c->status_v);
 
@@ -782,7 +792,12 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            llvm::Value* overflow = c->builder.CreateAnd(and_1, and_2);
+            llvm::Value* SGT_1 =
+                c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
+            llvm::Value* SGT_2 =
+                c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
+
+            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
             c->builder.CreateStore(overflow, c->status_v);
 
@@ -823,7 +838,12 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            llvm::Value* overflow = c->builder.CreateAnd(and_1, and_2);
+            llvm::Value* SGT_1 =
+                c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
+            llvm::Value* SGT_2 =
+                c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
+
+            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
             c->builder.CreateStore(overflow, c->status_v);
 
@@ -864,7 +884,12 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            llvm::Value* overflow = c->builder.CreateAnd(and_1, and_2);
+            llvm::Value* SGT_1 =
+                c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
+            llvm::Value* SGT_2 =
+                c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
+
+            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
             c->builder.CreateStore(overflow, c->status_v);
 
@@ -905,7 +930,12 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            llvm::Value* overflow = c->builder.CreateAnd(and_1, and_2);
+           llvm::Value* SGT_1 =
+                c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
+            llvm::Value* SGT_2 =
+                c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
+
+            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
             c->builder.CreateStore(overflow, c->status_v);
 
@@ -947,7 +977,12 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            llvm::Value* overflow = c->builder.CreateAnd(and_1, and_2);
+            llvm::Value* SGT_1 =
+                c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
+            llvm::Value* SGT_2 =
+                c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
+
+            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
             c->builder.CreateStore(overflow, c->status_v);
 
@@ -988,7 +1023,12 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            llvm::Value* overflow = c->builder.CreateAnd(and_1, and_2);
+           llvm::Value* SGT_1 =
+                c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
+            llvm::Value* SGT_2 =
+                c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
+
+            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
             c->builder.CreateStore(overflow, c->status_v);
 
@@ -996,7 +1036,6 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestCCmp(result);
             DynamicTestZ(result);
 
-            break;
             break;
         }
         case 0x38: {  // SEC Implied
