@@ -34,7 +34,7 @@ void writeMemory(std::uint16_t addr, std::uint8_t data)
         std::cout << ToHexString(s_cpu->reg_y) << std::endl;
     }
     // Exit program with exit code from reg A
-    else if (addr == 0x200C) {
+    else if (addr == 0x200F) {
         s_cpu->Halt();
         std::cout << "Exiting program with exit code: "
                   << (unsigned)s_cpu->reg_a;
