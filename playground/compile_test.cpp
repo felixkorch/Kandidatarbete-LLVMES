@@ -389,7 +389,7 @@ std::vector<uint8_t> cpy_Absolute{
 
 std::vector<uint8_t> testBIT{
     // Test BIT_ZPG
-    LDA_IMM(0xFF), STA_ABS(0x00, 0x00), LDA_IMM(0x00), BIT_ZPG(0x00),
+    LDA_IMM(0xFF), STA_ABS(0x00, 0x00), LDA_IMM(0xFF), BIT_ZPG(0x00),
     PRINT_N,  // should print 1
     PRINT_V,  // should print 1
     PRINT_Z,  // should print 0
@@ -398,14 +398,14 @@ std::vector<uint8_t> testBIT{
     PRINT_V,  // should print 0
     PRINT_Z,  // should print 1
     // Test BIT_ABS
-    LDA_IMM(0xFF), STA_ABS(0xF0, 0xF0), LDA_IMM(0x00), BIT_ABS(0xF0, 0xF0),
+    LDA_IMM(0xFF), STA_ABS(0xF0, 0xF0), LDA_IMM(0xFF), BIT_ABS(0xF0, 0xF0),
     PRINT_N,  // should print 1
     PRINT_V,  // should print 1
     PRINT_Z,  // should print 0
     LDA_IMM(0x01), STA_ABS(0xF0, 0xF0), LDA_IMM(0x00), BIT_ABS(0xF0, 0xF0),
     PRINT_N,  // should print 0
     PRINT_V,  // should print 0
-    PRINT_Z,  // should print 0
+    PRINT_Z,  // should print 1
 };
 
 using namespace llvmes;
