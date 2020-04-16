@@ -1,0 +1,5 @@
+FROM {{distro}}
+
+{{base_config}}
+
+ENV LLVM_DIR=/opt/llvm-install/lib/cmake/llvm

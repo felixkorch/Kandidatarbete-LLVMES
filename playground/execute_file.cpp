@@ -8,14 +8,40 @@ using namespace llvmes;
 
 std::vector<std::uint8_t> memory(0xFFFF);
 
+CPU* s_cpu = nullptr;
+
 std::uint8_t readMemory(std::uint16_t adr)
 {
     return memory[adr];
 }
 
-void writeMemory(std::uint16_t adr, std::uint8_t data)
+void writeMemory(std::uint16_t addr, std::uint8_t data)
 {
-    memory[adr] = data;
+    // Write to '0x2008' and 'A' will be written to stdout as char
+    if (addr == 0x2008) {
+        putchar(s_cpu->reg_a);
+    }
+    // Write A to stdout
+    else if (addr == 0x2009) {
+        std::cout << ToHexString(s_cpu->reg_a) << std::endl;
+    }
+    // Write X to stdout
+    else if (addr == 0x200A) {
+        std::cout << ToHexString(s_cpu->reg_x) << std::endl;
+    }
+    // Write Y to stdout
+    else if (addr == 0x200B) {
+        std::cout << ToHexString(s_cpu->reg_y) << std::endl;
+    }
+    // Exit program with exit code from reg A
+    else if (addr == 0x200C) {
+        s_cpu->Halt();
+        std::cout << "Exiting program with exit code: "
+                  << (unsigned)s_cpu->reg_a;
+    }
+    else {
+        memory[addr] = data;
+    }
 }
 
 int main(int argc, char** argv)
@@ -35,11 +61,10 @@ try {
     auto program = std::vector<char>{std::istreambuf_iterator<char>(in),
                                      std::istreambuf_iterator<char>()};
 
-    memory[0xFFFC] = 0x20;
-    memory[0xFFFD] = 0x40;
-    std::copy(program.begin(), program.end(), &memory[0x4020]);
+    std::copy(program.begin(), program.end(), &memory[0x8000]);
 
     CPU cpu;
+    s_cpu = &cpu;
     cpu.Read = readMemory;
     cpu.Write = writeMemory;
     cpu.Reset();

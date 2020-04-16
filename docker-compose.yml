@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+  llvmes:
+    build:
+      context: .
+      dockerfile: docker/fedora/Dockerfile
+    working_dir: ${PWD}
+    tty: true
+    # Unfortunately dumping doesn't work without this
+    privileged: false
+    volumes:
+      - .:${PWD}
