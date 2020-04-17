@@ -670,11 +670,13 @@ void Compiler::CodeGen(Instruction& i)
 
         // Loads the A register into a placeholder
         llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-   
+        
 
         // Loads Carry register into a placeholder
         llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
         load_c = c->builder.CreateNeg(load_c);
+        load_c = c->builder.CreateZExt(load_c, int8);  //THIS
+
 
         // Subtract ram & carry from A
         llvm::Value* result_a_ram = c->builder.CreateSub(load_a, load_value);
@@ -707,8 +709,10 @@ void Compiler::CodeGen(Instruction& i)
          c->builder.CreateStore(overflow, c->status_v);
 
         DynamicTestN(result);
-        DynamicTestCCmp(result);
         DynamicTestZ(result);
+        result = c->builder.CreateZExt(result, int16);  // THIS
+        DynamicTestCCmp(result);
+        
 
 
 
@@ -755,9 +759,9 @@ void Compiler::CodeGen(Instruction& i)
             c->builder.CreateStore(overflow, c->status_v);
 
             DynamicTestN(result);
-            DynamicTestCCmp(result);
             DynamicTestZ(result);
-
+            result = c->builder.CreateZExt(result, int16);  // THIS
+            DynamicTestCCmp(result);
             break;
         }
         case 0xF5: {  // SBC ZeropageX
@@ -811,46 +815,48 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
             llvm::Value* load_value =
                 c->builder.CreateCall(c->read_fn, ram_pointer);
+            
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            load_a = c->builder.CreateZExt(load_a, int16);
+            //load_a = c->builder.CreateZExt(load_a, int16);
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-            load_c = c->builder.CreateNeg(load_c);
-            load_c = c->builder.CreateZExt(load_c, int16);
+            load_c = c->builder.CreateNot(load_c);
+            load_c = c->builder.CreateZExt(load_c, int8);
 
+           
             // Subtract ram & carry from A
             llvm::Value* result_a_ram =
                 c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
-            c->builder.CreateStore(result, c->reg_a);
+            c->builder.CreateStore(load_c, c->reg_a);
 
             // Handling overflow
 
-            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
+            //llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
 
-            llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
-            llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
+            //llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
+            //llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
 
-            llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
-            llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
+            //llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
+            //llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            llvm::Value* SGT_1 =
-                c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
-            llvm::Value* SGT_2 =
-                c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
+            //llvm::Value* SGT_1 =
+            //    c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
+            //llvm::Value* SGT_2 =
+            //    c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
 
-            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
+            //llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
-            c->builder.CreateStore(overflow, c->status_v);
+            //c->builder.CreateStore(overflow, c->status_v);
 
-            DynamicTestN(result);
-            DynamicTestCCmp(result);
-            DynamicTestZ(result);
-
+            //DynamicTestN(result);
+            //DynamicTestZ(result);
+            //result = c->builder.CreateZExt(result, int16);  // THIS
+            //DynamicTestCCmp(result);
             break;
         }
         case 0xFD: {  // SBC AbsoluteX

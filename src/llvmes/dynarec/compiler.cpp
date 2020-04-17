@@ -99,6 +99,9 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->builder.CreateStore(GetConstant8(0), c->reg_x);
     c->builder.CreateStore(GetConstant8(0), c->reg_y);
     c->builder.CreateStore(GetConstant8(0), c->reg_a);
+    
+    
+    c->builder.CreateStore(GetConstant1(0), c->status_c);
 
     // Write
 
