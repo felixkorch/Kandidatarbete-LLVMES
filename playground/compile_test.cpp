@@ -429,7 +429,7 @@ std::vector<uint8_t> testBIT{
     PRINT_N,  // should print 0
     PRINT_V,  // should print 0
     PRINT_Z,  // should print 1
-}
+};
 
 using namespace llvmes;
 
