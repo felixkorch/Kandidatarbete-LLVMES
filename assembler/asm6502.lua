@@ -125,20 +125,23 @@ local map_op = {
     TAY = { IMP = "A8" }
 }
 
-local label_regex = "^([a-z]+):$"
+local label_regex = "^([a-z_]+):$" -- label
 local org_regex = ".org"
 local db_regex = ".db"
 local dw_regex = ".dw"
-local hex_value_regex = "^%$?%w+$"
-local immediate_value_regex = "^#(%$?%x+)$"
-local name_regex = "^[a-z]+$"
-local register_regex = "^[XY]$"
-local indirect_regex = "^%((%$%x+)%)$"
+local hex_value_regex = "^%$?%x+$" -- $8000 or $80
+local immediate_value_regex = "^#(%$?%x+)$" -- #0 or #$FF
+local name_regex = "^[a-z_]+$" -- label
+local register_regex = "^[XY]$" -- X, Y
+local indirect_regex = "^%((%$%x+)%)$" -- ($8000) or ($80)
+local name_low_regex = "^#<([a-z_]+)$" -- #<label
+local name_high_regex = "^#>([a-z_]+)$" -- #>label
 
 local tokens = {}
 local labels = {}
 local machine_code = {}
 local scan_line = 1
+local lc = 0
 
 local valid_successors = {
     ["Instruction"] = {
