@@ -54,7 +54,6 @@ argument_parser.add_argument(
     choices=[DEFAULT_TEST_TYPE],
     required=False,
     type=str,
-    default=DEFAULT_TEST_TYPE,
     help="Type of test",
 )
 
@@ -158,7 +157,7 @@ def build(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOS
             cd {build_dir} &&
             cmake {flags}
             """.format(
-            build_dir=BUILD_DIR, flags=cmake_flags
+            build_dir=dir, flags=cmake_flags
         )
     )
 
@@ -210,9 +209,9 @@ VERBOSE = args.verbose
 
 TEST = args.test
 
+build_dir = CUSTOM_DIR if CUSTOM_DIR is not None else DEFAULT_BUILD_DIR
 if CLEAN:
-    target_dir = CUSTOM_DIR if CUSTOM_DIR is not None else DEFAULT_BUILD_DIR
-    clean_status = clean_build_dir(target_dir)
+    clean_status = clean_build_dir(build_dir)
     if clean_status != 0:
         sys.exit(clean_status)
 
@@ -227,4 +226,4 @@ if TEST:
 print_logo()
 
 # release -> Release, debug -> Debug
-build(type=BUILD_TYPE.capitalize(), dir=BUILD_DIR, verbose=VERBOSE)
+build(type=BUILD_TYPE.capitalize(), dir=build_dir, verbose=VERBOSE)
