@@ -809,6 +809,11 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xF8: {  // SED Implied
+            // Since our abstract 6502 does not implement a dedicated decimal mode
+            // but instead handles decimal on the fly all the time, there exists no
+            // decimal flag. Therefore there is no need to ever set or clear the
+            // decimal flag and those instructions are instead replaced with nothing
+            // when compiled
             break;
         }
         case 0x78: {  // SEI Implied
@@ -819,6 +824,11 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xD8: {  // CLD Implied
+            // Since our abstract 6502 does not implement a dedicated decimal mode
+            // but instead handles decimal on the fly all the time, there exists no
+            // decimal flag. Therefore there is no need to ever set or clear the
+            // decimal flag and those instructions are instead replaced with nothing
+            // when compiled
             break;
         }
         case 0x58: {  // CLI Implied
