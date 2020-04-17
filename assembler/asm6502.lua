@@ -243,20 +243,7 @@ local function get_addressing_mode(tokens, i)
     
 end
 
-local function parse(tokens)
-
-    local lc = 0
-
-    -- This is syntax checking basically
-    for i, v in ipairs(tokens) do
-        check_ordering(v, tokens[i - 1], tokens[i + 1])
-    end
-
-    local first_token = tokens[1]
-    assert(first_token, "Error: Empty file")
-    assert(first_token.type == "Org", "First statement in the program must be '.org'")
-    lc = str_to_number(tokens[2].data)
-
+local function address_resolve()
     for i = 3, #tokens do -- First pass, resolve addresses
 
         local v = tokens[i]
@@ -269,6 +256,7 @@ local function parse(tokens)
 
         elseif v.type == "Label" then
 
+            assert(not labels[v.data], "Duplicate label: "..v.data)
             labels[v.data] = { address = number_to_str(lc) }
 
         elseif v.type == "DataByte" then
@@ -301,8 +289,20 @@ local function parse(tokens)
             v.size = instruction_size
         end
     end
+end
 
+local function generate_machinecode()
     for i, v in ipairs(tokens) do -- Second pass, generate machine code
+
+        local arg = tokens[i + 1]
+        local arg_value
+        if arg then arg_value = arg.data end
+
+        local check_label = function (name)
+            local label = labels[name]
+            assert(label, "Undefined reference to label '"..name.."'")
+            arg_value = label.address
+        end
 
         if v.type == "Instruction" then
 
@@ -311,31 +311,37 @@ local function parse(tokens)
                 error("Opcode doesn't exist")
             end
 
-            local arg = tokens[i + 1]
-            local arg_address
-
-            if arg then
-                if arg.type == "Name" then
-                    local label = labels[arg.data]
-                    assert(label, "Undefined reference to label '"..arg.data.."'")
-                    arg_address = label.address
-                elseif arg.type == "Value" or arg.type == "ImmediateValue" then
-                    arg_address = arg.data
-                end
-            end
-
             machine_code[#machine_code + 1] = tonumber("0x"..opcode)
 
             local switch = {
                 ["REL"] = function()
-                    local diff = str_to_number(arg_address) - v.address
+                    check_label(arg_value);
+                    local diff = str_to_number(arg_value) - v.address
                     machine_code[#machine_code + 1] = diff
                 end,
                 ["IMP"] = function()
                     -- Do nothing
                 end,
+                ["IMM"] = function()
+                    local b1, b2
+                    if arg.sub_type == "LabelLow" then
+                        check_label(arg_value);
+                        b1, b2 = str_to_bytes(arg_value)
+                        machine_code[#machine_code + 1] = b2
+                    elseif arg.sub_type =="LabelHigh" then
+                        check_label(arg_value);
+                        b1, b2 = str_to_bytes(arg_value)
+                        machine_code[#machine_code + 1] = b1
+                    else
+                        b1 = str_to_bytes(arg_value)
+                        machine_code[#machine_code + 1] = b1
+                    end
+                end,
                 ["Default"] = function ()
-                    local b2, b1 = str_to_bytes(arg_address) -- Little endian, so swap order
+                    if arg.type == "Name" then
+                        check_label(arg_value)
+                    end
+                    local b2, b1 = str_to_bytes(arg_value) -- Little endian, so swap order
                     if b1 ~= nil then machine_code[#machine_code + 1] = b1 end
                     if b2 ~= nil then machine_code[#machine_code + 1] = b2 end
                 end
@@ -365,27 +371,21 @@ local function parse(tokens)
             end
 
         elseif v.type == "DataWord" then
-
-            local arg = tokens[i + 1]
             local b1, b2
-
             if arg.type == "Name" then
-                local label = labels[arg.data]
-                assert(label, "Undefined reference to label '"..arg.data.."'")
-                b2, b1 = str_to_bytes(label.address)
-            elseif arg.type == "Value" or arg.type == "ImmediateValue" then
-                b2, b1 = str_to_bytes(arg.data)
+                check_label(arg_value)
+                b2, b1 = str_to_bytes(arg_value)
+            elseif arg.type == "Value" then
+                b2, b1 = str_to_bytes(arg_value)
             end
 
             if b1 ~= nil then machine_code[#machine_code + 1] = b1 end
             if b2 ~= nil then machine_code[#machine_code + 1] = b2 end
 
         elseif v.type == "Org" then
-
             if v.start ~= nil then
-                local val = tokens[i + 1]
                 local start = v.start
-                local stop = str_to_number(val.data)
+                local stop = str_to_number(arg_value)
 
                 for z = start, stop - 1 do
                     machine_code[#machine_code + 1] = 0
@@ -395,6 +395,21 @@ local function parse(tokens)
         end
         
     end
+end
+
+local function parse(tokens)
+    -- This is syntax checking basically
+    for i, tok in ipairs(tokens) do
+        check_ordering(tok, tokens[i - 1], tokens[i + 1])
+    end
+
+    local first_token = tokens[1]
+    assert(first_token, "Error: Empty file")
+    assert(first_token.type == "Org", "First statement in the program must be '.org'")
+    lc = str_to_number(tokens[2].data)
+
+    address_resolve()
+    generate_machinecode()
 end
 
 local function parse_symbol(line, pos)
@@ -524,6 +539,64 @@ local function read_file_to_string(file)
     return content
 end
 
+local function preprocess(content)
+    local include_regex = "#include%s([^%s]+)"
+    for f in gmatch(content, include_regex) do
+        local c = read_file_to_string(f)
+        return content:gsub("#include%s"..f, c)
+    end
+    return content
+end
+
+local function preprocess_macro(content)
+    local macro_regex = "#macro%s([^%s]+)%s(%d)"
+    local macros = {}
+
+    -- Find macro definitions
+    for name, arg_count in gmatch(content, macro_regex) do
+        assert(tonumber(arg_count) <= 3, "Only 3 arguments to macro allowed")
+        macros[#macros + 1] = { name = name, args = tonumber(arg_count) }
+    end
+
+    -- For every macro definition
+    for i, m in ipairs(macros) do
+        local macro_body_regex = "#macro%s"..m.name.."%s%d(.-)#endmacro"
+        local body = match(content, macro_body_regex)
+        assert(body, "Macro missing end statement")
+        m.body = body
+
+        content = gsub(content, macro_body_regex, function (c)
+            for newline in gmatch(c, "\n") do
+                scan_line = scan_line + 1
+            end
+            return ""
+        end)
+
+        local name_pattern = m.name
+        for j = 1, m.args do name_pattern = name_pattern.."%s".."([^\r^\n^%s]+)" end
+
+        for a1, a2, a3  in gmatch(content, name_pattern) do
+            local args = { a1, a2, a3 }
+            local b = m.body
+            for j = 1, m.args do
+                b = gsub(b, "%%"..j, args[j])
+            end
+
+            local macro_usage_name = m.name
+            if m.args > 0 then
+                macro_usage_name = m.name
+                if a1 then macro_usage_name = macro_usage_name.."%s"..a1 end
+                if a2 then macro_usage_name = macro_usage_name.."%s"..a2 end
+                if a3 then macro_usage_name = macro_usage_name.."%s"..a3 end
+            end
+
+            content = gsub(content, macro_usage_name, function(a) return b end, 1)
+        end
+    end
+
+    return content
+end
+
 local function parse_args(args)
 
     if #args ~= 1 then
@@ -537,6 +610,8 @@ local function parse_args(args)
     end
 
     local content = read_file_to_string(list_file)
+    content = preprocess(content)
+    content = preprocess_macro(content)
 
     lex(content)
     parse(tokens)
@@ -547,8 +622,8 @@ local execution_time = os.clock()
 parse_args{...}
 execution_time = os.clock() - execution_time
 
-for i, v in ipairs(tokens) do
-    print(v.data, "", v.type)
-end
+--for i, v in ipairs(tokens) do
+--    print(v.data, "", v.type)
+--end
 
 print("\nTime elapsed: "..execution_time.."s")
