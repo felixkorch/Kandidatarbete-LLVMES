@@ -101,6 +101,13 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->builder.CreateStore(GetConstant8(0), c->reg_y);
     c->builder.CreateStore(GetConstant8(0), c->reg_a);
 
+
+    c->builder.CreateStore(GetConstant1(0), c->status_c);
+    c->builder.CreateStore(GetConstant1(0), c->status_v);
+    c->builder.CreateStore(GetConstant1(0), c->status_n);
+    c->builder.CreateStore(GetConstant1(0), c->status_z);
+    c->builder.CreateStore(GetConstant1(0), c->status_i);
+
     // Write
 
     llvm::Type* w_result_type = void_ty;
