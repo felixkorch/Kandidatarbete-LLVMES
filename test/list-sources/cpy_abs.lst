@@ -1,36 +1,33 @@
 .org $8000
 
+#macro PRINT_NCZ 0
+STA $200C
+STA $200D
+STA $200E
+#endmacro
+
+#macro LOAD_Y_CMP 1
+LDY %1
+STA $200B
+CPY $2000
+#endmacro
+
 main:
 LDA #$0A
-STA $2009 ; Print A - should print 0x0A
+STA $2009 ; should print 10
 STA $2000 ; sta reg_a (=0x0A) to 0x2000 in mem
 
-LDY #$0A  ; LDY 0x0A
-STA $200B ; Print Y - should print 0x0A = 10
-CPY $2000 ; cpy Absolute mem 0x2000
+LOAD_Y_CMP #$0A
+PRINT_NCZ ; should print 0, 0, 1
 
-STA $200C ; Print status N - should print 00
-STA $200D ; Print status C - should print 00
-STA $200E ; Print status Z - should print 01
+LOAD_Y_CMP #$0B
+PRINT_NCZ ; should print 1, 1, 0
 
-LDY #$0B
-STA $200B ; Print Y - should print 0x0B = 11
-CPY $2000 ; cpy Absolute mem 0x2000
-
-STA $200C ; Print status N - should print 00
-STA $200D ; Print status C - should print 00
-STA $200E ; Print status Z - should print 00
-
-LDY #$02
-STA $200B ; Print Y - should print 0x02 = 2
-CPY $2000 ; cpy Absolute mem 0x2000
-
-STA $200C ; Print status N - should print 01
-STA $200D ; Print status C - should print 01
-STA $200E ; Print status Z - should print 00
+LOAD_Y_CMP #$02
+PRINT_NCZ ; should print 1, 1, 0
 
 LDA #0
-STA $200F ; Write 0 as exit code
+STA $200F ; exit 0
 
 .org $FFFC
 .dw main ; Reset routine
