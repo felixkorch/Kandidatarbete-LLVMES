@@ -420,8 +420,12 @@ local function parse_symbol(line, pos)
 
     if map_op[symbol] then
         tokens[#tokens + 1] = { data = symbol, type = "Instruction", line = scan_line }
+    elseif symbol:match(name_low_regex) then
+        tokens[#tokens + 1] = { data = symbol:match(name_low_regex), type = "ImmediateValue", sub_type = "LabelLow", line = scan_line }
+    elseif symbol:match(name_high_regex) then
+        tokens[#tokens + 1] = { data = symbol:match(name_high_regex), type = "ImmediateValue", sub_type = "LabelHigh", line = scan_line }
     elseif symbol:match(label_regex) then
-        tokens[#tokens + 1] = { data = symbol:sub(1, -2), type = "Label", line = scan_line } -- TODO: Fix this
+        tokens[#tokens + 1] = { data = symbol:match(label_regex), type = "Label", line = scan_line }
     elseif symbol:match(org_regex) then
         tokens[#tokens + 1] = { data = symbol, type = "Org", line = scan_line }
     elseif symbol:match(db_regex) then
@@ -429,7 +433,7 @@ local function parse_symbol(line, pos)
     elseif symbol:match(dw_regex) then
         tokens[#tokens + 1] = { data = symbol, type = "DataWord", line = scan_line }
     elseif symbol:match(immediate_value_regex) then
-        tokens[#tokens + 1] = { data = symbol:match(immediate_value_regex), type = "ImmediateValue", line = scan_line } -- TODO: Fix this
+        tokens[#tokens + 1] = { data = symbol:match(immediate_value_regex), type = "ImmediateValue", line = scan_line }
     elseif symbol:match(name_regex) then
         tokens[#tokens + 1] = { data = symbol, type = "Name", line = scan_line }
     elseif symbol:match(register_regex) then
@@ -437,7 +441,7 @@ local function parse_symbol(line, pos)
     elseif symbol:match(hex_value_regex) then
         tokens[#tokens + 1] = { data = symbol, type = "Value", line = scan_line }
     elseif symbol:match(indirect_regex) then
-        tokens[#tokens + 1] = { data = symbol:match(indirect_regex), type = "IndirectArgument", line = scan_line } -- TODO: Fix this
+        tokens[#tokens + 1] = { data = symbol:match(indirect_regex), type = "IndirectArgument", line = scan_line }
     elseif symbol == "" then
     else
         error("Error: Unknown symbol '"..symbol.."' at line "..scan_line)
