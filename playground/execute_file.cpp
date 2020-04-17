@@ -19,7 +19,7 @@ void writeMemory(std::uint16_t addr, std::uint8_t data)
 {
     // Write to '0x2008' and 'A' will be written to stdout as char
     if (addr == 0x2008) {
-        putchar(s_cpu->reg_a);
+        std::cout << s_cpu->reg_a;
     }
     // Write A to stdout
     else if (addr == 0x2009) {
@@ -33,11 +33,23 @@ void writeMemory(std::uint16_t addr, std::uint8_t data)
     else if (addr == 0x200B) {
         std::cout << ToHexString(s_cpu->reg_y) << std::endl;
     }
+    // Write N to stdout
+    else if (addr == 0x200C) {
+        std::cout << s_cpu->reg_status.N << std::endl;
+    }
+    // Write C to stdout
+    else if (addr == 0x200D) {
+        std::cout << s_cpu->reg_status.C << std::endl;
+    }
+    // Write Z to stdout
+    else if (addr == 0x200E) {
+        std::cout << s_cpu->reg_status.Z << std::endl;
+    }
     // Exit program with exit code from reg A
     else if (addr == 0x200F) {
         s_cpu->Halt();
         std::cout << "Exiting program with exit code: "
-                  << (unsigned)s_cpu->reg_a;
+                  << (unsigned)s_cpu->reg_a << std::endl;
     }
     else {
         memory[addr] = data;
