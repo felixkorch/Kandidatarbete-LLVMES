@@ -48,8 +48,7 @@ void writeMemory(std::uint16_t addr, std::uint8_t data)
     // Exit program with exit code from reg A
     else if (addr == 0x200F) {
         s_cpu->Halt();
-        std::cout << "Exiting program with exit code: "
-                  << (unsigned)s_cpu->reg_a << std::endl;
+        std::cout << "exit: " << (unsigned)s_cpu->reg_a << std::endl;
     }
     else {
         memory[addr] = data;
