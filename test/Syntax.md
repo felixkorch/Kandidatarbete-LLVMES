@@ -93,6 +93,12 @@ CPY $2000
 #endmacro
 
 #macro PRINT_A 0 STA $2009 #endmacro
+
+#macro ADC_CMP 3
+LDA %1
+ADC %2
+CMP %3
+#endmacro
 ```
 They are used later by just using the macro name followed by its arguments
 ```assembly
@@ -100,4 +106,6 @@ LDA #$00
 PRINT_A ; 0 arguments
 
 LOAD_Y_CMP #$0A ; 1 argument
+
+ADC_CMP #$10 #$20 #$30 ; 3 argument example
 ```
