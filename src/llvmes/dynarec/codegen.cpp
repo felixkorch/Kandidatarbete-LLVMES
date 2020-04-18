@@ -742,6 +742,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x68: {  // PLA Implied
+            llvm::Value* top_of_stack = StackPull();
+            c->builder.CreateStore(top_of_stack, c->reg_a);
             break;
         }
         case 0x28: {  // PLP Implied
