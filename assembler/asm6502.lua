@@ -621,9 +621,4 @@ end
 local execution_time = os.clock()
 parse_args{...}
 execution_time = os.clock() - execution_time
-
---for i, v in ipairs(tokens) do
---    print(v.data, "", v.type)
---end
-
 print("\nTime elapsed: "..execution_time.."s")
