@@ -1,4 +1,4 @@
-# Instructions
+## Instructions
 For valid instructions, see [6502 Instruction set](https://www.masswerk.at/6502/6502_instruction_set.html)
 ## Example
 
@@ -109,3 +109,6 @@ LOAD_Y_CMP #$0A ; 1 argument
 
 ADC_CMP #$10 #$20 #$30 ; 3 argument example
 ```
+
+## Bugs
+Open issues for all bugs, small or big, so they can be fixed ASAP
