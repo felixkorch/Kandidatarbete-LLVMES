@@ -3,7 +3,8 @@
 namespace llvmes {
 
 // Only one compiler can exist atm
-// This is a static ref to the compiler, a hack to keep the "read/write" functions static
+// This is a static ref to the compiler, a hack to keep the "read/write"
+// functions static
 static Compiler* s_compiler = nullptr;
 
 void write_memory(int16_t addr, int8_t val)
@@ -93,6 +94,8 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->status_v = c->builder.CreateAlloca(int1, 0, "V");
     c->status_c = c->builder.CreateAlloca(int1, 0, "C");
     c->status_i = c->builder.CreateAlloca(int1, 0, "I");
+    c->status_b = c->builder.CreateAlloca(int1, 0, "B");
+    c->status_d = c->builder.CreateAlloca(int1, 0, "D");
 
     // llvm::Type* array_ty = llvm::ArrayType::get(int8, 0xFFFF);
     // c->ram = c->builder.CreateAlloca(array_ty, nullptr, "ram");
@@ -197,4 +200,4 @@ void Compiler::Compile()
     PassTwo();
 }
 
-}
+}  // namespace llvmes
