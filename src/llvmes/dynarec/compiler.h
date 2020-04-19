@@ -44,7 +44,7 @@ struct Compilation {
           builder(m->getContext()),
           ram(0x10000)
     {
-        jitter.set_external_ir_dump_directory(".");
+        // jitter.set_external_ir_dump_directory(".");
         jitter.add_external_symbol("putreg", &putreg);
         jitter.add_external_symbol("putchar", &putchar);
         jitter.add_external_symbol("write", &write_memory);
@@ -216,11 +216,13 @@ class Compiler {
         c->builder.SetInsertPoint(continue_block);
     }
 
-    llvm::Constant* AddressModeImmediate(uint16_t operand) {
+    llvm::Constant* AddressModeImmediate(uint16_t operand)
+    {
         return GetConstant8(operand);
     }
 
-    llvm::Constant* AddressModeAbsolute(uint16_t addr) {
+    llvm::Constant* AddressModeAbsolute(uint16_t addr)
+    {
         return GetConstant16(addr);
     }
 
