@@ -93,6 +93,9 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->status_n = c->builder.CreateAlloca(int1, 0, "N");
     c->status_v = c->builder.CreateAlloca(int1, 0, "V");
     c->status_c = c->builder.CreateAlloca(int1, 0, "C");
+    c->status_i = c->builder.CreateAlloca(int1, 0, "I");
+    c->status_b = c->builder.CreateAlloca(int1, 0, "B");
+    c->status_d = c->builder.CreateAlloca(int1, 0, "D");
 
     // llvm::Type* array_ty = llvm::ArrayType::get(int8, 0xFFFF);
     // c->ram = c->builder.CreateAlloca(array_ty, nullptr, "ram");
@@ -100,6 +103,13 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->builder.CreateStore(GetConstant8(0), c->reg_x);
     c->builder.CreateStore(GetConstant8(0), c->reg_y);
     c->builder.CreateStore(GetConstant8(0), c->reg_a);
+
+
+    c->builder.CreateStore(GetConstant1(0), c->status_c);
+    c->builder.CreateStore(GetConstant1(0), c->status_v);
+    c->builder.CreateStore(GetConstant1(0), c->status_n);
+    c->builder.CreateStore(GetConstant1(0), c->status_z);
+    c->builder.CreateStore(GetConstant1(0), c->status_i);
 
     // Write
 
