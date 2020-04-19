@@ -24,7 +24,7 @@ inline void putreg(int8_t r)
 
 inline void putchar(int8_t c)
 {
-    printf("%c", c);
+    std::cout << c;
 }
 
 Compiler::Compiler(AST&& ast, const std::string& program_name)
@@ -174,16 +174,6 @@ void Compiler::PassTwo()
         if ((*it)->GetType() == StatementType::Instruction) {
             Instruction& instr = (Instruction&)*(*it);
             CodeGen(instr);
-
-            // TODO: Don't know if this is a one-case scenario or not
-            auto next = std::next(it);
-            if (next != ast.end()) {
-                if ((*next)->GetType() == StatementType::Label &&
-                    instr.is_branchinstruction == false) {
-                    c->builder.CreateBr(
-                        c->basicblocks[(*next)->GetAs<Label>().name]);
-                }
-            }
         }
         else if ((*it)->GetType() == StatementType::Label) {
             Label& l = (Label&)*(*it);

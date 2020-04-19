@@ -516,6 +516,8 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* answer =
                 c->builder.CreateCall(c->read_fn, target_addr);
             c->builder.CreateStore(answer, c->reg_a);
+            DynamicTestZ(answer);
+            DynamicTestN(answer);
             break;
         }
         case 0xB9: {  // LDA AbsoluteY

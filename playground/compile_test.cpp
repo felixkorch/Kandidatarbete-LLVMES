@@ -435,7 +435,7 @@ using namespace llvmes;
 
 int main()
 {
-    auto d = llvmes::make_unique<Disassembler>(std::move(testBIT));
+    auto d = llvmes::make_unique<Disassembler>(std::move(cmp_AbsoluteY), 0x8000);
 
     AST ast;
     std::vector<uint8_t> ram;
