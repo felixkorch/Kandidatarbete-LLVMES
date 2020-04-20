@@ -569,7 +569,7 @@ using namespace llvmes;
 int main()
 {
 
-    auto d = llvmes::make_unique<Disassembler>(std::move(testINC_zeropageX));
+    auto d = llvmes::make_unique<Disassembler>(std::move(testINC_zeropageX), 0x8000);
 
     AST ast;
     std::vector<uint8_t> ram;
