@@ -813,8 +813,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xED: {  // SBC Absolute
             llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
-            llvm::Value* load_value =
-                c->builder.CreateCall(c->read_fn, ram_pointer);
+            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
             
 
             // Loads the A register into a placeholder
@@ -828,35 +827,37 @@ void Compiler::CodeGen(Instruction& i)
 
            
             // Subtract ram & carry from A
-            llvm::Value* result_a_ram =
-                c->builder.CreateSub(load_a, load_value);
+            llvm::Value* result_a_ram = c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
+            
 
-            c->builder.CreateStore(load_c, c->reg_a);
+
+            // store to reg_a
+            c->builder.CreateStore(result, c->reg_a);
 
             // Handling overflow
 
-            //llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
+            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
 
-            //llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
-            //llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
+            llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
+            llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
 
-            //llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
-            //llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
+            llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
+            llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            //llvm::Value* SGT_1 =
-            //    c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
-            //llvm::Value* SGT_2 =
-            //    c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
+            llvm::Value* SGT_1 =
+                c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
+            llvm::Value* SGT_2 =
+               c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
 
-            //llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
+            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
-            //c->builder.CreateStore(overflow, c->status_v);
+            c->builder.CreateStore(overflow, c->status_v);
 
-            //DynamicTestN(result);
-            //DynamicTestZ(result);
-            //result = c->builder.CreateZExt(result, int16);  // THIS
-            //DynamicTestCCmp(result);
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            result = c->builder.CreateZExt(result, int16);  // THIS
+            DynamicTestCCmp(result);
             break;
         }
         case 0xFD: {  // SBC AbsoluteX

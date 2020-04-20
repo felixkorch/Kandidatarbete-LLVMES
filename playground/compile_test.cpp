@@ -381,15 +381,20 @@ std::vector<uint8_t> cpy_Absolute{
 };
 
 
-std::vector<uint8_t> SBC_Immediate{
+std::vector<uint8_t> SBC_Absolute{
     0xA9, 0x05,        // LDA; # 0x05
     0x8D, 0x09, 0x20,  // Print A - should print 0x05 = 5
     0x8D, 0x00, 0x20,  // sta reg_a (=0x05) to 0x2000 in mem
     0xA9, 0x0A,        // LDA; # 0x0A
     0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
-    0xED, 0x00, 0x20,   // SBC Immediate
+    0xED, 0x00, 0x20,  // SBC Immediate
     0x8D, 0x09, 0x20,  // Print A - should print 0x05 = 5
-
+    0x8D, 0x0C, 0x20,  // Print status N - should print 00
+    0x8D, 0x0D, 0x20,  // Print status C - should print 00
+    0x8D, 0x0E, 0x20,  // Print status Z - should print 00
+    0xED, 0x00, 0x20,  // SBC Immediate
+    0x8D, 0x09, 0x20,  // Print A - should print 0x05 = -2
+    0x8D, 0x0C, 0x20,  // Print status N - should print 01
 
     //0x8D, 0x0C, 0x20,  // Print status N - should print 00
     //0x8D, 0x0D, 0x20,  // Print status C - should print 00
@@ -414,7 +419,7 @@ using namespace llvmes;
 int main()
 {
 
-    auto d = llvmes::make_unique<Disassembler>(std::move(SBC_Immediate));
+    auto d = llvmes::make_unique<Disassembler>(std::move(SBC_Absolute));
 
     AST ast;
     std::vector<uint8_t> ram;
