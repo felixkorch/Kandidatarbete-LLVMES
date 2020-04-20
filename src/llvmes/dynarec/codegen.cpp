@@ -526,8 +526,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xB1: {  // LDA IndirectY
             llvm::Value* addr = AddressModeIndirectY(i.arg);
-            llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, addr);
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_a);
             break;
         }
@@ -537,8 +536,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xBD: {  // LDA AbsoluteX
             llvm::Value* addr = AddressModeAbsoluteX(i.arg);
-            llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, addr);
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_a);
             DynamicTestZ(answer);
             DynamicTestN(answer);
@@ -546,8 +544,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xB9: {  // LDA AbsoluteY
             llvm::Value* addr = AddressModeAbsoluteY(i.arg);
-            llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, addr);
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_a);
             break;
         }
@@ -565,8 +562,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xB6: {  // LDX ZeropageY
             llvm::Value* addr = AddressModeZeropageY(i.arg);
-            llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, addr);
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_x);
             break;
         }
@@ -576,8 +572,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xBE: {  // LDX AbsoluteY
             llvm::Value* addr = AddressModeAbsoluteY(i.arg);
-            llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, addr);
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_x);
             break;
         }
@@ -594,8 +589,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xB4: {  // LDY ZeropageX
             llvm::Value* addr = AddressModeZeropageX(i.arg);
-            llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, addr);
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_y);
             break;
         }
@@ -605,8 +599,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xBC: {  // LDY AbsoluteX
             llvm::Value* addr = AddressModeAbsoluteX(i.arg);
-            llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, addr);
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_y);
             break;
         }
@@ -835,7 +828,7 @@ void Compiler::CodeGen(Instruction& i)
         case 0x6A: {  // ROR Accumulator
             // Get reg_a and status_c
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);  
+            llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
             // Get carry_out
             llvm::Value* carry_out =
                 c->builder.CreateAnd(reg_a, GetConstant8(0x01));
@@ -845,7 +838,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
             llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
             llvm::Value* result = c->builder.CreateOr(reg_a_Shr, carry_in_shl);
-            // Stor reg_a 
+            // Stor reg_a
             c->builder.CreateStore(result, c->reg_a);
             // Set status_c
             llvm::Value* carry_out_1 =
@@ -880,7 +873,7 @@ void Compiler::CodeGen(Instruction& i)
             // Flag test
             DynamicTestZ(result);
             DynamicTestN(result);
-            
+
             break;
         }
         case 0x76: {  // ROR ZeropageX
@@ -969,55 +962,50 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xE9: {  // SBC Immediate
 
-        llvm::Constant* load_value = AddressModeImmediate(i.arg);
+            llvm::Constant* load_value = AddressModeImmediate(i.arg);
 
-        // Loads the A register into a placeholder
-        llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-        
+            // Loads the A register into a placeholder
+            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
 
-        // Loads Carry register into a placeholder
-        llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-        load_c = c->builder.CreateNeg(load_c);
-        load_c = c->builder.CreateZExt(load_c, int8);  //THIS
+            // Loads Carry register into a placeholder
+            llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
+            load_c = c->builder.CreateNeg(load_c);
+            load_c = c->builder.CreateZExt(load_c, int8);  // THIS
 
+            // Subtract ram & carry from A
+            llvm::Value* result_a_ram =
+                c->builder.CreateSub(load_a, load_value);
+            llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
-        // Subtract ram & carry from A
-        llvm::Value* result_a_ram = c->builder.CreateSub(load_a, load_value);
-        llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
+            c->builder.CreateStore(result, c->reg_a);
 
-        c->builder.CreateStore(result, c->reg_a);
-                
+            // Handling overflow
 
-        // Handling overflow
+            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
 
-        llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
+            llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
+            llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
 
-        llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
-        llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
+            // extend xor_1 and xor_2
+            xor_1 = c->builder.CreateZExt(xor_1, int16);
+            xor_2 = c->builder.CreateZExt(xor_2, int16);
 
-        // extend xor_1 and xor_2
-        xor_1 = c->builder.CreateZExt(xor_1, int16);
-        xor_2 = c->builder.CreateZExt(xor_2, int16);
+            llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
+            llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-        llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
-        llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
+            llvm::Value* SGT_1 =
+                c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
+            llvm::Value* SGT_2 =
+                c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
 
-        llvm::Value* SGT_1 =
-            c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
-        llvm::Value* SGT_2 =
-            c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
+            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
-        llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
+            c->builder.CreateStore(overflow, c->status_v);
 
-         c->builder.CreateStore(overflow, c->status_v);
-
-        DynamicTestN(result);
-        DynamicTestZ(result);
-        result = c->builder.CreateZExt(result, int16);  // THIS
-        DynamicTestCCmp(result);
-        
-
-
+            DynamicTestN(result);
+            DynamicTestZ(result);
+            result = c->builder.CreateZExt(result, int16);  // THIS
+            DynamicTestCCmp(result);
 
             break;
         }
@@ -1025,7 +1013,8 @@ void Compiler::CodeGen(Instruction& i)
 
             llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
 
-            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
+            llvm::Value* load_value =
+                c->builder.CreateCall(c->read_fn, ram_pointer);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
@@ -1037,7 +1026,8 @@ void Compiler::CodeGen(Instruction& i)
             load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
-            llvm::Value* result_a_ram = c->builder.CreateSub(load_a, load_value);
+            llvm::Value* result_a_ram =
+                c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
             c->builder.CreateStore(result, c->reg_a);
@@ -1070,8 +1060,8 @@ void Compiler::CodeGen(Instruction& i)
         case 0xF5: {  // SBC ZeropageX
 
             llvm::Value* ram_pointer = AddressModeZeropageX(i.arg);
-            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
-           
+            llvm::Value* load_value =
+                c->builder.CreateCall(c->read_fn, ram_pointer);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
@@ -1116,24 +1106,22 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xED: {  // SBC Absolute
             llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
-            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
-            
+            llvm::Value* load_value =
+                c->builder.CreateCall(c->read_fn, ram_pointer);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            //load_a = c->builder.CreateZExt(load_a, int16);
+            // load_a = c->builder.CreateZExt(load_a, int16);
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
             load_c = c->builder.CreateNot(load_c);
             load_c = c->builder.CreateZExt(load_c, int8);
 
-           
             // Subtract ram & carry from A
-            llvm::Value* result_a_ram = c->builder.CreateSub(load_a, load_value);
+            llvm::Value* result_a_ram =
+                c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
-            
-
 
             // store to reg_a
             c->builder.CreateStore(result, c->reg_a);
@@ -1151,7 +1139,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* SGT_1 =
                 c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
             llvm::Value* SGT_2 =
-               c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
+                c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
@@ -1240,7 +1228,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-           llvm::Value* SGT_1 =
+            llvm::Value* SGT_1 =
                 c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
             llvm::Value* SGT_2 =
                 c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
@@ -1333,7 +1321,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-           llvm::Value* SGT_1 =
+            llvm::Value* SGT_1 =
                 c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
             llvm::Value* SGT_2 =
                 c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
@@ -1411,29 +1399,36 @@ void Compiler::CodeGen(Instruction& i)
                 llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
                 c->builder.CreateCall(c->putreg_fn, {load_y});
             }
-            // Write N to stdout
+            // Write flags to stdout
             else if (addr == 0x200C) {
-                llvm::Value* load_n = c->builder.CreateLoad(c->status_n);
-                llvm::Value* n_8bit = c->builder.CreateZExt(load_n, int8);
-                c->builder.CreateCall(c->putreg_fn, {n_8bit});
-            }
-            // Write C to stdout
-            else if (addr == 0x200D) {
-                llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-                llvm::Value* c_8bit = c->builder.CreateZExt(load_c, int8);
-                c->builder.CreateCall(c->putreg_fn, {c_8bit});
-            }
-            // Write Z to stdout
-            else if (addr == 0x200E) {
-                llvm::Value* load_z = c->builder.CreateLoad(c->status_z);
-                llvm::Value* z_8bit = c->builder.CreateZExt(load_z, int8);
-                c->builder.CreateCall(c->putreg_fn, {z_8bit});
-            }
-            // Write V to stdout
-            else if (addr == 0x200F) {
-                llvm::Value* load_v = c->builder.CreateLoad(c->status_v);
-                llvm::Value* v_8bit = c->builder.CreateZExt(load_v, int8);
-                c->builder.CreateCall(c->putreg_fn, {v_8bit});
+                llvm::Value* status_z = c->builder.CreateLoad(c->status_z);
+                status_z = c->builder.CreateZExt(status_z, int8);
+                // we don't shift the z register
+                llvm::Value* status_c = c->builder.CreateLoad(c->status_c);
+                status_c = c->builder.CreateZExt(status_c, int8);
+                status_c = c->builder.CreateShl(status_c, 1);
+                llvm::Value* status_i = c->builder.CreateLoad(c->status_i);
+                status_i = c->builder.CreateZExt(status_i, int8);
+                status_i = c->builder.CreateShl(status_i, 2);
+                llvm::Value* status_d = c->builder.CreateLoad(c->status_d);
+                status_d = c->builder.CreateZExt(status_d, int8);
+                status_d = c->builder.CreateShl(status_d, 3);
+                // In the byte pushed, bit 5 is always set to 1, and bit 4
+                // is 1 if from an instruction (PHP or BRK)
+                llvm::Value* status_b = GetConstant8(0x30);
+                llvm::Value* status_v = c->builder.CreateLoad(c->status_v);
+                status_v = c->builder.CreateZExt(status_v, int8);
+                status_v = c->builder.CreateShl(status_v, 6);
+                llvm::Value* status_n = c->builder.CreateLoad(c->status_n);
+                status_n = c->builder.CreateZExt(status_n, int8);
+                status_n = c->builder.CreateShl(status_n, 7);
+                llvm::Value* status = c->builder.CreateOr(status_z, status_c);
+                status = c->builder.CreateOr(status, status_i);
+                status = c->builder.CreateOr(status, status_d);
+                status = c->builder.CreateOr(status, status_b);
+                status = c->builder.CreateOr(status, status_v);
+                status = c->builder.CreateOr(status, status_n);
+                c->builder.CreateCall(c->putreg_fn, {status});
             }
             // Store normally
             else {
@@ -1672,7 +1667,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-             llvm::Value* SGT_1 =
+            llvm::Value* SGT_1 =
                 c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
             llvm::Value* SGT_2 =
                 c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
@@ -1719,7 +1714,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-             llvm::Value* SGT_1 =
+            llvm::Value* SGT_1 =
                 c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
             llvm::Value* SGT_2 =
                 c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
@@ -1814,13 +1809,13 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-             llvm::Value* SGT_1 =
+            llvm::Value* SGT_1 =
                 c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
             llvm::Value* SGT_2 =
                 c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
-            
+
             overflow = c->builder.CreateNeg(overflow);
 
             c->builder.CreateStore(overflow, c->status_v);
@@ -1861,7 +1856,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-             llvm::Value* SGT_1 =
+            llvm::Value* SGT_1 =
                 c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
             llvm::Value* SGT_2 =
                 c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
@@ -1955,8 +1950,10 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            llvm::Value* SGT_1 = c->builder.CreateICmpSGT(and_1, GetConstant16(0),">");
-            llvm::Value* SGT_2 = c->builder.CreateICmpSGT(and_2, GetConstant16(0),">");
+            llvm::Value* SGT_1 =
+                c->builder.CreateICmpSGT(and_1, GetConstant16(0), ">");
+            llvm::Value* SGT_2 =
+                c->builder.CreateICmpSGT(and_2, GetConstant16(0), ">");
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
