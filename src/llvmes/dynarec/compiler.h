@@ -265,7 +265,7 @@ class Compiler {
     llvm::Value* AddressModeZeropage(uint16_t addr)
     {
         // Zero page addressing only has an 8 bit operand
-        return GetConstant16(addr);
+        return GetRAMPtr(addr);
     }
 
     llvm::Value* AddressModeZeropageX(uint16_t addr)
