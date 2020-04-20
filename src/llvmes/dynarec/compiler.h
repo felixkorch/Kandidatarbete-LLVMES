@@ -75,6 +75,7 @@ class Compiler {
     Compiler(AST&& ast, const std::string& program_name);
 
     void SetRAM(std::vector<uint8_t>&& data) { c->ram = std::move(data); }
+    std::vector<uint8_t>& GetRAMRef() { return c->ram; }
 
     llvm::Constant* GetConstant1(bool v)
     {
