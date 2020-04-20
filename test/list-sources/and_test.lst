@@ -2,6 +2,7 @@
 STA $2009
 #endmacro
 #macro PRINT_MSG 2 ; This macro takes 2 arguments: first=string/message to print. second=value to print after it
+LDX #$00 ; Reset X register
 print_msg:
 LDA %1, X
 BEQ print_data
@@ -12,13 +13,15 @@ JMP print_msg
 print_data:
 LDA %2
 PRINT_A
-JMP exit
+LDA #$10 ; Newline
+STA $2008 ; Print new line
+JMP final_test
 #endmacro
 
 .org $8000
 
 should_str:
-.db "should print", 10, 0
+.db "should print: ", 0
 
 main:
 ; Test AND Immediate
@@ -40,13 +43,14 @@ AND $00 ; Compare with value stored at $00 (#55)
 PRINT_A ; Should print $00
 
 ; Test AND Absolute (and ROR Accumulator!)
+PRINT_MSG should_str #$55 ; Just for fun!
+final_test:
 LDA #$AA ; Load accumulator with #AA
 ROR ;A ; Right shift accumulator once. Should result in #55
 AND $00 ; Compare with value stored at $00 (#55)
 PRINT_A ; Should print $55
+JMP exit ; Done, exit gracefully
 
-; Need to check with Felix about this one :hmm:
-; PRINT_MSG should_str #$55
 
 exit:
 LDA #0
