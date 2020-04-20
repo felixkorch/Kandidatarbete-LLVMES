@@ -49,7 +49,8 @@ try {
         "v,verbose", "Write IR to file", cxxopts::value<bool>())(
         "O,optimize", "Optimize", cxxopts::value<bool>())(
         "h,help", "Print usage")("t,time", "Set time format (ms/us/s)",
-                                 cxxopts::value<std::string>());
+                                 cxxopts::value<std::string>())(
+        "s,save", "Save memory to disk", cxxopts::value<bool>());
 
     options.parse_positional({"positional"});
     auto result = options.parse(argc, argv);
@@ -60,8 +61,8 @@ try {
     }
 
     TimeFormat time_format = TimeFormat::Micro;
-    bool verbose, optimize;
-    verbose = optimize = false;
+    bool verbose, optimize, save;
+    verbose = optimize = save = false;
 
     if (result.count("time")) {
         auto t_format = result["time"].as<std::string>();
@@ -80,6 +81,9 @@ try {
 
     if (result.count("optimize"))
         optimize = true;
+
+    if (result.count("save"))
+        save = true;
 
     std::ifstream in{input, std::ios::binary};
     if (in.fail())
@@ -123,6 +127,15 @@ try {
               << GetTimeFormatAbbreviation(time_format) << std::endl;
     std::cout << "Total time: " << GetDuration(time_format, start, stop)
               << GetTimeFormatAbbreviation(time_format) << std::endl;
+
+    if (save) {
+        auto ram_ref = c->GetRAMRef();
+        std::stringstream ss;
+        ss << input << ".mem";
+        auto fstream = std::fstream(ss.str(), std::ios::out | std::ios::binary);
+        fstream.write((char*)ram_ref.data(), ram_ref.size());
+        fstream.close();
+    }
 
     return 0;
 }
