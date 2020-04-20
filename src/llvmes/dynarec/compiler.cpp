@@ -3,7 +3,8 @@
 namespace llvmes {
 
 // Only one compiler can exist atm
-// This is a static ref to the compiler, a hack to keep the "read/write" functions static
+// This is a static ref to the compiler, a hack to keep the "read/write"
+// functions static
 static Compiler* s_compiler = nullptr;
 
 void write_memory(int16_t addr, int8_t val)
@@ -23,7 +24,7 @@ inline void putreg(int8_t r)
 
 inline void putchar(int8_t c)
 {
-    printf("%c", c);
+    std::cout << c;
 }
 
 Compiler::Compiler(AST&& ast, const std::string& program_name)
@@ -92,6 +93,9 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->status_n = c->builder.CreateAlloca(int1, 0, "N");
     c->status_v = c->builder.CreateAlloca(int1, 0, "V");
     c->status_c = c->builder.CreateAlloca(int1, 0, "C");
+    c->status_i = c->builder.CreateAlloca(int1, 0, "I");
+    c->status_b = c->builder.CreateAlloca(int1, 0, "B");
+    c->status_d = c->builder.CreateAlloca(int1, 0, "D");
 
     // llvm::Type* array_ty = llvm::ArrayType::get(int8, 0xFFFF);
     // c->ram = c->builder.CreateAlloca(array_ty, nullptr, "ram");
@@ -99,6 +103,12 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->builder.CreateStore(GetConstant8(0), c->reg_x);
     c->builder.CreateStore(GetConstant8(0), c->reg_y);
     c->builder.CreateStore(GetConstant8(0), c->reg_a);
+
+    c->builder.CreateStore(GetConstant1(0), c->status_c);
+    c->builder.CreateStore(GetConstant1(0), c->status_v);
+    c->builder.CreateStore(GetConstant1(0), c->status_n);
+    c->builder.CreateStore(GetConstant1(0), c->status_z);
+    c->builder.CreateStore(GetConstant1(0), c->status_i);
 
     // Write
 
@@ -164,7 +174,6 @@ void Compiler::PassTwo()
             Instruction& instr = (Instruction&)*(*it);
             CodeGen(instr);
 
-            // TODO: Don't know if this is a one-case scenario or not
             auto next = std::next(it);
             if (next != ast.end()) {
                 if ((*next)->GetType() == StatementType::Label &&
@@ -189,4 +198,4 @@ void Compiler::Compile()
     PassTwo();
 }
 
-}
+}  // namespace llvmes

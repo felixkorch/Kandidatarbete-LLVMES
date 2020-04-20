@@ -1,0 +1,64 @@
+.org $8000
+
+#macro PRINT 2
+%1:
+LDA %2, X
+BEQ exit
+STA $2008
+INX
+JMP %1
+#endmacro
+
+#macro LOAD_Y_CMP 1
+LDY %1
+CPY $2000
+#endmacro
+
+; Flags: N V U B D I Z C
+
+err_str:
+.db "err", 10, 0
+
+ok_str:
+.db "ok", 10, 0
+
+main:
+LDA #$0A
+STA $2000 ; Store reg_a (=0x0A) to 0x2000
+
+LDA #$0
+PHA ; Push 0 onto stack
+PLP ; Pull 0 into status register
+
+; Flags should be: 0 0 1 1 0 0 1 1 = $33, NZC = 011
+LOAD_Y_CMP #$0A
+PHP ; Push status register to stack
+PLA ; Pull status register into A
+CMP #$33
+BNE err ; If it failed, branch to err
+
+; Flags should be: 0 0 1 1 0 0 0 1 = $31, NZC = 001
+LOAD_Y_CMP #$0B
+PHP
+PLA
+CMP #$31
+BNE err
+
+; Flags should be: 1 0 1 1 0 0 0 0 = $B0, NZC = 100
+LOAD_Y_CMP #$02
+PHP
+PLA
+CMP #$B0
+BNE err
+
+JMP ok ; All tests passed
+
+PRINT err err_str
+PRINT ok ok_str
+
+exit:
+LDA #0
+STA $200F ; exit 0
+
+.org $FFFC
+.dw main ; Reset routine

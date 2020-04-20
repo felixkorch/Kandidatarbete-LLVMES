@@ -1,0 +1,17 @@
+.org $8000
+
+main:
+    LDY #$FF
+loop:
+    LDX #$FF
+innerloop:
+    DEX
+    BNE innerloop
+    DEY
+    BNE loop
+
+LDA #0
+STA $200F ; exit 0
+
+.org $FFFC
+.dw main
