@@ -47,7 +47,6 @@ struct Compilation {
           builder(m->getContext()),
           ram(0x10000)
     {
-        // jitter.set_external_ir_dump_directory(".");
         jitter.add_external_symbol("putreg", &putreg);
         jitter.add_external_symbol("putchar", &putchar);
         jitter.add_external_symbol("write", &write_memory);
@@ -96,6 +95,21 @@ class Compiler {
     llvm::Constant* GetConstant64(uint64_t v)
     {
         return llvm::ConstantInt::get(int64, v);
+    }
+
+    llvm::Function* RegisterFunction(llvm::ArrayRef<llvm::Type*> arg_types,
+                                     llvm::Type* return_type,
+                                     const std::string& name,
+                                     void* fn_ptr = nullptr)
+    {
+        llvm::FunctionType* fn_type =
+            llvm::FunctionType::get(return_type, arg_types, false);
+        llvm::Function* fn = llvm::Function::Create(
+            fn_type, llvm::Function::ExternalLinkage, name, *c->m);
+
+        if (fn_ptr != nullptr)
+            c->jitter.add_external_symbol(name, fn_ptr);
+        return fn;
     }
 
     void SetDumpDir(const std::string& path)
