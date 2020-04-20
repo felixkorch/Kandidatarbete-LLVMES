@@ -273,7 +273,7 @@ class Compiler {
         llvm::Constant* addr_trunc = GetConstant8(addr);
         llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
         llvm::Value* target_addr = c->builder.CreateAdd(addr_trunc, load_x);
-        return target_addr;
+        return c->builder.CreateZExt(target_addr, int16);
     }
 
     llvm::Value* AddressModeZeropageY(uint16_t addr)
@@ -281,7 +281,7 @@ class Compiler {
         llvm::Constant* addr_trunc = GetConstant8(addr);
         llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
         llvm::Value* target_addr = c->builder.CreateAdd(addr_trunc, load_y);
-        return target_addr;
+        return c->builder.CreateZExt(target_addr, int16);
     }
 
     void AddressModeIndirect() {}
