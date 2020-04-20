@@ -36,3 +36,5 @@ cmake-build-debug/
 *.cbp
 # Ignore binary files
 *.bin
+*.ll
+*.mem
