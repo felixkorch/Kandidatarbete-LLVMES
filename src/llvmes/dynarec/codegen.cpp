@@ -841,8 +841,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x76: {  // ROR ZeropageX
             llvm::Value* addr = AddressModeZeropageX(i.arg);
-            llvm::Value* addr_16 = c->builder.CreateZExt(addr, int16);
-            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr_16);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             // Get status_c
             llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
             // Get carry_out
