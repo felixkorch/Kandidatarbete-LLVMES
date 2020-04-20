@@ -170,16 +170,19 @@ def build(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOS
 
 LUA_TYPE = DEFAULT_TEST_TYPE
 
-class assembleThread (threading.Thread):
-   def __init__(self, filepath, bin_file_path, outdir, assembler_path):
-      threading.Thread.__init__(self)
-      self.filepath = filepath
-      self.bin_file_path = bin_file_path
-      self.outdir = outdir
-      self.assembler_path = assembler_path
-   def run(self):
-      subprocess.run([LUA_TYPE, self.assembler_path, self.filepath])
-      shutil.move(self.bin_file_path, self.outdir)
+
+class assembleThread(threading.Thread):
+    def __init__(self, filepath, bin_file_path, outdir, assembler_path):
+        threading.Thread.__init__(self)
+        self.filepath = filepath
+        self.bin_file_path = bin_file_path
+        self.outdir = outdir
+        self.assembler_path = assembler_path
+
+    def run(self):
+        subprocess.run([LUA_TYPE, self.assembler_path, self.filepath])
+        shutil.move(self.bin_file_path, self.outdir)
+
 
 # Invoke assembler on all source code files in list_files_directory
 def assemble(test_directory):
@@ -196,23 +199,31 @@ def assemble(test_directory):
     if not os.path.exists(list_bins_path):
         os.makedirs(list_bins_path)
 
-
     threads = list()
     for x, lst in enumerate(list_source_files):
         source_file_path = os.path.join(list_sources_path, Path(lst))
-        lst_split = os.path.splitext(Path(lst)) # Splits it into 'path/filename + .lst'
-        bin_file_path = os.path.join(list_sources_path, lst_split[0] + '.bin') # Adds rootname + .bin
+        filename, _ext = os.path.splitext(
+            Path(lst)
+        )  # Splits it into 'path/filename + .lst'
+        bin_file_path = os.path.join(
+            list_sources_path, filename + ".bin"
+        )  # Adds rootname + .bin
         bin_out_path = os.path.join(list_bins_path, os.path.basename(bin_file_path))
-        t = assembleThread(source_file_path, bin_file_path, bin_out_path, assembler_path,)
+        t = assembleThread(
+            source_file_path, bin_file_path, bin_out_path, assembler_path,
+        )
         threads.append(t)
-    
+
     start_time = time.time()
     for index, t in enumerate(threads):
         t.start()
     for index, t in enumerate(threads):
         t.join()
 
-    print("--- Assembled %d files in %s seconds ---" % (len(threads), time.time() - start_time))
+    print(
+        "--- Assembled %d files in %s seconds ---"
+        % (len(threads), time.time() - start_time)
+    )
 
     os.chdir(test_directory)
 
