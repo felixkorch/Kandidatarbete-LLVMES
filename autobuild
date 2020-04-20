@@ -4,6 +4,8 @@ import sys
 import subprocess
 import argparse
 import shutil
+import time
+import threading
 from pathlib import Path
 
 DEFAULT_VERBOSE = False
@@ -12,6 +14,7 @@ DEFAULT_BUILD_TYPE = "Debug"
 
 DEFAULT_TEST_DIR = "test"
 DEFAULT_TEST_TYPE = "lua"
+LUAJIT_TEST_TYPE = "luajit"
 DEFAULT_LIST_SOURCES_DIR = "list-sources"
 DEFAULT_LIST_BINS_DIR = "list-bins"
 
@@ -51,7 +54,7 @@ argument_parser.add_argument(
 argument_parser.add_argument(
     "-t",
     "--test",
-    choices=[DEFAULT_TEST_TYPE],
+    choices=[DEFAULT_TEST_TYPE, LUAJIT_TEST_TYPE],
     required=False,
     type=str,
     help="Type of test",
@@ -165,6 +168,19 @@ def build(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOS
         sys.exit(build_status)
 
 
+LUA_TYPE = DEFAULT_TEST_TYPE
+
+class assembleThread (threading.Thread):
+   def __init__(self, filepath, bin_file_path, outdir, assembler_path):
+      threading.Thread.__init__(self)
+      self.filepath = filepath
+      self.bin_file_path = bin_file_path
+      self.outdir = outdir
+      self.assembler_path = assembler_path
+   def run(self):
+      subprocess.run([LUA_TYPE, self.assembler_path, self.filepath])
+      shutil.move(self.bin_file_path, self.outdir)
+
 # Invoke assembler on all source code files in list_files_directory
 def assemble(test_directory):
     # Invoke assembler with the target directory being the directory with list files in test_directory
@@ -176,27 +192,27 @@ def assemble(test_directory):
         file for file in files(list_sources_path) if file.endswith(".lst")
     ]
 
-    for source_file in list_source_files:
-        print(source_file)
-        source_file_path = os.path.join(list_sources_path, Path(source_file))
-        subprocess.run(["lua", assembler_path, source_file_path])
-        print()
-
-    # Move produced binary files to bin folder
-    list_bin_files = [
-        file for file in files(list_sources_path) if file.endswith(".bin")
-    ]
-
     # Create bin folder if not exist
     if not os.path.exists(list_bins_path):
         os.makedirs(list_bins_path)
 
-    for bin_file in list_bin_files:
-        print(f"Moving {bin_file}")
-        bin_file_path = os.path.join(list_sources_path, Path(bin_file))
-        # shutil.move(os.path.join(sourcepath,'Test_Folder'), os.path.join(destinationpath,'Archive'))
-        shutil.move(bin_file_path, os.path.join(list_bins_path, bin_file))
-        print()
+
+    threads = list()
+    for x, lst in enumerate(list_source_files):
+        source_file_path = os.path.join(list_sources_path, Path(lst))
+        lst_split = os.path.splitext(Path(lst)) # Splits it into 'path/filename + .lst'
+        bin_file_path = os.path.join(list_sources_path, lst_split[0] + '.bin') # Adds rootname + .bin
+        bin_out_path = os.path.join(list_bins_path, os.path.basename(bin_file_path))
+        t = assembleThread(source_file_path, bin_file_path, bin_out_path, assembler_path,)
+        threads.append(t)
+    
+    start_time = time.time()
+    for index, t in enumerate(threads):
+        t.start()
+    for index, t in enumerate(threads):
+        t.join()
+
+    print("--- Assembled %d files in %s seconds ---" % (len(threads), time.time() - start_time))
 
     os.chdir(test_directory)
 
@@ -217,7 +233,8 @@ if CLEAN:
 
 if TEST:
     target_dir = CUSTOM_DIR if CUSTOM_DIR is not None else DEFAULT_TEST_DIR
-    if TEST == DEFAULT_TEST_TYPE:  # lua
+    if TEST == DEFAULT_TEST_TYPE or LUAJIT_TEST_TYPE:  # lua / luajit
+        LUA_TYPE = TEST
         test_dir = os.path.join(working_directory, target_dir)
         assemble(test_dir)
 
