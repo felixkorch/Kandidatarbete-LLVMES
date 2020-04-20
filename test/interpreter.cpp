@@ -58,6 +58,37 @@ void writeMemory(std::uint16_t addr, std::uint8_t data)
     }
 }
 
+enum class TimeFormat { Milli, Micro, Seconds };
+
+long long GetDuration(TimeFormat format, steady_clock::time_point start,
+                      steady_clock::time_point stop)
+{
+    switch (format) {
+        case TimeFormat::Micro:
+            return duration_cast<microseconds>(stop - start).count();
+        case TimeFormat::Milli:
+            return duration_cast<milliseconds>(stop - start).count();
+        case TimeFormat::Seconds:
+            return duration_cast<seconds>(stop - start).count();
+        default:
+            return duration_cast<microseconds>(stop - start).count();
+    }
+}
+
+std::string GetTimeFormatAbbreviation(TimeFormat format)
+{
+    switch (format) {
+        case TimeFormat::Micro:
+            return "us";
+        case TimeFormat::Milli:
+            return "ms";
+        case TimeFormat::Seconds:
+            return "s";
+        default:
+            return "us";
+    }
+}
+
 int main(int argc, char** argv)
 try {
     cxxopts::Options options("Interpreter",
@@ -66,7 +97,8 @@ try {
     options.add_options()("f,positional", "File",
                           cxxopts::value<std::string>())(
         "v,verbose", "Enable verbose output", cxxopts::value<bool>())(
-        "h,help", "Print usage");
+        "h,help", "Print usage")("t,time", "Set time format (ms/us/s)",
+                                 cxxopts::value<std::string>());
 
     options.parse_positional({"positional"});
     auto result = options.parse(argc, argv);
@@ -77,9 +109,20 @@ try {
     }
 
     bool verbose = false;
+    TimeFormat time_format = TimeFormat::Micro;
 
     if (result.count("verbose"))
         verbose = true;
+
+    if (result.count("time")) {
+        auto t_format = result["time"].as<std::string>();
+        if (t_format == "ms")
+            time_format = TimeFormat::Milli;
+        else if (t_format == "us")
+            time_format = TimeFormat::Micro;
+        else if (t_format == "s")
+            time_format = TimeFormat::Seconds;
+    }
 
     auto input = result["positional"].as<std::string>();
 
@@ -104,11 +147,11 @@ try {
 
     auto stop = high_resolution_clock::now();
 
-    auto exec_time = duration_cast<microseconds>(stop - exec_start);
-    auto total_time = duration_cast<microseconds>(stop - start);
-
-    std::cout << "Execution time: " << exec_time.count() << "us" << std::endl;
-    std::cout << "Total time: " << total_time.count() << "us" << std::endl;
+    std::cout << "Execution time: "
+              << GetDuration(time_format, exec_start, stop)
+              << GetTimeFormatAbbreviation(time_format) << std::endl;
+    std::cout << "Total time: " << GetDuration(time_format, start, stop)
+              << GetTimeFormatAbbreviation(time_format) << std::endl;
 
     return 0;
 }
