@@ -104,7 +104,6 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->builder.CreateStore(GetConstant8(0), c->reg_y);
     c->builder.CreateStore(GetConstant8(0), c->reg_a);
 
-
     c->builder.CreateStore(GetConstant1(0), c->status_c);
     c->builder.CreateStore(GetConstant1(0), c->status_v);
     c->builder.CreateStore(GetConstant1(0), c->status_n);
@@ -174,6 +173,15 @@ void Compiler::PassTwo()
         if ((*it)->GetType() == StatementType::Instruction) {
             Instruction& instr = (Instruction&)*(*it);
             CodeGen(instr);
+
+            auto next = std::next(it);
+            if (next != ast.end()) {
+                if ((*next)->GetType() == StatementType::Label &&
+                    instr.is_branchinstruction == false) {
+                    c->builder.CreateBr(
+                        c->basicblocks[(*next)->GetAs<Label>().name]);
+                }
+            }
         }
         else if ((*it)->GetType() == StatementType::Label) {
             Label& l = (Label&)*(*it);
