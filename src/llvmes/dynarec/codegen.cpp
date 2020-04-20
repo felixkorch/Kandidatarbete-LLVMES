@@ -469,42 +469,21 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xB5: {  // LDA ZeropageX
-            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
-            llvm::Value* target_addr = c->builder.CreateAdd(load_x, zpg_addr);
-            llvm::Value* target_addr_16 =
-                c->builder.CreateZExt(target_addr, int16);
-            llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, target_addr_16);
+            llvm::Value* addr = AddressModeZeropageX(i.arg);
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_a);
             break;
         }
         case 0xA1: {  // LDA IndirectX
-            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* addr_base =
-                c->builder.CreateAdd(load_x, GetConstant8(i.arg));
-            llvm::Value* addr_low =
-                c->builder.CreateCall(c->read_fn, addr_base);
-            llvm::Value* addr_get_high =
-                c->builder.CreateAdd(addr_base, GetConstant1(1));
-            llvm::Value* addr_high =
-                c->builder.CreateCall(c->read_fn, addr_get_high);
-            llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
-            llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
-            llvm::Value* addr_hl_or =
-                c->builder.CreateOr(addr_high_shl, addr_low);
-            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr_hl_or);
+            llvm::Value* addr = AddressModeIndirectX(i.arg);
+            llvm::Value* answer = c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_a);
             break;
         }
         case 0xB1: {  // LDA IndirectY
-            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            llvm::Constant* addr = GetConstant8(i.arg);
-            llvm::Value* target_addr = c->builder.CreateAdd(load_y, addr);
-            llvm::Value* target_addr_16 =
-                c->builder.CreateZExt(target_addr, int16);
+            llvm::Value* addr = AddressModeIndirectY(i.arg);
             llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, target_addr_16);
+                c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_a);
             break;
         }
@@ -513,26 +492,18 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xBD: {  // LDA AbsoluteX
-            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
-            llvm::Constant* addr = GetConstant16(i.arg);
-            llvm::Value* target_addr =
-                c->builder.CreateAdd(target_addr_16, addr);
+            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
             llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, target_addr);
+                c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_a);
             DynamicTestZ(answer);
             DynamicTestN(answer);
             break;
         }
         case 0xB9: {  // LDA AbsoluteY
-            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_y, int16);
-            llvm::Constant* addr = GetConstant16(i.arg);
-            llvm::Value* target_addr =
-                c->builder.CreateAdd(target_addr_16, addr);
+            llvm::Value* addr = AddressModeAbsoluteY(i.arg);
             llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, target_addr);
+                c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_a);
             break;
         }
@@ -549,13 +520,9 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xB6: {  // LDX ZeropageY
-            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
-            llvm::Value* target_addr = c->builder.CreateAdd(load_y, zpg_addr);
-            llvm::Value* target_addr_16 =
-                c->builder.CreateZExt(target_addr, int16);
+            llvm::Value* addr = AddressModeZeropageY(i.arg);
             llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, target_addr_16);
+                c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_x);
             break;
         }
@@ -564,13 +531,9 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xBE: {  // LDX AbsoluteY
-            llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_y, int16);
-            llvm::Constant* addr = GetConstant16(i.arg);
-            llvm::Value* target_addr =
-                c->builder.CreateAdd(target_addr_16, addr);
+            llvm::Value* addr = AddressModeAbsoluteY(i.arg);
             llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, target_addr);
+                c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_x);
             break;
         }
@@ -586,17 +549,9 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xB4: {  // LDY ZeropageX
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
-            // Loads the X register into a placeholder
-            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            // Adds the X register to the RAM pointer
-            llvm::Value* target_addr = c->builder.CreateAdd(zpg_addr, load_x);
-            // Makes the address a 16 bit by adding 8 zeros
-            llvm::Value* target_addr_16 =
-                c->builder.CreateZExt(target_addr, int16);
-            // create call to read function that returns
+            llvm::Value* addr = AddressModeZeropageX(i.arg);
             llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, target_addr_16);
+                c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_y);
             break;
         }
@@ -605,13 +560,9 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xBC: {  // LDY AbsoluteX
-            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
-            llvm::Constant* addr = GetConstant16(i.arg);
-            llvm::Value* target_addr =
-                c->builder.CreateAdd(target_addr_16, addr);
+            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
             llvm::Value* answer =
-                c->builder.CreateCall(c->read_fn, target_addr);
+                c->builder.CreateCall(c->read_fn, addr);
             c->builder.CreateStore(answer, c->reg_y);
             break;
         }
