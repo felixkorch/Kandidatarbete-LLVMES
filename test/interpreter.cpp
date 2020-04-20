@@ -99,7 +99,7 @@ try {
         "v,verbose", "Enable verbose output", cxxopts::value<bool>())(
         "h,help", "Print usage")("t,time", "Set time format (ms/us/s)",
                                  cxxopts::value<std::string>())(
-        "s,save", "Save memory to disk", cxxopts::value<bool>());
+        "s,save", "Save memory to disk", cxxopts::value<std::string>());
 
     options.parse_positional({"positional"});
     auto result = options.parse(argc, argv);
@@ -158,9 +158,12 @@ try {
               << GetTimeFormatAbbreviation(time_format) << std::endl;
 
     if (save) {
+        std::string out = result["save"].as<std::string>();
         std::stringstream ss;
         ss << input << ".mem";
-        auto fstream = std::fstream(ss.str(), std::ios::out | std::ios::binary);
+        if (out.empty())
+            out = ss.str();
+        auto fstream = std::fstream(out, std::ios::out | std::ios::binary);
         fstream.write((char*)memory.data(), memory.size());
         fstream.close();
     }
