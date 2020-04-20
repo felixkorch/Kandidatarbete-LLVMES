@@ -1,12 +1,25 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import sys
+import subprocess
 import argparse
 import shutil
+import time
+import threading
+from pathlib import Path
 
+DEFAULT_VERBOSE = False
 DEFAULT_BUILD_DIR = "build"
 DEFAULT_BUILD_TYPE = "Debug"
-DEFAULT_VERBOSE = False
+
+DEFAULT_TEST_DIR = "test"
+DEFAULT_TEST_TYPE = "lua"
+LUAJIT_TEST_TYPE = "luajit"
+DEFAULT_LIST_SOURCES_DIR = "list-sources"
+DEFAULT_LIST_BINS_DIR = "list-bins"
+
+DEFAULT_ASSEMBLER_DIR = "assembler"
+DEFAULT_ASSEMBLER = "asm6502.lua"
 
 # Always make sure current working directory is set to root of project
 working_directory = os.path.dirname(os.path.realpath(__file__))
@@ -14,31 +27,52 @@ os.chdir(working_directory)
 
 # Parse argument flags
 argument_parser = argparse.ArgumentParser(
-    description='Build script for automating the boring parts of CMake')
+    description="Build script for automating the boring parts of CMake"
+)
 # Add desirable arguments
-argument_parser.add_argument("-c", "--clean",
-                             default=False,
-                             action="store_true",
-                             help="Clean build directory. Default is {}, but can be specified with option -d".format(DEFAULT_BUILD_DIR))
+argument_parser.add_argument(
+    "-c",
+    "--clean",
+    default=False,
+    action="store_true",
+    help="Clean build directory. Default is {}, but can be specified with option -d".format(
+        DEFAULT_BUILD_DIR
+    ),
+)
 
-argument_parser.add_argument("-b", "--build",
-                             choices=["release", "Release", "debug", "Debug"],
-                             required=False,
-                             type=str,
-                             default=DEFAULT_BUILD_TYPE,
-                             help="Type of build")
+argument_parser.add_argument(
+    "-b",
+    "--build",
+    choices=["release", "Release", "debug", "Debug"],
+    required=False,
+    type=str,
+    default=DEFAULT_BUILD_TYPE,
+    help="Type of build",
+)
 
-argument_parser.add_argument("-d", "--dir",
-                             required=False,
-                             type=str,
-                             default=DEFAULT_BUILD_DIR,
-                             help="Name of build directory")
 
-argument_parser.add_argument("-v", "--verbose",
-                             required=False,
-                             default=False,
-                             action="store_true",
-                             help="Enable verbose output")
+argument_parser.add_argument(
+    "-t",
+    "--test",
+    choices=[DEFAULT_TEST_TYPE, LUAJIT_TEST_TYPE],
+    required=False,
+    type=str,
+    help="Type of test",
+)
+
+
+argument_parser.add_argument(
+    "-d", "--dir", required=False, type=str, help="Name of directory",
+)
+
+argument_parser.add_argument(
+    "-v",
+    "--verbose",
+    required=False,
+    default=False,
+    action="store_true",
+    help="Enable verbose output",
+)
 
 
 def print_logo():
@@ -78,28 +112,38 @@ def print_logo():
     print(project_logo)
 
 
+def files(path):
+    for file in os.listdir(path):
+        if os.path.isfile(os.path.join(path, file)):
+            yield file
+
+
 def create_build_dir(dir=DEFAULT_BUILD_DIR):
+    # TODO: Switch to subprocess, https://stackoverflow.com/questions/89228/calling-an-external-command-from-python
     os.system("cmake -E make_directory {}".format(dir))
 
 
 def clean_build_dir(dir=DEFAULT_BUILD_DIR):
     BUILD_DIR_ABS = os.path.join(working_directory, dir)
-    if(os.path.exists(BUILD_DIR_ABS)):
+    if os.path.exists(BUILD_DIR_ABS):
         shutil.rmtree(BUILD_DIR_ABS)
 
 
-def generate_build_system(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOSE):
+def generate_build_system(
+    type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOSE
+):
+
+    # TODO: Switch to subprocess, https://stackoverflow.com/questions/89228/calling-an-external-command-from-python
     build_system_status = os.system(
         """
             cd {build_dir} &&
             cmake -G Ninja -DCMAKE_BUILD_TYPE={build_type} -DVERBOSE={verbose_output} ../
             """.format(
-            build_dir=dir,
-            build_type=type,
-            verbose_output=verbose
-        ))
+            build_dir=dir, build_type=type, verbose_output=verbose
+        )
+    )
 
-    if(build_system_status != 0):
+    if build_system_status != 0:
         sys.exit(build_system_status)
 
 
@@ -107,35 +151,96 @@ def build(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOS
     create_build_dir(dir)
     generate_build_system(type, dir, verbose)
     cmake_flags = "--build ."
-    if(verbose):
+    if verbose:
         cmake_flags += " --verbose"
+
+    # TODO: Switch to subprocess, https://stackoverflow.com/questions/89228/calling-an-external-command-from-python
     build_status = os.system(
         """
             cd {build_dir} &&
             cmake {flags}
             """.format(
-            build_dir=BUILD_DIR,
-            flags=cmake_flags
-        ))
+            build_dir=dir, flags=cmake_flags
+        )
+    )
 
-    if(build_status != 0):
+    if build_status != 0:
         sys.exit(build_status)
+
+
+LUA_TYPE = DEFAULT_TEST_TYPE
+
+class assembleThread (threading.Thread):
+   def __init__(self, filepath, bin_file_path, outdir, assembler_path):
+      threading.Thread.__init__(self)
+      self.filepath = filepath
+      self.bin_file_path = bin_file_path
+      self.outdir = outdir
+      self.assembler_path = assembler_path
+   def run(self):
+      subprocess.run([LUA_TYPE, self.assembler_path, self.filepath])
+      shutil.move(self.bin_file_path, self.outdir)
+
+# Invoke assembler on all source code files in list_files_directory
+def assemble(test_directory):
+    # Invoke assembler with the target directory being the directory with list files in test_directory
+    assembler_path = DEFAULT_ASSEMBLER_DIR + os.sep + DEFAULT_ASSEMBLER
+    list_sources_path = os.path.join(test_directory, DEFAULT_LIST_SOURCES_DIR)
+    list_bins_path = os.path.join(test_directory, DEFAULT_LIST_BINS_DIR)
+
+    list_source_files = [
+        file for file in files(list_sources_path) if file.endswith(".lst")
+    ]
+
+    # Create bin folder if not exist
+    if not os.path.exists(list_bins_path):
+        os.makedirs(list_bins_path)
+
+
+    threads = list()
+    for x, lst in enumerate(list_source_files):
+        source_file_path = os.path.join(list_sources_path, Path(lst))
+        lst_split = os.path.splitext(Path(lst)) # Splits it into 'path/filename + .lst'
+        bin_file_path = os.path.join(list_sources_path, lst_split[0] + '.bin') # Adds rootname + .bin
+        bin_out_path = os.path.join(list_bins_path, os.path.basename(bin_file_path))
+        t = assembleThread(source_file_path, bin_file_path, bin_out_path, assembler_path,)
+        threads.append(t)
+    
+    start_time = time.time()
+    for index, t in enumerate(threads):
+        t.start()
+    for index, t in enumerate(threads):
+        t.join()
+
+    print("--- Assembled %d files in %s seconds ---" % (len(threads), time.time() - start_time))
+
+    os.chdir(test_directory)
 
 
 args = argument_parser.parse_args()
 BUILD_TYPE = args.build
-BUILD_DIR = args.dir
+CUSTOM_DIR = args.dir
 CLEAN = args.clean
 VERBOSE = args.verbose
 
-if(CLEAN):
-    clean_status = clean_build_dir(BUILD_DIR)
-    if(clean_status != 0):
+TEST = args.test
+
+build_dir = CUSTOM_DIR if CUSTOM_DIR is not None else DEFAULT_BUILD_DIR
+if CLEAN:
+    clean_status = clean_build_dir(build_dir)
+    if clean_status != 0:
         sys.exit(clean_status)
 
+if TEST:
+    target_dir = CUSTOM_DIR if CUSTOM_DIR is not None else DEFAULT_TEST_DIR
+    if TEST == DEFAULT_TEST_TYPE or LUAJIT_TEST_TYPE:  # lua / luajit
+        LUA_TYPE = TEST
+        test_dir = os.path.join(working_directory, target_dir)
+        assemble(test_dir)
+
+    sys.exit(0)
 
 print_logo()
 
 # release -> Release, debug -> Debug
-build(type=BUILD_TYPE.capitalize(),
-      dir=BUILD_DIR, verbose=VERBOSE)
+build(type=BUILD_TYPE.capitalize(), dir=build_dir, verbose=VERBOSE)
