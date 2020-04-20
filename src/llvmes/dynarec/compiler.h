@@ -28,6 +28,9 @@ struct Compilation {
     llvm::Value* status_n = nullptr;
     llvm::Value* status_c = nullptr;
     llvm::Value* status_z = nullptr;
+    llvm::Value* status_i = nullptr;
+    llvm::Value* status_b = nullptr;
+    llvm::Value* status_d = nullptr;
     llvm::Value* main_fn = nullptr;
     llvm::Value* putreg_fn = nullptr;
     llvm::Value* putchar_fn = nullptr;
@@ -44,7 +47,7 @@ struct Compilation {
           builder(m->getContext()),
           ram(0x10000)
     {
-        jitter.set_external_ir_dump_directory(".");
+        // jitter.set_external_ir_dump_directory(".");
         jitter.add_external_symbol("putreg", &putreg);
         jitter.add_external_symbol("putchar", &putchar);
         jitter.add_external_symbol("write", &write_memory);
@@ -198,12 +201,27 @@ class Compiler {
             c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
         llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
         llvm::Constant* c1_16 = llvm::ConstantInt::get(int16, 1);
-        llvm::Value* addr = c->builder.CreateOr(
+        llvm::Value* sp_addr = c->builder.CreateOr(
             {load_sp, c_0x0100});  // addr <- load_sp or 0x0100
         load_sp =
             c->builder.CreateSub(load_sp, c1_16);    // load_sp <- load_sp - 1
         c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
-        // WriteMemory(addr, v);                        // [addr] <- v
+        c->builder.CreateCall(c->write_fn, {sp_addr, v});  // [addr] <- v
+    }
+
+    llvm::Value* StackPull()
+    {
+        // llvm::Value* value = ReadMemory(addr);
+        llvm::Value* load_sp =
+            c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
+        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
+        llvm::Constant* c1_16 = llvm::ConstantInt::get(int16, 1);
+        llvm::Value* sp_addr = c->builder.CreateOr(
+            {load_sp, c_0x0100});  // addr <- load_sp or 0x0100
+        load_sp =
+            c->builder.CreateAdd(load_sp, c1_16);    // load_sp <- load_sp + 1
+        c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
+        return c->builder.CreateCall(c->read_fn, {sp_addr});  // [addr] <- v
     }
 
     void CreateCondBranch(llvm::Value* pred, llvm::BasicBlock* target)
@@ -216,11 +234,13 @@ class Compiler {
         c->builder.SetInsertPoint(continue_block);
     }
 
-    llvm::Constant* AddressModeImmediate(uint16_t operand) {
+    llvm::Constant* AddressModeImmediate(uint16_t operand)
+    {
         return GetConstant8(operand);
     }
 
-    llvm::Constant* AddressModeAbsolute(uint16_t addr) {
+    llvm::Constant* AddressModeAbsolute(uint16_t addr)
+    {
         return GetConstant16(addr);
     }
 
@@ -253,7 +273,7 @@ class Compiler {
         llvm::Constant* addr_trunc = GetConstant8(addr);
         llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
         llvm::Value* target_addr = c->builder.CreateAdd(addr_trunc, load_x);
-        return target_addr;
+        return c->builder.CreateZExt(target_addr, int16);
     }
 
     llvm::Value* AddressModeZeropageY(uint16_t addr)
@@ -261,7 +281,7 @@ class Compiler {
         llvm::Constant* addr_trunc = GetConstant8(addr);
         llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
         llvm::Value* target_addr = c->builder.CreateAdd(addr_trunc, load_y);
-        return target_addr;
+        return c->builder.CreateZExt(target_addr, int16);
     }
 
     void AddressModeIndirect() {}
@@ -300,18 +320,16 @@ class Compiler {
 
         // low
         llvm::Value* addr_low =
-            c->builder.CreateCall(c->read_fn, GetConstant8(addr));
+            c->builder.CreateCall(c->read_fn, GetConstant16(addr));
         llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
 
         // high
-        llvm::Value* addr_get_high =
-            c->builder.CreateAdd(GetConstant8(addr), GetConstant8(1));
         llvm::Value* addr_get_high_16 =
-            c->builder.CreateZExt(addr_get_high, int16);
+            c->builder.CreateAdd(GetConstant16(addr), GetConstant16(1));
         llvm::Value* addr_high =
-            c->builder.CreateCall(c->read_fn, addr_get_high);
-        llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
-        llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+            c->builder.CreateCall(c->read_fn, addr_get_high_16);
+        llvm::Value* addr_high_16 = c->builder.CreateZExt(addr_high, int16);
+        llvm::Value* addr_high_shl = c->builder.CreateShl(addr_high_16, 8);
 
         llvm::Value* addr_hl_or =
             c->builder.CreateOr(addr_high_shl, addr_low_16);

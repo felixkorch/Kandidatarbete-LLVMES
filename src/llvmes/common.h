@@ -18,8 +18,14 @@ inline std::string ToHexString(T i)
 {
     std::stringstream stream;
     stream << "$" << std::uppercase << std::setfill('0')
-           << std::setw(sizeof(T) * 2) << std::hex << (unsigned int)i;
+           << std::setw(sizeof(T) * 2) << std::hex << (unsigned)i;
     return stream.str();
+}
+
+template <>
+inline std::string ToHexString<int8_t>(int8_t i)
+{
+    return ToHexString((uint8_t)i);
 }
 
 template <>

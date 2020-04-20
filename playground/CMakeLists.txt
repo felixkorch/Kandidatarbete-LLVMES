@@ -1,6 +1,5 @@
 ﻿set(PLAYGROUND_FILES
         execute_program
-        execute_file
         6502_testsuite
         disassemble_test
         compile_test
@@ -15,6 +14,6 @@ foreach (file ${PLAYGROUND_FILES})
     )
 
     set_target_properties(${file} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${LLVM_PLAYGROUND_OUTPUT_DIR}
+        RUNTIME_OUTPUT_DIRECTORY ${LLVM_PLAYGROUND_OUTPUT_DIR}/${file}
     )    
 endforeach()
