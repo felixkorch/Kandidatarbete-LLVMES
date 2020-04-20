@@ -320,18 +320,16 @@ class Compiler {
 
         // low
         llvm::Value* addr_low =
-            c->builder.CreateCall(c->read_fn, GetConstant8(addr));
+            c->builder.CreateCall(c->read_fn, GetConstant16(addr));
         llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
 
         // high
-        llvm::Value* addr_get_high =
-            c->builder.CreateAdd(GetConstant8(addr), GetConstant8(1));
         llvm::Value* addr_get_high_16 =
-            c->builder.CreateZExt(addr_get_high, int16);
+            c->builder.CreateAdd(GetConstant16(addr), GetConstant16(1));
         llvm::Value* addr_high =
-            c->builder.CreateCall(c->read_fn, addr_get_high);
-        llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
-        llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+            c->builder.CreateCall(c->read_fn, addr_get_high_16);
+        llvm::Value* addr_high_16 = c->builder.CreateZExt(addr_high, int16);
+        llvm::Value* addr_high_shl = c->builder.CreateShl(addr_high_16, 8);
 
         llvm::Value* addr_hl_or =
             c->builder.CreateOr(addr_high_shl, addr_low_16);
