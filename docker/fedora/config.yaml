@@ -10,4 +10,6 @@ base_config: |
   cmake \
   ninja-build \
   clang-devel \
-  llvm-devel
+  llvm-devel \
+  lua \
+  luajit
