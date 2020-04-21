@@ -219,12 +219,13 @@ class Compiler {
         // Calculate stack address
         llvm::Value* load_sp =
             c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
-        llvm::Value* sp_addr = GetStackAddress(load_sp);
 
         // Add 1 to stack pointer
         llvm::Constant* c1_8 = llvm::ConstantInt::get(int8, 1);
         load_sp =
             c->builder.CreateAdd(load_sp, c1_8);    // load_sp <- load_sp + 1
+
+        llvm::Value* sp_addr = GetStackAddress(load_sp);
 
         c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
         return c->builder.CreateCall(c->read_fn, {sp_addr});  // [addr] <- v
