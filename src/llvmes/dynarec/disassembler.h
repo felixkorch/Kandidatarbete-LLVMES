@@ -9,101 +9,17 @@
 #include <queue>
 #include <sstream>
 #include <unordered_map>
+#include <map>
 #include <vector>
 
 #include "llvmes/common.h"
 #include "llvmes/dynarec/6502_opcode.h"
 
+#include "time.h"
+
 namespace llvmes {
 
-enum class StatementType { DataWord, DataByte, Instruction, Label };
-
-// Not used atm, probably will be later
-enum class InstructionType {
-    ImmediateInstruction,
-    ImpliedInstruction,
-    DirectWithLabelIndexedInstruction,
-    DirectIndexedInstruction,
-    DirectWithLabelInstruction,
-    DirectInstruction,
-    IndirectXInstruction,
-    IndirectYInstruction,
-    IndirectInstruction
-};
-
-struct Statement {
-    template <class DeriveType>
-    DeriveType& GetAs()
-    {
-        return (DeriveType&)*this;
-    }
-
-    template <class DeriveType>
-    operator DeriveType&()
-    {
-        return (DeriveType&)*this;
-    }
-
-    virtual StatementType GetType() = 0;
-    virtual void Print() = 0;
-    virtual int GetOffset() = 0;
-    virtual ~Statement() = default;
-};
-
-struct DataWord : public Statement {
-    uint16_t offset = 0;
-    uint16_t word = 0;
-
-    constexpr DataWord(uint8_t a1, uint8_t a2) : word((a1 << 8) | a2) {}
-    explicit constexpr operator uint16_t() const { return word; }
-    explicit constexpr DataWord(uint16_t word) : word(word) {}
-
-    StatementType GetType() override { return StatementType::DataWord; }
-
-    void Print() override
-    {
-        std::cout << "[" << ToHexString(offset) << "]: "
-                  << ".dw " << ToHexString(word) << std::endl;
-    }
-
-    int GetOffset() override { return offset; }
-
-    friend std::ostream& operator<<(std::ostream& os, const DataWord& dw);
-};
-
-inline std::ostream& operator<<(std::ostream& os, const DataWord& dw)
-{
-    os << ToHexString(dw.word);
-    return os;
-}
-
-struct DataByte : public Statement {
-    uint16_t offset = 0;
-    uint8_t byte = 0;
-
-    explicit constexpr operator uint8_t() const { return byte; }
-    explicit constexpr DataByte(uint8_t a) : byte(a) {}
-
-    StatementType GetType() override { return StatementType::DataByte; }
-
-    void Print() override
-    {
-        std::cout << "[" << ToHexString(offset) << "]: "
-                  << ".db " << ToHexString(byte) << std::endl;
-    }
-
-    int GetOffset() override { return offset; }
-
-    friend std::ostream& operator<<(std::ostream& os, const DataByte& db);
-};
-
-inline std::ostream& operator<<(std::ostream& os, const DataByte& db)
-{
-    os << ToHexString(db.byte);
-    return os;
-}
-
-struct Instruction : public Statement {
+struct Instruction {
     int size = 0;
     uint16_t offset = 0;
     uint8_t opcode = 0xFF;
@@ -115,28 +31,13 @@ struct Instruction : public Statement {
     bool is_branchinstruction = false;
     std::string target_label;
 
-    StatementType GetType() override { return StatementType::Instruction; }
-
-    void Print() override
+    void Print()
     {
         std::cout << "[" << ToHexString(offset) << "]: " << ToHexString(opcode)
                   << std::endl;
     }
 
-    int GetOffset() override { return offset; }
-};
-
-struct Label : public Statement {
-    std::string name;
-    uint16_t offset = 0;
-
-    Label(const std::string& name) : name(name) {}
-
-    StatementType GetType() override { return StatementType::Label; }
-
-    void Print() override { std::cout << name << ":" << std::endl; }
-
-    int GetOffset() override { return offset; }
+    int GetOffset() { return offset; }
 };
 
 class ParseException : public std::exception {
@@ -153,189 +54,22 @@ class ParseException : public std::exception {
     std::string msg;
 };
 
-class AST {
-    std::list<std::unique_ptr<Statement>> list;
-
-   public:
-    using iterator = typename std::list<std::unique_ptr<Statement>>::iterator;
-    using NodeType = std::unique_ptr<Statement>;
-
-    AST() = default;
-    AST(AST&& other) : list(std::move(other.list)) {}
-    AST& operator=(AST&& other)
-    {
-        list = std::move(other.list);
-        return *this;
-    }
-
-    void Print()
-    {
-        for (const auto& node : list)
-            node->Print();
-    }
-
-    iterator FindNodeByIndex(uint16_t index)
-    {
-        auto it = std::find_if(list.begin(), list.end(),
-                               [index](const std::unique_ptr<Statement>& n) {
-                                   return n->GetOffset() == index;
-                               });
-
-        if (it == list.end()) {
-            std::stringstream ss;
-            ss << "Node at index " << index << " doesn't exist";
-            throw ParseException(ss.str());
-        }
-
-        return it;
-    }
-
-    iterator InsertBefore(uint16_t index, std::unique_ptr<Statement>&& stmt)
-    {
-        auto it = FindNodeByIndex(index);
-        list.insert(it, std::move(stmt));
-        return it;
-    }
-
-    iterator Insert(iterator it, std::unique_ptr<Statement>&& stmt)
-    {
-        return list.insert(it, std::move(stmt));
-    }
-
-    void Erase(iterator it)
-    {
-        if (it == list.end())
-            throw ParseException("Can't erase: node doesn't exist");
-        list.erase(it);
-    }
-    void Erase(iterator begin, iterator end)
-    {
-        if (begin == list.end())
-            throw ParseException("Can't erase out of bounds iterators");
-        list.erase(begin, end);
-    }
-
-    iterator begin() { return list.begin(); }
-    iterator end() { return list.end(); }
+struct AST {
+    std::unordered_map<uint16_t, std::string> labels;
+    std::map<uint16_t, Instruction*> instructions;
 };
 
 class Disassembler {
-    AST ast;
     std::vector<uint8_t> data;
-    std::queue<AST::iterator> branches;
     size_t program_size;
     uint16_t start_location;
     uint16_t reset_address;
-    std::unordered_map<uint16_t, std::string> address_to_label;
 
-    AST::iterator InsertLabelBefore(uint16_t index, const std::string& name)
-    {
-        auto label = llvmes::make_unique<Label>(name);
-        label->offset = index;
-        auto it = ast.InsertBefore(index, std::move(label));
-        return it;
-    }
+    std::unordered_map<uint16_t, std::string> labels;
+    std::map<uint16_t, Instruction*> instructions;
+    std::queue<uint16_t> branches;
+    uint16_t index;
 
-    void ReplaceWithInstruction(AST::iterator it)
-    {
-        while (it != ast.end()) {
-            // Already an instruction, mark the branch as complete
-            if ((*it)->GetType() == StatementType::Instruction) {
-                break;
-            }
-            // Don't replace labels
-            else if ((*it)->GetType() == StatementType::Label) {
-                it = std::next(it);
-                continue;
-            }
-
-            // Get offset of current statement
-            uint16_t offs = (*it)->GetOffset();
-            // Get the opcode from the ROM
-            uint8_t opcode = data[offs];
-
-            // This contains information about the instruction
-            auto instr_info = MOS6502::DecodeInstruction(opcode);
-            auto new_instr = make_unique<Instruction>();
-
-            new_instr->offset = offs;
-            new_instr->name = "Instr";  // TODO: Add instruction names
-            new_instr->size = MOS6502::InstructionSize(instr_info.addr_mode);
-            new_instr->addressing_mode = instr_info.addr_mode;
-            new_instr->op_type = instr_info.op;
-            new_instr->opcode = opcode;
-
-            // Get a pointer since it will be moved into the AST
-            Instruction* instr = new_instr.get();
-            *it = std::move(new_instr);
-
-            // Delete the "argument databytes" and replace with instruction
-            // e.g. if length is 3 then the 2 bytes that carries data will get
-            // removed from the AST since they belong to the instruction
-
-            assert(instr->size == 1 || instr->size == 2 || instr->size == 3);
-
-            if (instr->size == 2) {
-                if (offs + 1 >= data.size())
-                    throw ParseException("Machine code has illegal format");
-
-                ast.Erase(std::next(it));
-                instr->arg = data[offs + 1];
-            }
-            else if (instr->size == 3) {
-                if (offs + 2 >= data.size())
-                    throw ParseException("Machine code has illegal format");
-
-                ast.Erase(std::next(it, 1), std::next(it, 3));
-                instr->arg = data[offs + 1] | data[offs + 2] << 8;
-            }
-
-            // According to our ABI, this is a return statement
-            if (instr->opcode == 0x8D && instr->arg == 0x200F)
-                break;
-
-            bool JMP_Abs = instr->opcode == 0x4C;
-            if (IsBranch(instr_info.op) || JMP_Abs) {
-                instr->is_branchinstruction = true;
-                uint16_t target_index = 0;
-
-                // Unconditional branch
-                if (instr_info.op == MOS6502::Op::JSR || JMP_Abs) {
-                    target_index = instr->arg;
-                }
-                // Conditional branch
-                else {
-                    target_index = (int8_t)instr->arg + offs + 2;
-                }
-
-                // Only add label if it doesn't exist
-                if (address_to_label.count(target_index) == 0) {
-                    std::stringstream ss;
-                    ss << "Label " << ToHexString(target_index);
-
-                    auto branch_target =
-                        InsertLabelBefore(target_index, ss.str());
-                    if (branch_target == ast.end())
-                        throw ParseException(
-                            "Trying to insert a label before a node that "
-                            "doesn't "
-                            "exist");
-                    branches.push(branch_target);
-                    instr->target_label = ss.str();
-                    address_to_label[target_index] = ss.str();
-                }
-                else {
-                    instr->target_label = address_to_label[target_index];
-                }
-
-                // JMP ends a branch
-                if (JMP_Abs)
-                    break;
-            }
-
-            it = std::next(it);
-        }
-    }
 
    public:
     Disassembler(std::vector<uint8_t>&& data_in, uint16_t start_location)
@@ -343,36 +77,114 @@ class Disassembler {
           program_size(data_in.size()),
           start_location(start_location)
     {
+        auto temp = std::move(data_in);
         if (start_location + program_size >= 0xFFFF)
             throw ParseException("Program doesn't fit in that space");
-        std::vector<uint8_t> temp = data_in;
         std::copy(temp.begin(), temp.end(), data.begin() + start_location);
     }
 
     std::vector<uint8_t> GetRAM() { return data; }
 
-    AST&& Disassemble()
+    void ParseInstructions(uint16_t start)
     {
-        // Set all the statements to "data bytes"
-        for (int i = start_location; i < (start_location + program_size); i++) {
-            auto db = make_unique<DataByte>(data[i]);
-            db->offset = i;
-            ast.Insert(ast.end(), std::move(db));
+        index = start;
+        while(1) {
+            // Already parsed
+            if (instructions.count(index))
+                break;
+
+            uint8_t opcode = data[index];
+
+            // This contains information about the instruction
+            MOS6502::Instruction mos_instr = MOS6502::DecodeInstruction(opcode);
+            Instruction* instr = new Instruction;
+
+            instr->offset = index;
+            instr->name = "Instr";  // TODO: Add instruction names
+            instr->size = MOS6502::InstructionSize(mos_instr.addr_mode);
+            instr->addressing_mode = mos_instr.addr_mode;
+            instr->op_type = mos_instr.op;
+            instr->opcode = opcode;
+
+            assert(instr->size == 1 || instr->size == 2 || instr->size == 3);
+
+            if (instr->size == 2) {
+                if (index + 1 >= data.size())
+                    throw ParseException("Machine code has illegal format");
+
+                instr->arg = data[index + 1];
+            }
+            else if (instr->size == 3) {
+                if (index + 2 >= data.size())
+                    throw ParseException("Machine code has illegal format");
+
+                instr->arg = data[index + 1] | data[index + 2] << 8;
+            }
+
+            instructions[index] = instr;
+
+            // According to our ABI, this is a return statement
+            if (instr->opcode == 0x8D && instr->arg == 0x200F)
+                break;
+
+            bool JMP_Abs = instr->opcode == 0x4C;
+            if (IsBranch(mos_instr.op) || JMP_Abs) {
+                instr->is_branchinstruction = true;
+                uint16_t target_index = 0;
+
+                // Unconditional branch
+                if (mos_instr.op == MOS6502::Op::JSR || JMP_Abs) {
+                    target_index = instr->arg;
+                }
+                // Conditional branch
+                else {
+                    target_index = (int8_t)instr->arg + index + 2;
+                }
+
+                // Only add label if it doesn't exist
+                if (labels.count(target_index) == 0) {
+                    std::stringstream ss;
+                    ss << "Label " << ToHexString(target_index);
+                    branches.push(target_index);
+                    instr->target_label = ss.str();
+                    labels[target_index] = ss.str(); // TODO: Or label class?
+                }
+                else {
+                    instr->target_label = labels[target_index];
+                }
+
+                // JMP ends a branch
+                if (JMP_Abs)
+                    break;
+            }
+
+            index += instr->size;
         }
+    }
+
+    AST Disassemble()
+    {
+        using namespace std::chrono;
+        using ClockType = decltype(std::chrono::high_resolution_clock::now());
+        ClockType dis_constr_start = high_resolution_clock::now();
 
         uint16_t reset_address = data[0xFFFC] | (data[0xFFFD] << 8);
         this->reset_address = reset_address;
-        auto it = InsertLabelBefore(reset_address, "Reset");
-        address_to_label[reset_address] = "Reset";
+        labels[reset_address] = "Reset";
+        index = reset_address;
+        branches.push(index);
 
-        branches.push(it);
         do {
-            auto entry = branches.front();
-            ReplaceWithInstruction(entry);
+            ParseInstructions(branches.front());
             branches.pop();
-        } while (!branches.empty());
+        } while(!branches.empty());
 
-        return std::move(ast);
+        ClockType dis_constr_stop = high_resolution_clock::now();
+        std::cout << "ReplaceWithInstruction: " << duration_cast<microseconds>(dis_constr_stop - dis_constr_start).count() << std::endl;
+
+        std::cout << "Labels Count: " << labels.size() << "\nInstruction Count: " << instructions.size() << std::endl;
+
+        return { labels, instructions };
     }
 };
 }  // namespace llvmes
