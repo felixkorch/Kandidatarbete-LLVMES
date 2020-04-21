@@ -607,7 +607,6 @@ using namespace llvmes;
     //0x8D, 0x0C, 0x20,  // Print status N - should print 01
     //0x8D, 0x0D, 0x20,  // Print status C - should print 01
     //0x8D, 0x0E, 0x20,  // Print status Z - should print 00
-};
 
 std::vector<uint8_t> ora_Absolute
 {
