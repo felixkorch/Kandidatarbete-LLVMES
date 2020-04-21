@@ -5,7 +5,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/Support/TargetSelect.h"
-#include "llvmes/dynarec/disassembler.h"
+#include "llvmes/dynarec/parser.h"
 
 namespace llvmes {
 
@@ -68,7 +68,7 @@ class Compiler {
     void CodeGen(Instruction& i);
 
    public:
-    Compiler(AST& ast, const std::string& program_name);
+    Compiler(AST ast, const std::string& program_name);
 
     void SetRAM(std::vector<uint8_t>&& data) { c->ram = std::move(data); }
     std::vector<uint8_t>& GetRAMRef() { return c->ram; }
@@ -194,8 +194,7 @@ class Compiler {
     {
         llvm::Value* sp_16 = c->builder.CreateZExt(sp, int16);
         llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
-        return c->builder.CreateOr(
-            {sp_16, c_0x0100});
+        return c->builder.CreateOr({sp_16, c_0x0100});
     }
 
     void StackPush(llvm::Value* v)
@@ -208,9 +207,9 @@ class Compiler {
         // Subtract 1 from stack pointer
         llvm::Constant* c1_8 = llvm::ConstantInt::get(int8, 1);
         load_sp =
-            c->builder.CreateSub(load_sp, c1_8);    // load_sp <- load_sp - 1
+            c->builder.CreateSub(load_sp, c1_8);  // load_sp <- load_sp - 1
 
-        c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
+        c->builder.CreateStore(load_sp, c->reg_sp);        // reg_sp <- load_sp
         c->builder.CreateCall(c->write_fn, {sp_addr, v});  // [addr] <- v
     }
 
@@ -223,7 +222,7 @@ class Compiler {
         // Add 1 to stack pointer
         llvm::Constant* c1_8 = llvm::ConstantInt::get(int8, 1);
         load_sp =
-            c->builder.CreateAdd(load_sp, c1_8);    // load_sp <- load_sp + 1
+            c->builder.CreateAdd(load_sp, c1_8);  // load_sp <- load_sp + 1
 
         llvm::Value* sp_addr = GetStackAddress(load_sp);
 

@@ -27,7 +27,7 @@ inline void putchar(int8_t c)
     std::cout << c;
 }
 
-Compiler::Compiler(AST& ast, const std::string& program_name)
+Compiler::Compiler(AST ast, const std::string& program_name)
     : ast(ast), c(llvmes::make_unique<Compilation>(program_name))
 {
     assert(s_compiler == nullptr);
@@ -123,12 +123,12 @@ void Compiler::PassTwo()
         uint16_t index = instr.first;
         bool label_exists = ast.labels.count(index);
 
-        if(prev.second) {
-            if(label_exists && !prev.second->is_branchinstruction)
+        if (prev.second) {
+            if (label_exists && !prev.second->is_branchinstruction)
                 c->builder.CreateBr(c->basicblocks[ast.labels[index]]);
         }
 
-        if(label_exists)
+        if (label_exists)
             c->builder.SetInsertPoint(c->basicblocks[ast.labels[index]]);
 
         CodeGen(*instr.second);
