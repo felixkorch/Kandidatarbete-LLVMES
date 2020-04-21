@@ -214,8 +214,8 @@ class Compiler {
     {
         llvm::Value* sp_16 = c->builder.CreateZExt(sp, int16);
         llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
-        llvm::Value* sp_addr = c->builder.CreateOr(
-            {sp_16, c_0x0100});  // addr <- load_sp or 0x0100
+        return c->builder.CreateOr(
+            {sp_16, c_0x0100});
     }
 
     void StackPush(llvm::Value* v)
