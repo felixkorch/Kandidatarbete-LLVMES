@@ -1580,6 +1580,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x38: {  // SEC Implied
+            llvm::Constant* carry = llvm::ConstantInt::get(int1, 0x1);
+            c->builder.CreateStore(carry, c->status_c);
             break;
         }
         case 0xF8: {  // SED Implied
@@ -1595,6 +1597,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x18: {  // CLC Implied
+            llvm::Constant* carry = llvm::ConstantInt::get(int1, 0x0);
+            c->builder.CreateStore(carry, c->status_c);
             break;
         }
         case 0xD8: {  // CLD Implied
