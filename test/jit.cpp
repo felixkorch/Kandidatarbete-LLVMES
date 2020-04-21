@@ -55,20 +55,27 @@ try {
     if (result.count("save"))
         save = true;
 
+    // End - parsing command line
+
     std::ifstream in{input, std::ios::binary};
     if (in.fail())
         throw std::runtime_error("The file doesn't exist");
     auto in_file = std::vector<uint8_t>{std::istreambuf_iterator<char>(in),
                                         std::istreambuf_iterator<char>()};
 
-    auto start = high_resolution_clock::now();
+    // Same as interpreter, this chunk above doesn't count
+
+    ClockType start = high_resolution_clock::now();
+    ClockType stop, exec_start, parse_start, parse_stop, compile_start, compile_stop;
 
     auto d = llvmes::make_unique<Disassembler>(std::move(in_file), 0x8000);
 
     AST ast;
     std::vector<uint8_t> ram;
     try {
+        parse_start = high_resolution_clock::now();
         ast = d->Disassemble();
+        parse_stop = high_resolution_clock::now();
         ram = d->GetRAM();
     }
     catch (ParseException& e) {
@@ -84,20 +91,26 @@ try {
     if (verbose)
         c->SetDumpDir(".");
     c->SetRAM(std::move(ram));
+
+    compile_start = high_resolution_clock::now();
     c->Compile();
-
     auto main = c->GetMain(optimize);
+    compile_stop = high_resolution_clock::now();
 
-    auto exec_start = high_resolution_clock::now();
+    exec_start = high_resolution_clock::now();
     main();
-    auto stop = high_resolution_clock::now();
+    stop = high_resolution_clock::now();
 
     std::cout << "Execution time: "
-              << GetDuration<decltype(stop)>(time_format, exec_start, stop)
+              << GetDuration<ClockType>(time_format, exec_start, stop)
               << GetTimeFormatAbbreviation(time_format) << std::endl;
-    std::cout << "Total time: " << GetDuration(time_format, start, stop)
+    std::cout << "Parse time: " << GetDuration<ClockType>(time_format, parse_start, parse_stop)
               << GetTimeFormatAbbreviation(time_format) << std::endl;
-
+    std::cout << "Compile time: " << GetDuration<ClockType>(time_format, compile_start, compile_stop)
+                << GetTimeFormatAbbreviation(time_format) << std::endl;
+    std::cout << "Total time: " << GetDuration<ClockType>(time_format, start, stop)
+                << GetTimeFormatAbbreviation(time_format) << std::endl;
+                
     if (save) {
         std::string out = result["save"].as<std::string>();
         std::stringstream ss;

@@ -3,6 +3,7 @@
 #pragma once
 
 enum class TimeFormat { Milli, Micro, Seconds };
+using ClockType = decltype(std::chrono::high_resolution_clock::now());
 
 template <class Clock>
 long long GetDuration(TimeFormat format, Clock start,
