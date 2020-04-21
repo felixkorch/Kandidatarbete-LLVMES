@@ -739,21 +739,18 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x08: {  // PHP Implied
-            llvm::Value* status_z = c->builder.CreateLoad(c->status_z);
-            status_z = c->builder.CreateZExt(status_z, int8);
-            // we don't shift the z register
             llvm::Value* status_c = c->builder.CreateLoad(c->status_c);
             status_c = c->builder.CreateZExt(status_c, int8);
-            status_c = c->builder.CreateShl(status_c, 1);
+            llvm::Value* status_z = c->builder.CreateLoad(c->status_z);
+            status_z = c->builder.CreateZExt(status_z, int8);
+            status_z = c->builder.CreateShl(status_z, 1);
             llvm::Value* status_i = c->builder.CreateLoad(c->status_i);
             status_i = c->builder.CreateZExt(status_i, int8);
             status_i = c->builder.CreateShl(status_i, 2);
             llvm::Value* status_d = c->builder.CreateLoad(c->status_d);
             status_d = c->builder.CreateZExt(status_d, int8);
             status_d = c->builder.CreateShl(status_d, 3);
-            // In the byte pushed, bit 5 is always set to 1, and bit 4
-            // is 1 if from an instruction (PHP or BRK)
-            llvm::Value* status_b = GetConstant8(0x30);
+            llvm::Value* status_b = GetConstant8(0x30); // Always on bits
             llvm::Value* status_v = c->builder.CreateLoad(c->status_v);
             status_v = c->builder.CreateZExt(status_v, int8);
             status_v = c->builder.CreateShl(status_v, 6);
@@ -1398,21 +1395,18 @@ void Compiler::CodeGen(Instruction& i)
             }
             // Write flags to stdout
             else if (addr == 0x200C) {
-                llvm::Value* status_z = c->builder.CreateLoad(c->status_z);
-                status_z = c->builder.CreateZExt(status_z, int8);
-                // we don't shift the z register
                 llvm::Value* status_c = c->builder.CreateLoad(c->status_c);
                 status_c = c->builder.CreateZExt(status_c, int8);
-                status_c = c->builder.CreateShl(status_c, 1);
+                llvm::Value* status_z = c->builder.CreateLoad(c->status_z);
+                status_z = c->builder.CreateZExt(status_z, int8);
+                status_z = c->builder.CreateShl(status_z, 1);
                 llvm::Value* status_i = c->builder.CreateLoad(c->status_i);
                 status_i = c->builder.CreateZExt(status_i, int8);
                 status_i = c->builder.CreateShl(status_i, 2);
                 llvm::Value* status_d = c->builder.CreateLoad(c->status_d);
                 status_d = c->builder.CreateZExt(status_d, int8);
                 status_d = c->builder.CreateShl(status_d, 3);
-                // In the byte pushed, bit 5 is always set to 1, and bit 4
-                // is 1 if from an instruction (PHP or BRK)
-                llvm::Value* status_b = GetConstant8(0x30);
+                llvm::Value* status_b = GetConstant8(0x30); // Always on bits
                 llvm::Value* status_v = c->builder.CreateLoad(c->status_v);
                 status_v = c->builder.CreateZExt(status_v, int8);
                 status_v = c->builder.CreateShl(status_v, 6);

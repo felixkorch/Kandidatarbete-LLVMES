@@ -171,23 +171,6 @@ class Compiler {
                                llvm::Type::getInt8Ty(c->m->getContext())));
     }
 
-    // Keeping it here for reference
-    //
-
-    //     llvm::Value* GetRAMPtr(llvm::Value* offset)
-    //     {
-    //         llvm::Constant* ram_ptr_value =
-    //             llvm::ConstantInt::get(llvm::Type::getInt64Ty(c->m->getContext()),
-    //                                    (int64_t)c->ram.data());
-    //
-    //         llvm::PointerType* ptr_ptr_ty =
-    //         llvm::PointerType::getUnqual(llvm::Type::getInt8PtrTy(c->m->getContext()));
-    //         llvm::Value* ptr_to_ptr =
-    //         c->builder.CreateIntToPtr(ram_ptr_value, ptr_ptr_ty);
-    //         llvm::Value* ptr = c->builder.CreateLoad(ptr_to_ptr);
-    //         return c->builder.CreateGEP(ptr, {GetConstant8(0), offset});
-    //     }
-
     // Can be called by LLVM on runtime
     void Write(uint16_t addr, uint8_t val) { c->ram[addr] = val; }
     uint16_t Read(uint16_t addr) { return c->ram[addr]; }
