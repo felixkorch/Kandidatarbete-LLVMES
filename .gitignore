@@ -38,3 +38,6 @@ cmake-build-debug/
 *.bin
 *.ll
 *.mem
+
+#Ignore list-bins
+test/list-bins
