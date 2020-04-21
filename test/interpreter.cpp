@@ -37,17 +37,9 @@ void writeMemory(std::uint16_t addr, std::uint8_t data)
     else if (addr == 0x200B) {
         std::cout << ToHexString(cpu->reg_y) << std::endl;
     }
-    // Write N to stdout
+    // Write status to stdout
     else if (addr == 0x200C) {
-        std::cout << cpu->reg_status.N << std::endl;
-    }
-    // Write C to stdout
-    else if (addr == 0x200D) {
-        std::cout << cpu->reg_status.C << std::endl;
-    }
-    // Write Z to stdout
-    else if (addr == 0x200E) {
-        std::cout << cpu->reg_status.Z << std::endl;
+        std::cout << ToHexString((uint8_t)cpu->reg_status) << std::endl;
     }
     // Exit program with exit code from reg A
     else if (addr == 0x200F) {
