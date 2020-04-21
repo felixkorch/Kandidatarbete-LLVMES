@@ -538,27 +538,116 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x49: {  // EOR Immediate
+            // In data
+            llvm::Value* operand = AddressModeImmediate(i.arg);
+            // Get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x45: {  // EOR Zeropage
+            // In data
+            llvm::Value* addr = AddressModeZeropage(i.arg); 
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
+            // Get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x55: {  // EOR ZeropageX
+            // In data
+            llvm::Value* addr = AddressModeZeropageX(i.arg);
+            llvm::Value* addr_16 = c->builder.CreateZExt(addr, int16);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr_16);
+            // get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x4D: {  // EOR Absolute
+            // In data
+            llvm::Value* addr = AddressModeAbsolute(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
+            // Get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x5D: {  // EOR AbsoluteX
+            // In data
+            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
+            // Get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x59: {  // EOR AbsoluteY
+            // In data
+            llvm::Value* addr = AddressModeAbsoluteY(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
+            // Get reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x41: {  // EOR IndirectX
+            llvm::Value* addr = AddressModeIndirectX(i.arg);
+            llvm::Value* operand =
+                c->builder.CreateCall(c->read_fn, addr);
+            // reg_a
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x51: {  // EOR IndirectY
+            
+            llvm::Value* addr = AddressModeIndirectY(i.arg);
+            llvm::Value* operand =
+                c->builder.CreateCall(c->read_fn, addr);
+            // Get reg_a 
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            // Exclusive or
+            llvm::Value* result = c->builder.CreateXor(reg_a, operand);
+            c->builder.CreateStore(result, c->reg_a);
+            // Flag Test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0xA9: {  // LDA Immediate
