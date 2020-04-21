@@ -8,4 +8,6 @@ RUN dnf install -y \
     python3 \
     cmake \
     ninja-build \
-    llvm-devel
+    llvm-devel \
+    lua \
+    luajit

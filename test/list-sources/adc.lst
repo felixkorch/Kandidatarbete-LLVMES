@@ -1,0 +1,38 @@
+#macro PRINT 2
+%1:
+LDA %2, X
+BEQ exit
+STA $2008
+INX
+JMP %1
+#endmacro
+
+#macro ADC_CMP 3
+LDA %1
+ADC %2
+CMP %3
+#endmacro
+
+.org $8000
+
+ok_str:
+.db "ok", 10, 0
+
+err_str:
+.db "err", 10, 0
+
+; Immediate test
+main:
+ADC_CMP #$10 #$20 #$30
+BEQ print_ok
+JMP print_err
+
+PRINT print_ok ok_str
+PRINT print_err err_str
+
+exit:
+LDA #0
+STA $200F ; exit 0
+
+.org $FFFC
+.dw main ; Reset routine
