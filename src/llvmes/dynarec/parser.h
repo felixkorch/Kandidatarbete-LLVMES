@@ -74,10 +74,11 @@ class Parser {
     std::map<uint16_t, Instruction*> instructions;
     std::queue<uint16_t> branches;
 
+    void ParseInstructions(uint16_t start);
+
    public:
     Parser(std::vector<uint8_t>&& data_in, uint16_t start_location);
     std::vector<uint8_t> GetRAM() { return data; }
-    void ParseInstructions(uint16_t start);
     AST Parse();
 };
 }  // namespace llvmes
