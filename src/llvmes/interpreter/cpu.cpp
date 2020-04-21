@@ -16,7 +16,8 @@ CPU::CPU()
       m_irq(false),
       m_nmi(false),
       m_illegal_opcode(false),
-      m_address(0)
+      m_address(0),
+      m_should_run(false)
 {
     for (auto& it : m_instruction_table)
         it = {&CPU::AddressModeImplied, &CPU::IllegalOP, "Illegal OP"};
@@ -528,6 +529,7 @@ void CPU::Halt()
 
 void CPU::Run()
 {
+    m_should_run = true;
     while (!m_illegal_opcode && m_should_run)
         Step();
 }

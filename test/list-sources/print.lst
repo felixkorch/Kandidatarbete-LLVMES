@@ -1,0 +1,40 @@
+.org $8000
+
+ok:
+.db "ok", 10, 0
+
+err:
+.db "err", 10, 0
+
+main:
+
+; Immediate test
+LDA #$10
+ADC #$11
+CMP #$21
+BEQ printok
+LDA #<err ; err_low
+LDX #>err ; err_high
+STA $00 ; store err_low
+STX $01 ; store err_high
+JMP print
+
+printok:
+LDA #<ok ; ok_low
+LDX #>ok ; ok_high
+STA $00 ; store ok_low
+STX $01 ; store ok_high
+
+print:
+LDA ($00), Y
+BEQ exit
+STA $2008
+INY
+JMP print
+
+exit:
+LDA #0
+STA $200F ; Exit 0
+
+.org $FFFC
+.dw main ; Reset routine

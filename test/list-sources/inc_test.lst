@@ -1,0 +1,49 @@
+; Test file for INC instruction
+; Original author: Matilda Falkenby
+
+; Macro definitions
+#macro PRINT_A 0
+STA $2009
+#endmacro
+#macro PRINT_N 0
+STA $200C
+#endmacro
+#macro PRINT_Z 0
+STA $200E
+#endmacro
+
+.org $8000
+
+; Program starts here
+; Test INC Zeropage,X
+; Matildas original code comments is included after each instruction
+start:
+LDA #$0A ; LDA; # 0x0A
+PRINT_A ; Print A - should print 0x0A = 10
+STA $20 ; reg_a (=0x0A) to 0x0020 in mem
+LDX #$01
+INC $20, X ; inc zeropage mem 0x0020 + x
+LDA $20, X
+PRINT_A ; Print A - should print 0x0A = 10
+PRINT_N ; Print status N - should print 00
+PRINT_Z ; Print status Z - should print 01
+
+; Define exit routine
+exit:
+LDA #0
+STA $200F ; Write 0 as exit code
+
+.org $fffc
+.dw start ; Reset vector
+
+; std::vector<uint8_t> testINC_zeropageX{
+;     0xA9, 0x0A,  // LDA; # 0x0A
+;     0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
+;     0x8D, 0x21, 0x00,  // reg_a (=0x0A) to 0x0020 in mem
+;     LDX_IMM(0x01),
+;     0xF6, 0x20,  // inc zeropage mem 0x0020 + x
+;     0xB5, 0x20,
+;     0x8D, 0x09, 0x20,  // Print A - should print 0x0A = 10
+;     0x8D, 0x0C, 0x20,  // Print status N - should print 00
+;     0x8D, 0x0E, 0x20,  // Print status Z - should print 01
+; };

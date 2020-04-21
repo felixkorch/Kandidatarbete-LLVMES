@@ -1,0 +1,56 @@
+#macro PRINT_A 0
+STA $2009
+#endmacro
+#macro PRINT_MSG 2 ; This macro takes 2 arguments: first=string/message to print. second=value to print after it
+print_msg:
+LDA %1, X
+BEQ print_data
+STA $2008
+INX
+JMP print_msg
+; Print data associated with message
+print_data:
+LDA %2
+PRINT_A
+JMP exit
+#endmacro
+
+.org $8000
+
+should_str:
+.db "should print", 10, 0
+
+main:
+; Test AND Immediate
+LDA #$AA ; Store #AA in accumulator
+AND #$A0 ; perform AND immediate on 0A
+PRINT_A ; Should print $A0
+
+; Test AND Immediate
+LDA #$FF ; Store #FF in accumulator
+AND #$01 ; perform AND immediate on 01
+PRINT_A ; Should print $01
+
+; Test AND Absolute
+; Store some value at $01. It will later be compared to #AA
+LDX #$55 ; $55 is $AA right-shifted once
+STX $00 ; Store at address $00
+LDA #$AA ; Load accumulator with #AA
+AND $00 ; Compare with value stored at $00 (#55)
+PRINT_A ; Should print $00
+
+; Test AND Absolute (and ROR Accumulator!)
+LDA #$AA ; Load accumulator with #AA
+ROR ;A ; Right shift accumulator once. Should result in #55
+AND $00 ; Compare with value stored at $00 (#55)
+PRINT_A ; Should print $55
+
+; Need to check with Felix about this one :hmm:
+; PRINT_MSG should_str #$55
+
+exit:
+LDA #0
+STA $200F ; Write 0 as exit code
+
+.org $FFFC
+.dw main ; Reset vector

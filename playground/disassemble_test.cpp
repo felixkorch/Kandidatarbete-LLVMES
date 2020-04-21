@@ -25,7 +25,7 @@ std::vector<uint8_t> program3{0xa9, 0x01, 0xc9, 0x02, 0xd0,
                               0x02, 0x85, 0x22, 0x00};
 int main()
 {
-    llvmes::Disassembler dis(std::move(program3));
+    llvmes::Disassembler dis(std::move(program3), 0x8000);
     auto ast = dis.Disassemble();
 
     for (const auto& node : ast)

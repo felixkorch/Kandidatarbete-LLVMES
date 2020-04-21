@@ -28,6 +28,10 @@ struct Compilation {
     llvm::Value* status_n = nullptr;
     llvm::Value* status_c = nullptr;
     llvm::Value* status_z = nullptr;
+    llvm::Value* status_i = nullptr;
+    llvm::Value* status_b = nullptr;
+    llvm::Value* status_u = nullptr;
+    llvm::Value* status_d = nullptr;
     llvm::Value* main_fn = nullptr;
     llvm::Value* putreg_fn = nullptr;
     llvm::Value* putchar_fn = nullptr;
@@ -44,11 +48,6 @@ struct Compilation {
           builder(m->getContext()),
           ram(0x10000)
     {
-        jitter.set_external_ir_dump_directory(".");
-        jitter.add_external_symbol("putreg", &putreg);
-        jitter.add_external_symbol("putchar", &putchar);
-        jitter.add_external_symbol("write", &write_memory);
-        jitter.add_external_symbol("read", &read_memory);
     }
 };
 
@@ -72,6 +71,7 @@ class Compiler {
     Compiler(AST&& ast, const std::string& program_name);
 
     void SetRAM(std::vector<uint8_t>&& data) { c->ram = std::move(data); }
+    std::vector<uint8_t>& GetRAMRef() { return c->ram; }
 
     llvm::Constant* GetConstant1(bool v)
     {
@@ -92,6 +92,21 @@ class Compiler {
     llvm::Constant* GetConstant64(uint64_t v)
     {
         return llvm::ConstantInt::get(int64, v);
+    }
+
+    llvm::Function* RegisterFunction(llvm::ArrayRef<llvm::Type*> arg_types,
+                                     llvm::Type* return_type,
+                                     const std::string& name,
+                                     void* fn_ptr = nullptr)
+    {
+        llvm::FunctionType* fn_type =
+            llvm::FunctionType::get(return_type, arg_types, false);
+        llvm::Function* fn = llvm::Function::Create(
+            fn_type, llvm::Function::ExternalLinkage, name, *c->m);
+
+        if (fn_ptr != nullptr)
+            c->jitter.add_external_symbol(name, fn_ptr);
+        return fn;
     }
 
     void SetDumpDir(const std::string& path)
@@ -142,7 +157,7 @@ class Compiler {
     void DynamicTestCCmp(llvm::Value* v)
     {
         llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
-        llvm::Value* lessThan = c->builder.CreateICmpUGT(v, c_0x0100);
+        llvm::Value* lessThan = c->builder.CreateICmpULT(v, c_0x0100);
         c->builder.CreateStore(lessThan, c->status_c);
     }
     // Calculates the ram-address as a constant-expr
@@ -156,23 +171,6 @@ class Compiler {
             ram_ptr_value, llvm::PointerType::getUnqual(
                                llvm::Type::getInt8Ty(c->m->getContext())));
     }
-
-    // Keeping it here for reference
-    //
-
-    //     llvm::Value* GetRAMPtr(llvm::Value* offset)
-    //     {
-    //         llvm::Constant* ram_ptr_value =
-    //             llvm::ConstantInt::get(llvm::Type::getInt64Ty(c->m->getContext()),
-    //                                    (int64_t)c->ram.data());
-    //
-    //         llvm::PointerType* ptr_ptr_ty =
-    //         llvm::PointerType::getUnqual(llvm::Type::getInt8PtrTy(c->m->getContext()));
-    //         llvm::Value* ptr_to_ptr =
-    //         c->builder.CreateIntToPtr(ram_ptr_value, ptr_ptr_ty);
-    //         llvm::Value* ptr = c->builder.CreateLoad(ptr_to_ptr);
-    //         return c->builder.CreateGEP(ptr, {GetConstant8(0), offset});
-    //     }
 
     // Can be called by LLVM on runtime
     void Write(uint16_t addr, uint8_t val) { c->ram[addr] = val; }
@@ -192,18 +190,45 @@ class Compiler {
         return c->builder.CreateLoad(ram_ptr);
     }
 
+    llvm::Value* GetStackAddress(llvm::Value* sp)
+    {
+        llvm::Value* sp_16 = c->builder.CreateZExt(sp, int16);
+        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
+        return c->builder.CreateOr(
+            {sp_16, c_0x0100});
+    }
+
     void StackPush(llvm::Value* v)
     {
+        // Calculate stack address
         llvm::Value* load_sp =
             c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
-        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
-        llvm::Constant* c1_16 = llvm::ConstantInt::get(int16, 1);
-        llvm::Value* addr = c->builder.CreateOr(
-            {load_sp, c_0x0100});  // addr <- load_sp or 0x0100
+        llvm::Value* sp_addr = GetStackAddress(load_sp);
+
+        // Subtract 1 from stack pointer
+        llvm::Constant* c1_8 = llvm::ConstantInt::get(int8, 1);
         load_sp =
-            c->builder.CreateSub(load_sp, c1_16);    // load_sp <- load_sp - 1
+            c->builder.CreateSub(load_sp, c1_8);    // load_sp <- load_sp - 1
+
         c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
-        // WriteMemory(addr, v);                        // [addr] <- v
+        c->builder.CreateCall(c->write_fn, {sp_addr, v});  // [addr] <- v
+    }
+
+    llvm::Value* StackPull()
+    {
+        // Calculate stack address
+        llvm::Value* load_sp =
+            c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
+
+        // Add 1 to stack pointer
+        llvm::Constant* c1_8 = llvm::ConstantInt::get(int8, 1);
+        load_sp =
+            c->builder.CreateAdd(load_sp, c1_8);    // load_sp <- load_sp + 1
+
+        llvm::Value* sp_addr = GetStackAddress(load_sp);
+
+        c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
+        return c->builder.CreateCall(c->read_fn, {sp_addr});  // [addr] <- v
     }
 
     void CreateCondBranch(llvm::Value* pred, llvm::BasicBlock* target)
@@ -216,11 +241,13 @@ class Compiler {
         c->builder.SetInsertPoint(continue_block);
     }
 
-    llvm::Constant* AddressModeImmediate(uint16_t operand) {
+    llvm::Constant* AddressModeImmediate(uint16_t operand)
+    {
         return GetConstant8(operand);
     }
 
-    llvm::Constant* AddressModeAbsolute(uint16_t addr) {
+    llvm::Constant* AddressModeAbsolute(uint16_t addr)
+    {
         return GetConstant16(addr);
     }
 
@@ -245,7 +272,7 @@ class Compiler {
     llvm::Value* AddressModeZeropage(uint16_t addr)
     {
         // Zero page addressing only has an 8 bit operand
-        return GetConstant16(addr);
+        return GetRAMPtr(addr);
     }
 
     llvm::Value* AddressModeZeropageX(uint16_t addr)
@@ -253,7 +280,7 @@ class Compiler {
         llvm::Constant* addr_trunc = GetConstant8(addr);
         llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
         llvm::Value* target_addr = c->builder.CreateAdd(addr_trunc, load_x);
-        return target_addr;
+        return c->builder.CreateZExt(target_addr, int16);
     }
 
     llvm::Value* AddressModeZeropageY(uint16_t addr)
@@ -261,7 +288,7 @@ class Compiler {
         llvm::Constant* addr_trunc = GetConstant8(addr);
         llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
         llvm::Value* target_addr = c->builder.CreateAdd(addr_trunc, load_y);
-        return target_addr;
+        return c->builder.CreateZExt(target_addr, int16);
     }
 
     void AddressModeIndirect() {}
@@ -300,18 +327,16 @@ class Compiler {
 
         // low
         llvm::Value* addr_low =
-            c->builder.CreateCall(c->read_fn, GetConstant8(addr));
+            c->builder.CreateCall(c->read_fn, GetConstant16(addr));
         llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
 
         // high
-        llvm::Value* addr_get_high =
-            c->builder.CreateAdd(GetConstant8(addr), GetConstant8(1));
         llvm::Value* addr_get_high_16 =
-            c->builder.CreateZExt(addr_get_high, int16);
+            c->builder.CreateAdd(GetConstant16(addr), GetConstant16(1));
         llvm::Value* addr_high =
-            c->builder.CreateCall(c->read_fn, addr_get_high);
-        llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
-        llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
+            c->builder.CreateCall(c->read_fn, addr_get_high_16);
+        llvm::Value* addr_high_16 = c->builder.CreateZExt(addr_high, int16);
+        llvm::Value* addr_high_shl = c->builder.CreateShl(addr_high_16, 8);
 
         llvm::Value* addr_hl_or =
             c->builder.CreateOr(addr_high_shl, addr_low_16);

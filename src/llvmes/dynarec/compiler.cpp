@@ -3,7 +3,8 @@
 namespace llvmes {
 
 // Only one compiler can exist atm
-// This is a static ref to the compiler, a hack to keep the "read/write" functions static
+// This is a static ref to the compiler, a hack to keep the "read/write"
+// functions static
 static Compiler* s_compiler = nullptr;
 
 void write_memory(int16_t addr, int8_t val)
@@ -23,7 +24,7 @@ inline void putreg(int8_t r)
 
 inline void putchar(int8_t c)
 {
-    printf("%c", c);
+    std::cout << c;
 }
 
 Compiler::Compiler(AST&& ast, const std::string& program_name)
@@ -39,52 +40,31 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     int1 = llvm::Type::getInt1Ty(c->m->getContext());
     void_ty = llvm::Type::getVoidTy(c->m->getContext());
 
-    // Declare putreg
-    llvm::Type* putreg_result_type = void_ty;
-    llvm::Type* putreg_argument_types[1] = {int8};
-    bool putreg_vararg = false;
+    // Create functions
+    auto putreg_fn = RegisterFunction({int8}, void_ty, "putreg", (void*)putreg);
+    c->putreg_fn = putreg_fn;
 
-    llvm::FunctionType* putreg_function_type = llvm::FunctionType::get(
-        putreg_result_type, putreg_argument_types, putreg_vararg);
+    auto putchar_fn =
+        RegisterFunction({int8}, void_ty, "putchar", (void*)putchar);
+    c->putchar_fn = putchar_fn;
 
-    llvm::Function* putreg_function = llvm::Function::Create(
-        putreg_function_type, llvm::Function::ExternalLinkage, "putreg", *c->m);
+    auto write_fn =
+        RegisterFunction({int16, int8}, void_ty, "write", (void*)write_memory);
+    c->write_fn = write_fn;
 
-    c->putreg_fn = putreg_function;
+    auto read_fn = RegisterFunction({int16}, int8, "read", (void*)read_memory);
+    c->read_fn = read_fn;
 
-    // Declare putchar
-    llvm::Type* putchar_result_type = void_ty;
-    llvm::Type* putchar_argument_types[1] = {int8};
-    bool putchar_vararg = false;
+    auto main_fn = RegisterFunction({}, int32, "main", nullptr);
+    c->main_fn = main_fn;
 
-    llvm::FunctionType* putchar_function_type = llvm::FunctionType::get(
-        putchar_result_type, putchar_argument_types, putchar_vararg);
-
-    llvm::Function* putchar_function = llvm::Function::Create(
-        putchar_function_type, llvm::Function::ExternalLinkage, "putchar",
-        *c->m);
-
-    c->putchar_fn = putchar_function;
-
-    // Main starts here
-
-    llvm::Type* result_type = int32;
-    llvm::Type* argument_types[2] = {};
-    bool vararg = false;
-
-    llvm::FunctionType* function_type =
-        llvm::FunctionType::get(result_type, {}, vararg);
-
-    llvm::Function* function = llvm::Function::Create(
-        function_type, llvm::Function::ExternalLinkage, "main", *c->m);
-
-    c->main_fn = function;
-
+    // Create initial basicblock
     llvm::BasicBlock* entry =
-        llvm::BasicBlock::Create(c->m->getContext(), "entry", function);
+        llvm::BasicBlock::Create(c->m->getContext(), "entry", main_fn);
     c->builder.SetInsertPoint(entry);
 
-    c->reg_sp = c->builder.CreateAlloca(int16, 0, "SP");
+    // Initiate all variables to 0
+    c->reg_sp = c->builder.CreateAlloca(int8, 0, "SP");
     c->reg_x = c->builder.CreateAlloca(int8, 0, "X");
     c->reg_y = c->builder.CreateAlloca(int8, 0, "Y");
     c->reg_a = c->builder.CreateAlloca(int8, 0, "A");
@@ -92,41 +72,22 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->status_n = c->builder.CreateAlloca(int1, 0, "N");
     c->status_v = c->builder.CreateAlloca(int1, 0, "V");
     c->status_c = c->builder.CreateAlloca(int1, 0, "C");
-
-    // llvm::Type* array_ty = llvm::ArrayType::get(int8, 0xFFFF);
-    // c->ram = c->builder.CreateAlloca(array_ty, nullptr, "ram");
+    c->status_i = c->builder.CreateAlloca(int1, 0, "I");
+    c->status_b = c->builder.CreateAlloca(int1, 0, "B");
+    c->status_u = c->builder.CreateAlloca(int1, 0, "U");
+    c->status_d = c->builder.CreateAlloca(int1, 0, "D");
 
     c->builder.CreateStore(GetConstant8(0), c->reg_x);
     c->builder.CreateStore(GetConstant8(0), c->reg_y);
     c->builder.CreateStore(GetConstant8(0), c->reg_a);
 
-    // Write
-
-    llvm::Type* w_result_type = void_ty;
-    llvm::Type* w_argument_types[2] = {int16, int8};
-    bool w_vararg = false;
-
-    llvm::FunctionType* w_function_type =
-        llvm::FunctionType::get(w_result_type, w_argument_types, w_vararg);
-
-    llvm::Function* w_function = llvm::Function::Create(
-        w_function_type, llvm::Function::ExternalLinkage, "write", *c->m);
-
-    c->write_fn = w_function;
-
-    // Read
-
-    llvm::Type* r_result_type = int8;
-    llvm::Type* r_argument_types[1] = {int16};
-    bool r_vararg = false;
-
-    llvm::FunctionType* r_function_type =
-        llvm::FunctionType::get(r_result_type, r_argument_types, r_vararg);
-
-    llvm::Function* r_function = llvm::Function::Create(
-        r_function_type, llvm::Function::ExternalLinkage, "read", *c->m);
-
-    c->read_fn = r_function;
+    c->builder.CreateStore(GetConstant1(0), c->status_c);
+    c->builder.CreateStore(GetConstant1(0), c->status_v);
+    c->builder.CreateStore(GetConstant1(0), c->status_n);
+    c->builder.CreateStore(GetConstant1(0), c->status_b);
+    c->builder.CreateStore(GetConstant1(0), c->status_u);
+    c->builder.CreateStore(GetConstant1(0), c->status_z);
+    c->builder.CreateStore(GetConstant1(0), c->status_i);
 }
 
 std::function<int()> Compiler::GetMain(bool optimize)
@@ -164,7 +125,6 @@ void Compiler::PassTwo()
             Instruction& instr = (Instruction&)*(*it);
             CodeGen(instr);
 
-            // TODO: Don't know if this is a one-case scenario or not
             auto next = std::next(it);
             if (next != ast.end()) {
                 if ((*next)->GetType() == StatementType::Label &&
@@ -189,4 +149,4 @@ void Compiler::Compile()
     PassTwo();
 }
 
-}
+}  // namespace llvmes
