@@ -23,6 +23,7 @@ class CPU {
     CPU();
     void Step();
     void Run();
+    void Halt();
     void Reset();
     void Dump();
     void SetNMI();
@@ -59,6 +60,8 @@ class CPU {
     bool m_irq, m_nmi;
     // Will be set to true whenever an illegal op-code gets fetched
     bool m_illegal_opcode;
+    // 
+    bool m_should_run;
     // Contains the address associated with an instruction
     std::uint16_t m_address;
 
