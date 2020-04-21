@@ -47,10 +47,6 @@ struct Compilation {
           builder(m->getContext()),
           ram(0x10000)
     {
-        jitter.add_external_symbol("putreg", &putreg);
-        jitter.add_external_symbol("putchar", &putchar);
-        jitter.add_external_symbol("write", &write_memory);
-        jitter.add_external_symbol("read", &read_memory);
     }
 };
 
