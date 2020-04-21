@@ -774,31 +774,36 @@ void Compiler::CodeGen(Instruction& i)
         case 0x28: {  // PLP Implied
             // PLP ignore bits 4 and 5 from the stack
             llvm::Value* status = StackPull();
-
-            llvm::Value* and_z =
-                c->builder.CreateAnd(status, GetConstant8(0x01));
-            llvm::Value* status_z =
-                c->builder.CreateICmpEQ(and_z, GetConstant8(0x01));
-            c->builder.CreateStore(status_z, c->status_z);
-
             llvm::Value* and_c =
-                c->builder.CreateAnd(status, GetConstant8(0x02));
+                c->builder.CreateAnd(status, GetConstant8(0x01));
             llvm::Value* status_c =
-                c->builder.CreateICmpEQ(and_c, GetConstant8(0x02));
+                c->builder.CreateICmpEQ(and_c, GetConstant8(0x01));
             c->builder.CreateStore(status_c, c->status_c);
-
+            llvm::Value* and_z =
+                c->builder.CreateAnd(status, GetConstant8(0x02));
+            llvm::Value* status_z =
+                c->builder.CreateICmpEQ(and_z, GetConstant8(0x02));
+            c->builder.CreateStore(status_z, c->status_z);
             llvm::Value* and_i =
                 c->builder.CreateAnd(status, GetConstant8(0x04));
             llvm::Value* status_i =
                 c->builder.CreateICmpEQ(and_i, GetConstant8(0x04));
             c->builder.CreateStore(status_i, c->status_i);
-
             llvm::Value* and_d =
                 c->builder.CreateAnd(status, GetConstant8(0x08));
             llvm::Value* status_d =
                 c->builder.CreateICmpEQ(and_d, GetConstant8(0x08));
             c->builder.CreateStore(status_d, c->status_d);
-
+            llvm::Value* and_b =
+                c->builder.CreateAnd(status, GetConstant8(0x10));
+            llvm::Value* status_b =
+                c->builder.CreateICmpEQ(and_b, GetConstant8(0x10));
+            c->builder.CreateStore(status_b, c->status_b);
+            llvm::Value* and_u =
+                c->builder.CreateAnd(status, GetConstant8(0x20));
+            llvm::Value* status_u =
+                c->builder.CreateICmpEQ(and_u, GetConstant8(0x20));
+            c->builder.CreateStore(status_u, c->status_u);
             llvm::Value* and_v =
                 c->builder.CreateAnd(status, GetConstant8(0x40));
             llvm::Value* status_v =
