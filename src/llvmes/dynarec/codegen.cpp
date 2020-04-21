@@ -1411,7 +1411,12 @@ void Compiler::CodeGen(Instruction& i)
                 llvm::Value* status_d = c->builder.CreateLoad(c->status_d);
                 status_d = c->builder.CreateZExt(status_d, int8);
                 status_d = c->builder.CreateShl(status_d, 3);
-                llvm::Value* status_b = GetConstant8(0x30); // Always on bits
+                llvm::Value* status_b = c->builder.CreateLoad(c->status_b);
+                status_b = c->builder.CreateZExt(status_b, int8);
+                status_b = c->builder.CreateShl(status_b, 4);
+                llvm::Value* status_u = c->builder.CreateLoad(c->status_u);
+                status_u = c->builder.CreateZExt(status_u, int8);
+                status_u = c->builder.CreateShl(status_u, 5);
                 llvm::Value* status_v = c->builder.CreateLoad(c->status_v);
                 status_v = c->builder.CreateZExt(status_v, int8);
                 status_v = c->builder.CreateShl(status_v, 6);
@@ -1422,6 +1427,7 @@ void Compiler::CodeGen(Instruction& i)
                 status = c->builder.CreateOr(status, status_i);
                 status = c->builder.CreateOr(status, status_d);
                 status = c->builder.CreateOr(status, status_b);
+                status = c->builder.CreateOr(status, status_u);
                 status = c->builder.CreateOr(status, status_v);
                 status = c->builder.CreateOr(status, status_n);
                 c->builder.CreateCall(c->putreg_fn, {status});
