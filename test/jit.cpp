@@ -87,7 +87,7 @@ try {
         return 1;
     }
 
-    auto c = llvmes::make_unique<Compiler>(std::move(ast), input);
+    auto c = llvmes::make_unique<Compiler>(ast, input);
     if (verbose)
         c->SetDumpDir(".");
     c->SetRAM(std::move(ram));
