@@ -30,6 +30,7 @@ struct Compilation {
     llvm::Value* status_z = nullptr;
     llvm::Value* status_i = nullptr;
     llvm::Value* status_b = nullptr;
+    llvm::Value* status_u = nullptr;
     llvm::Value* status_d = nullptr;
     llvm::Value* main_fn = nullptr;
     llvm::Value* putreg_fn = nullptr;

@@ -809,7 +809,6 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* status_v =
                 c->builder.CreateICmpEQ(and_v, GetConstant8(0x40));
             c->builder.CreateStore(status_v, c->status_v);
-
             llvm::Value* and_n =
                 c->builder.CreateAnd(status, GetConstant8(0x80));
             llvm::Value* status_n =

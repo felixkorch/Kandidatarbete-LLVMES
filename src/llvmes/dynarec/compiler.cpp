@@ -74,6 +74,7 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->status_c = c->builder.CreateAlloca(int1, 0, "C");
     c->status_i = c->builder.CreateAlloca(int1, 0, "I");
     c->status_b = c->builder.CreateAlloca(int1, 0, "B");
+    c->status_u = c->builder.CreateAlloca(int1, 0, "U");
     c->status_d = c->builder.CreateAlloca(int1, 0, "D");
 
     c->builder.CreateStore(GetConstant8(0), c->reg_x);
@@ -83,6 +84,8 @@ Compiler::Compiler(AST&& ast, const std::string& program_name)
     c->builder.CreateStore(GetConstant1(0), c->status_c);
     c->builder.CreateStore(GetConstant1(0), c->status_v);
     c->builder.CreateStore(GetConstant1(0), c->status_n);
+    c->builder.CreateStore(GetConstant1(0), c->status_b);
+    c->builder.CreateStore(GetConstant1(0), c->status_u);
     c->builder.CreateStore(GetConstant1(0), c->status_z);
     c->builder.CreateStore(GetConstant1(0), c->status_i);
 }
