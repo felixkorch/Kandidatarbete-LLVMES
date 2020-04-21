@@ -1571,21 +1571,36 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xBA: {  // TSX Implied
+            llvm::Value* load_sp = c->builder.CreateLoad(c->reg_sp);
+            llvm::Value* result = c->builder.CreateStore(load_sp, c->reg_x);
+
+            // Flag test
+            DynamicTestZ(result);
+            DynamicTestN(result);
             break;
         }
         case 0x8A: {  // TXA Implied
+            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+            c->builder.CreateStore(load_x, c->reg_a);
+
+            // Flag test
+            DynamicTestZ(load_x);
+            DynamicTestN(load_x);
             break;
         }
         case 0x9A: {  // TXS Implied
+            llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
+            c->builder.CreateStore(reg_x, c->reg_sp);
             break;
         }
         case 0x98: {  // TYA Implied
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            llvm::Value* result = c->builder.CreateStore(load_y, c->reg_a);
+            c->builder.CreateStore(load_y, c->reg_a);
 
-            // flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            // Flag test
+            DynamicTestN(load_y);
+            DynamicTestZ(load_y);
+
             break;
         }
         case 0x29: {  // AND Immediate
