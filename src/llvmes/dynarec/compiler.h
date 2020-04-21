@@ -210,31 +210,42 @@ class Compiler {
         return c->builder.CreateLoad(ram_ptr);
     }
 
+    llvm::Value* GetStackAddress(llvm::Value* sp)
+    {
+        llvm::Value* sp_16 = c->builder.CreateZExt(sp, int16);
+        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
+        llvm::Value* sp_addr = c->builder.CreateOr(
+            {sp_16, c_0x0100});  // addr <- load_sp or 0x0100
+    }
+
     void StackPush(llvm::Value* v)
     {
+        // Calculate stack address
         llvm::Value* load_sp =
             c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
-        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
-        llvm::Constant* c1_16 = llvm::ConstantInt::get(int16, 1);
-        llvm::Value* sp_addr = c->builder.CreateOr(
-            {load_sp, c_0x0100});  // addr <- load_sp or 0x0100
+        llvm::Value* sp_addr = GetStackAddress(load_sp);
+
+        // Subtract 1 from stack pointer
+        llvm::Constant* c1_8 = llvm::ConstantInt::get(int8, 1);
         load_sp =
-            c->builder.CreateSub(load_sp, c1_16);    // load_sp <- load_sp - 1
+            c->builder.CreateSub(load_sp, c1_8);    // load_sp <- load_sp - 1
+
         c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
         c->builder.CreateCall(c->write_fn, {sp_addr, v});  // [addr] <- v
     }
 
     llvm::Value* StackPull()
     {
-        // llvm::Value* value = ReadMemory(addr);
+        // Calculate stack address
         llvm::Value* load_sp =
             c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
-        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
-        llvm::Constant* c1_16 = llvm::ConstantInt::get(int16, 1);
-        llvm::Value* sp_addr = c->builder.CreateOr(
-            {load_sp, c_0x0100});  // addr <- load_sp or 0x0100
+        llvm::Value* sp_addr = GetStackAddress(load_sp);
+
+        // Add 1 to stack pointer
+        llvm::Constant* c1_8 = llvm::ConstantInt::get(int8, 1);
         load_sp =
-            c->builder.CreateAdd(load_sp, c1_16);    // load_sp <- load_sp + 1
+            c->builder.CreateAdd(load_sp, c1_8);    // load_sp <- load_sp + 1
+
         c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
         return c->builder.CreateCall(c->read_fn, {sp_addr});  // [addr] <- v
     }
