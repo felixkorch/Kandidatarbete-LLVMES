@@ -2,9 +2,9 @@
 #include <fstream>
 
 #include "cxxopts.hpp"
-#include "time.h"
 #include "llvmes/dynarec/compiler.h"
-#include "llvmes/dynarec/disassembler.h"
+#include "llvmes/dynarec/parser.h"
+#include "time.h"
 
 using namespace llvmes;
 using namespace std::chrono;
@@ -16,7 +16,8 @@ try {
 
     options.add_options()("f,positional", "File",
                           cxxopts::value<std::string>())(
-        "v,verbose", "Write IR to file", cxxopts::value<bool>())(
+        "v,verbose", "Enable verbose output", cxxopts::value<bool>())(
+        "i,ir", "Write IR to file", cxxopts::value<bool>())(
         "O,optimize", "Optimize", cxxopts::value<bool>())(
         "h,help", "Print usage")("t,time", "Set time format (ms/us/s)",
                                  cxxopts::value<std::string>())(
@@ -31,8 +32,8 @@ try {
     }
 
     TimeFormat time_format = TimeFormat::Micro;
-    bool verbose, optimize, save;
-    verbose = optimize = save = false;
+    bool verbose, optimize, save, write_ir;
+    verbose = optimize = save = write_ir = false;
 
     if (result.count("time")) {
         auto t_format = result["time"].as<std::string>();
@@ -55,6 +56,9 @@ try {
     if (result.count("save"))
         save = true;
 
+    if (result.count("ir"))
+        write_ir = true;
+
     // End - parsing command line
 
     std::ifstream in{input, std::ios::binary};
@@ -66,7 +70,8 @@ try {
     // Same as interpreter, this chunk above doesn't count
 
     ClockType start = high_resolution_clock::now();
-    ClockType stop, exec_start, parse_start, parse_stop, compile_start, compile_stop;
+    ClockType stop, exec_start, parse_start, parse_stop, compile_start,
+        compile_stop;
 
     Parser parser(std::move(in_file), 0x8000);
 
@@ -89,7 +94,7 @@ try {
     }
 
     auto c = llvmes::make_unique<Compiler>(ast, input);
-    if (verbose)
+    if (write_ir)
         c->SetDumpDir(".");
     c->SetRAM(std::move(ram));
 
@@ -102,16 +107,23 @@ try {
     main();
     stop = high_resolution_clock::now();
 
-    std::cout << "Execution time: "
-              << GetDuration<ClockType>(time_format, exec_start, stop)
-              << GetTimeFormatAbbreviation(time_format) << std::endl;
-    std::cout << "Parse time: " << GetDuration<ClockType>(time_format, parse_start, parse_stop)
-              << GetTimeFormatAbbreviation(time_format) << std::endl;
-    std::cout << "Compile time: " << GetDuration<ClockType>(time_format, compile_start, compile_stop)
-                << GetTimeFormatAbbreviation(time_format) << std::endl;
-    std::cout << "Total time: " << GetDuration<ClockType>(time_format, start, stop)
-                << GetTimeFormatAbbreviation(time_format) << std::endl;
-                
+    if (verbose) {
+        std::cout << "Execution time: "
+                  << GetDuration<ClockType>(time_format, exec_start, stop)
+                  << GetTimeFormatAbbreviation(time_format) << std::endl;
+        std::cout << "Parse time: "
+                  << GetDuration<ClockType>(time_format, parse_start,
+                                            parse_stop)
+                  << GetTimeFormatAbbreviation(time_format) << std::endl;
+        std::cout << "Compile time: "
+                  << GetDuration<ClockType>(time_format, compile_start,
+                                            compile_stop)
+                  << GetTimeFormatAbbreviation(time_format) << std::endl;
+        std::cout << "Total time: "
+                  << GetDuration<ClockType>(time_format, start, stop)
+                  << GetTimeFormatAbbreviation(time_format) << std::endl;
+    }
+
     if (save) {
         std::string out = result["save"].as<std::string>();
         std::stringstream ss;

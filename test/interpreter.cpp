@@ -4,8 +4,8 @@
 #include <string>
 
 #include "cxxopts.hpp"
-#include "time.h"
 #include "llvmes/interpreter/cpu.h"
+#include "time.h"
 
 using namespace llvmes;
 using namespace std::chrono;
@@ -101,8 +101,8 @@ try {
     auto program = std::vector<char>{std::istreambuf_iterator<char>(in),
                                      std::istreambuf_iterator<char>()};
 
-
-    // Start of Total time is defined as this point, when the actual virtual CPU is created
+    // Start of Total time is defined as this point, when the actual virtual CPU
+    // is created
 
     ClockType start = high_resolution_clock::now();
     ClockType exec_start, stop;
@@ -119,11 +119,14 @@ try {
     cpu->Run();
     stop = high_resolution_clock::now();
 
-    std::cout << "Execution time: "
-              << GetDuration<ClockType>(time_format, exec_start, stop)
-              << GetTimeFormatAbbreviation(time_format) << std::endl;
-    std::cout << "Total time: " << GetDuration<ClockType>(time_format, start, stop)
-              << GetTimeFormatAbbreviation(time_format) << std::endl;
+    if (verbose) {
+        std::cout << "Execution time: "
+                  << GetDuration<ClockType>(time_format, exec_start, stop)
+                  << GetTimeFormatAbbreviation(time_format) << std::endl;
+        std::cout << "Total time: "
+                  << GetDuration<ClockType>(time_format, start, stop)
+                  << GetTimeFormatAbbreviation(time_format) << std::endl;
+    }
 
     if (save) {
         std::string out = result["save"].as<std::string>();
