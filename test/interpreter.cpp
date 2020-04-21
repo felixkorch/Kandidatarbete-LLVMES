@@ -91,16 +91,23 @@ try {
     }
 
     auto input = result["positional"].as<std::string>();
+    // End - parsing command line
 
-    auto start = high_resolution_clock::now();
-
-    cpu = std::make_shared<CPU>();
-
+    // Read in the binary in to host RAM, don't count this into total time
+    // Same applies to the JIT Compiler
     std::ifstream in{input, std::ios::binary};
     if (in.fail())
         throw std::runtime_error("The file doesn't exist");
     auto program = std::vector<char>{std::istreambuf_iterator<char>(in),
                                      std::istreambuf_iterator<char>()};
+
+
+    // Start of Total time is defined as this point, when the actual virtual CPU is created
+
+    ClockType start = high_resolution_clock::now();
+    ClockType exec_start, stop;
+
+    cpu = std::make_shared<CPU>();
 
     std::copy(program.begin(), program.end(), &memory[0x8000]);
 
@@ -108,15 +115,14 @@ try {
     cpu->Write = writeMemory;
     cpu->Reset();
 
-    auto exec_start = high_resolution_clock::now();
+    exec_start = high_resolution_clock::now();
     cpu->Run();
-
-    auto stop = high_resolution_clock::now();
+    stop = high_resolution_clock::now();
 
     std::cout << "Execution time: "
-              << GetDuration<decltype(stop)>(time_format, exec_start, stop)
+              << GetDuration<ClockType>(time_format, exec_start, stop)
               << GetTimeFormatAbbreviation(time_format) << std::endl;
-    std::cout << "Total time: " << GetDuration(time_format, start, stop)
+    std::cout << "Total time: " << GetDuration<ClockType>(time_format, start, stop)
               << GetTimeFormatAbbreviation(time_format) << std::endl;
 
     if (save) {
