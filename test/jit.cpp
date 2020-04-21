@@ -136,6 +136,8 @@ try {
         fstream.close();
     }
 
+    ast.Cleanup();
+
     return 0;
 }
 catch (std::exception& e) {
