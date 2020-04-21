@@ -25,7 +25,8 @@ set(SOURCE
     src/llvmes/nes/rom.cpp
     src/llvmes/interpreter/cpu.cpp
     src/llvmes/interpreter/cpu.h
-    src/llvmes/dynarec/disassembler.h
+    src/llvmes/dynarec/parser.h
+    src/llvmes/dynarec/parser.cpp
     src/llvmes/dynarec/6502_opcode.h
     src/llvmes/common.h
     src/llvmes/dynarec/compiler.h
