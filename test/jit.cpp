@@ -68,15 +68,16 @@ try {
     ClockType start = high_resolution_clock::now();
     ClockType stop, exec_start, parse_start, parse_stop, compile_start, compile_stop;
 
-    auto d = llvmes::make_unique<Disassembler>(std::move(in_file), 0x8000);
+    Parser parser(std::move(in_file), 0x8000);
 
     AST ast;
     std::vector<uint8_t> ram;
+
     try {
         parse_start = high_resolution_clock::now();
-        ast = d->Disassemble();
+        ast = parser.Parse();
         parse_stop = high_resolution_clock::now();
-        ram = d->GetRAM();
+        ram = parser.GetRAM();
     }
     catch (ParseException& e) {
         std::cerr << e.what() << std::endl;
