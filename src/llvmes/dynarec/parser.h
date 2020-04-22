@@ -69,6 +69,7 @@ class Parser {
     std::queue<uint16_t> branches;
 
     void ParseInstructions(uint16_t start);
+    uint16_t ParseArgument(Instruction* instruction);
 
    public:
     Parser(std::vector<uint8_t>&& data_in, uint16_t start_location);
