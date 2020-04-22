@@ -25,19 +25,32 @@ err_str:
 
 ; Immediate test
 main:
-SBC_CMP #$0A #$05 #$04
+
+
+SBC_CMP #$0A #$05 #$04 ; should be $04 because c = 0
 BNE print_err
-SBC_CMP #$04 #$05 #$FE
-BNE print_err
+;STA $200C
 
 
 
-; Flags should be: 1 1 0 0 0 0 0 0 = $B0, NZC = 100
-PHP ; Push status register to stack
-PLA ; Pull status register into A
-STA $2009
-CMP #$00
+SBC_CMP #$04 #$04 #$00 ; should be $00 because c = 1 
 BNE print_err
+;STA $200C ; should be Flags: 0011
+
+
+
+SBC_CMP #$A0 #$40 #$60
+BNE print_err
+;STA $200C
+    
+
+
+
+SBC_CMP #$04 #$08 #$FC
+BNE print_err
+;STA $200C
+
+
 
 JMP print_ok
 

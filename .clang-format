@@ -7,3 +7,4 @@ AllowShortIfStatementsOnASingleLine : Never
 AllowShortLoopsOnASingleLine: false
 DerivePointerAlignment: false
 PointerAlignment: Left
+ColumnLimit: 90
