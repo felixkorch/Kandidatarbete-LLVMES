@@ -105,10 +105,13 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* zpg_addr = GetConstant8(i.arg);
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             llvm::Value* zpg_x_addr = c->builder.CreateAdd(zpg_addr, load_x);
-            llvm::Value* zpg_x_value = c->builder.CreateLoad(zpg_x_addr);
+            llvm::Value* zpg_x_addr_16 =
+                c->builder.CreateZExt(zpg_x_addr, int16);
+            llvm::Value* zpg_x_value =
+                c->builder.CreateCall(c->read_fn, {zpg_x_addr_16});
             llvm::Value* incx =
                 c->builder.CreateAdd(zpg_x_value, GetConstant8(1));
-            c->builder.CreateCall(c->write_fn, {incx, zpg_x_addr});
+            c->builder.CreateCall(c->write_fn, {zpg_x_addr_16, incx});
             DynamicTestZ(incx);
             DynamicTestN(incx);
             break;
