@@ -1,4 +1,4 @@
- #macro PRINT 2
+#macro PRINT 2
 %1:
 LDA %2, X
 BEQ exit
@@ -50,8 +50,6 @@ SBC_CMP #$04 #$08 #$FC
 BNE print_err
 ;STA $200C
 
-
- 
 
 
 JMP print_ok
