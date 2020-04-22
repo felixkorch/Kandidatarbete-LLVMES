@@ -26,8 +26,12 @@ void putchar(int8_t c)
 
 void putstatus(int8_t s)
 {
-    printf("[N: %d V: %d Z: %d C: %d] (%s)\n", (bool)(s & 0x80), (bool)(s & 0x40),
-           (bool)(s & 0x02), (bool)(s & 0x01), ToHexString((uint8_t)s).c_str());
+    printf("[N: %d V: %d Z: %d C: %d] (%s)\n",
+           (bool)(s & 0x80),                  // Negative Flag
+           (bool)(s & 0x40),                  // Overflow flag
+           (bool)(s & 0x02),                  // Zero flag
+           (bool)(s & 0x01),                  // Carry flag
+           ToHexString((uint8_t)s).c_str());  // Complete status register
 }
 
 Compiler::Compiler(AST ast, const std::string& program_name)
