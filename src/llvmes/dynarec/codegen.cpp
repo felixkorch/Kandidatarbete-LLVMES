@@ -1235,8 +1235,6 @@ void Compiler::CodeGen(Instruction& i)
                 c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
-            c->builder.CreateStore(result, c->reg_a);
-
             // Handling overflow
 
             llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
@@ -1248,9 +1246,9 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
             llvm::Value* SGT_1 =
-                c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_1, GetConstant8(0));
             llvm::Value* SGT_2 =
-                c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_2, GetConstant8(0));
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
@@ -1258,8 +1256,12 @@ void Compiler::CodeGen(Instruction& i)
 
             DynamicTestN(result);
             DynamicTestZ(result);
-            result = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16_extended =
+                c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16_extended);
+
+            c->builder.CreateStore(result, c->reg_a);
+
             break;
         }
         case 0xE5: {  // SBC Zeropage
@@ -1282,8 +1284,6 @@ void Compiler::CodeGen(Instruction& i)
                 c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
-            c->builder.CreateStore(result, c->reg_a);
-
             // Handling overflow
 
             llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
@@ -1295,9 +1295,9 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
             llvm::Value* SGT_1 =
-                c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_1, GetConstant8(0));
             llvm::Value* SGT_2 =
-                c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_2, GetConstant8(0));
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
@@ -1305,8 +1305,12 @@ void Compiler::CodeGen(Instruction& i)
 
             DynamicTestN(result);
             DynamicTestZ(result);
-            result = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16_extended =
+                c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16_extended);
+
+            c->builder.CreateStore(result, c->reg_a);
+
             break;
         }
         case 0xF5: {  // SBC ZeropageX
@@ -1328,8 +1332,6 @@ void Compiler::CodeGen(Instruction& i)
                 c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
-            c->builder.CreateStore(result, c->reg_a);
-
             // Handling overflow
 
             llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
@@ -1341,9 +1343,9 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
             llvm::Value* SGT_1 =
-                c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_1, GetConstant8(0));
             llvm::Value* SGT_2 =
-                c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_2, GetConstant8(0));
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
@@ -1351,8 +1353,12 @@ void Compiler::CodeGen(Instruction& i)
 
             DynamicTestN(result);
             DynamicTestZ(result);
-            result = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16_extended =
+                c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16_extended);
+
+            c->builder.CreateStore(result, c->reg_a);
+
             break;
         }
         case 0xED: {  // SBC Absolute
@@ -1373,8 +1379,6 @@ void Compiler::CodeGen(Instruction& i)
                 c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
-            c->builder.CreateStore(result, c->reg_a);
-
             // Handling overflow
 
             llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
@@ -1386,9 +1390,9 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
             llvm::Value* SGT_1 =
-                c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_1, GetConstant8(0));
             llvm::Value* SGT_2 =
-                c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_2, GetConstant8(0));
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
@@ -1396,8 +1400,12 @@ void Compiler::CodeGen(Instruction& i)
 
             DynamicTestN(result);
             DynamicTestZ(result);
-            result = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16_extended =
+                c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16_extended);
+
+            c->builder.CreateStore(result, c->reg_a);
+
             break;
         }
         case 0xFD: {  // SBC AbsoluteX
@@ -1418,8 +1426,6 @@ void Compiler::CodeGen(Instruction& i)
                 c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
-            c->builder.CreateStore(result, c->reg_a);
-
             // Handling overflow
 
             llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
@@ -1431,9 +1437,9 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
             llvm::Value* SGT_1 =
-                c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_1, GetConstant8(0));
             llvm::Value* SGT_2 =
-                c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_2, GetConstant8(0));
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
@@ -1441,8 +1447,12 @@ void Compiler::CodeGen(Instruction& i)
 
             DynamicTestN(result);
             DynamicTestZ(result);
-            result = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16_extended =
+                c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16_extended);
+
+            c->builder.CreateStore(result, c->reg_a);
+
             break;
         }
         case 0xF9: {  // SBC AbsoluteY
@@ -1463,8 +1473,6 @@ void Compiler::CodeGen(Instruction& i)
                 c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
-            c->builder.CreateStore(result, c->reg_a);
-
             // Handling overflow
 
             llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
@@ -1476,9 +1484,9 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
             llvm::Value* SGT_1 =
-                c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_1, GetConstant8(0));
             llvm::Value* SGT_2 =
-                c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_2, GetConstant8(0));
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
@@ -1486,8 +1494,12 @@ void Compiler::CodeGen(Instruction& i)
 
             DynamicTestN(result);
             DynamicTestZ(result);
-            result = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16_extended =
+                c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16_extended);
+
+            c->builder.CreateStore(result, c->reg_a);
+
             break;
         }
         case 0xE1: {  // SBC IndirectX
@@ -1508,8 +1520,6 @@ void Compiler::CodeGen(Instruction& i)
                 c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
-            c->builder.CreateStore(result, c->reg_a);
-
             // Handling overflow
 
             llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
@@ -1521,9 +1531,9 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
             llvm::Value* SGT_1 =
-                c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_1, GetConstant8(0));
             llvm::Value* SGT_2 =
-                c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_2, GetConstant8(0));
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
@@ -1531,8 +1541,12 @@ void Compiler::CodeGen(Instruction& i)
 
             DynamicTestN(result);
             DynamicTestZ(result);
-            result = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16_extended =
+                c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16_extended);
+
+            c->builder.CreateStore(result, c->reg_a);
+
             break;
         }
         case 0xF1: {  // SBC IndirectY
@@ -1553,8 +1567,6 @@ void Compiler::CodeGen(Instruction& i)
                 c->builder.CreateSub(load_a, load_value);
             llvm::Value* result = c->builder.CreateSub(result_a_ram, load_c);
 
-            c->builder.CreateStore(result, c->reg_a);
-
             // Handling overflow
 
             llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
@@ -1566,9 +1578,9 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
             llvm::Value* SGT_1 =
-                c->builder.CreateICmpSGT(and_1, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_1, GetConstant8(0));
             llvm::Value* SGT_2 =
-                c->builder.CreateICmpSGT(and_2, GetConstant8(0), ">");
+                c->builder.CreateICmpNE(and_2, GetConstant8(0));
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
@@ -1576,8 +1588,12 @@ void Compiler::CodeGen(Instruction& i)
 
             DynamicTestN(result);
             DynamicTestZ(result);
-            result = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result);
+            llvm::Value* result_16_extended =
+                c->builder.CreateZExt(result, int16);
+            DynamicTestCCmp(result_16_extended);
+
+            c->builder.CreateStore(result, c->reg_a);
+
             break;
         }
         case 0x38: {  // SEC Implied
