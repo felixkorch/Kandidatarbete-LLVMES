@@ -70,6 +70,7 @@ class Parser {
 
     void ParseInstructions(uint16_t start);
     uint16_t ParseArgument(Instruction* instruction);
+    std::string AddLabel(Instruction* instruction);
 
    public:
     Parser(std::vector<uint8_t>&& data_in, uint16_t start_location);

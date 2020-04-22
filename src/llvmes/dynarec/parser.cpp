@@ -11,7 +11,44 @@ Parser::Parser(std::vector<uint8_t>&& data_in, uint16_t start_location)
     std::copy(temp.begin(), temp.end(), data.begin() + start_location);
 }
 
-// TODO: Maybe break this up a bit to increase readability
+// TODO: Define 0x8D and/or 0x200F with names in some central place?
+bool IsAbiReturn(Instruction* instruction)
+{
+    uint8_t op_code = instruction->opcode;
+    uint16_t argument = instruction->arg;
+    // According to our ABI, this is a return statement
+    return op_code == 0x8D && argument == 0x200F;
+}
+
+// TODO: Add more checks? Evaluate if we need to distinguise between
+bool IsJumpReturn(Instruction* instruction)
+{
+    // Absolute and Indirect
+    return instruction->opcode == 0x4C;
+}
+
+bool IsBranchInstruction(Instruction* instruction)
+{
+    return IsBranch(instruction->op_type) || IsJumpReturn(instruction);
+}
+
+uint16_t ParseBranchTarget(Instruction* instruction)
+{
+    uint16_t target;
+    uint16_t argument = instruction->arg;
+    uint16_t index = instruction->offset;
+
+    if (instruction->op_type == MOS6502::Op::JSR || IsJumpReturn(instruction)) {
+        target = argument;
+    }
+    // Conditional branch
+    else {
+        target = (int8_t)argument + index + 2;
+    }
+    return target;
+}
+
+//  TODO: Maybe break this up a bit to increase readability
 void Parser::ParseInstructions(uint16_t start)
 {
     index = start;
@@ -32,46 +69,43 @@ void Parser::ParseInstructions(uint16_t start)
         instr->addressing_mode = mos_instr.addr_mode;
         instr->op_type = mos_instr.op;
         instr->opcode = opcode;
-
+        instr->is_branchinstruction = IsBranchInstruction(instr);
         instr->arg = ParseArgument(instr);
+
         instructions[index] = instr;
 
-        // According to our ABI, this is a return statement
-        if (instr->opcode == 0x8D && instr->arg == 0x200F)
+        if (IsAbiReturn(instr))
             break;
 
-        bool JMP_Abs = instr->opcode == 0x4C;
-        if (IsBranch(mos_instr.op) || JMP_Abs) {
-            instr->is_branchinstruction = IsBranch(mos_instr.op) ? true : false;
-            uint16_t target_index = 0;
-
-            // Unconditional branch
-            if (mos_instr.op == MOS6502::Op::JSR || JMP_Abs) {
-                target_index = instr->arg;
-            }
-            // Conditional branch
-            else {
-                target_index = (int8_t)instr->arg + index + 2;
-            }
-
-            // Only add label if it doesn't exist
-            if (labels.count(target_index) == 0) {
-                std::stringstream ss;
-                ss << "Label " << ToHexString(target_index);
-                branches.push(target_index);
-                instr->target_label = ss.str();
-                labels[target_index] = ss.str();
-            }
-            else {
-                instr->target_label = labels[target_index];
-            }
-
+        if (instr->is_branchinstruction) {
+            instr->target_label = AddLabel(instr);
             // JMP ends a branch
-            if (JMP_Abs)
+            if (IsJumpReturn(instr))
                 break;
         }
 
         index += instr->size;
+    }
+}
+
+// Returns the label to be added. If label already exists, return name of that
+// label.
+std::string Parser::AddLabel(Instruction* instruction)
+{
+    uint16_t target_index = ParseBranchTarget(instruction);
+    bool label_exists = labels.count(target_index) > 0;
+
+    if (label_exists) {
+        return labels[target_index];
+    }
+    else {
+        std::stringstream ss;
+        ss << "Label " << ToHexString(target_index);
+        branches.push(target_index);
+        std::string new_label = ss.str();
+
+        labels[target_index] = new_label;
+        return new_label;
     }
 }
 
