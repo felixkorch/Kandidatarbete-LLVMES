@@ -21,11 +21,26 @@ ok_str:
 err_str:
 .db "err", 10, 0
 
+; Flags: N V U B D I Z C
+
 ; Immediate test
 main:
 SBC_CMP #$0A #$05 #$04
-BEQ print_ok
-JMP print_err
+BNE print_err
+SBC_CMP #$04 #$05 #$FE
+BNE print_err
+
+
+
+; Flags should be: 1 1 0 0 0 0 0 0 = $B0, NZC = 100
+PHP ; Push status register to stack
+PLA ; Pull status register into A
+STA $2009
+CMP #$00
+BNE print_err
+
+JMP print_ok
+
 
 PRINT print_ok ok_str
 PRINT print_err err_str
