@@ -30,6 +30,7 @@ struct Compilation {
     llvm::Value* status_z = nullptr;
     llvm::Value* status_i = nullptr;
     llvm::Value* status_b = nullptr;
+    llvm::Value* status_u = nullptr;
     llvm::Value* status_d = nullptr;
     llvm::Value* main_fn = nullptr;
     llvm::Value* putreg_fn = nullptr;
@@ -47,10 +48,6 @@ struct Compilation {
           builder(m->getContext()),
           ram(0x10000)
     {
-        jitter.add_external_symbol("putreg", &putreg);
-        jitter.add_external_symbol("putchar", &putchar);
-        jitter.add_external_symbol("write", &write_memory);
-        jitter.add_external_symbol("read", &read_memory);
     }
 };
 
@@ -160,7 +157,7 @@ class Compiler {
     void DynamicTestCCmp(llvm::Value* v)
     {
         llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
-        llvm::Value* lessThan = c->builder.CreateICmpUGT(v, c_0x0100);
+        llvm::Value* lessThan = c->builder.CreateICmpULT(v, c_0x0100);
         c->builder.CreateStore(lessThan, c->status_c);
     }
     // Calculates the ram-address as a constant-expr
@@ -174,23 +171,6 @@ class Compiler {
             ram_ptr_value, llvm::PointerType::getUnqual(
                                llvm::Type::getInt8Ty(c->m->getContext())));
     }
-
-    // Keeping it here for reference
-    //
-
-    //     llvm::Value* GetRAMPtr(llvm::Value* offset)
-    //     {
-    //         llvm::Constant* ram_ptr_value =
-    //             llvm::ConstantInt::get(llvm::Type::getInt64Ty(c->m->getContext()),
-    //                                    (int64_t)c->ram.data());
-    //
-    //         llvm::PointerType* ptr_ptr_ty =
-    //         llvm::PointerType::getUnqual(llvm::Type::getInt8PtrTy(c->m->getContext()));
-    //         llvm::Value* ptr_to_ptr =
-    //         c->builder.CreateIntToPtr(ram_ptr_value, ptr_ptr_ty);
-    //         llvm::Value* ptr = c->builder.CreateLoad(ptr_to_ptr);
-    //         return c->builder.CreateGEP(ptr, {GetConstant8(0), offset});
-    //     }
 
     // Can be called by LLVM on runtime
     void Write(uint16_t addr, uint8_t val) { c->ram[addr] = val; }
@@ -210,31 +190,43 @@ class Compiler {
         return c->builder.CreateLoad(ram_ptr);
     }
 
+    llvm::Value* GetStackAddress(llvm::Value* sp)
+    {
+        llvm::Value* sp_16 = c->builder.CreateZExt(sp, int16);
+        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
+        return c->builder.CreateOr(
+            {sp_16, c_0x0100});
+    }
+
     void StackPush(llvm::Value* v)
     {
+        // Calculate stack address
         llvm::Value* load_sp =
             c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
-        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
-        llvm::Constant* c1_16 = llvm::ConstantInt::get(int16, 1);
-        llvm::Value* sp_addr = c->builder.CreateOr(
-            {load_sp, c_0x0100});  // addr <- load_sp or 0x0100
+        llvm::Value* sp_addr = GetStackAddress(load_sp);
+
+        // Subtract 1 from stack pointer
+        llvm::Constant* c1_8 = llvm::ConstantInt::get(int8, 1);
         load_sp =
-            c->builder.CreateSub(load_sp, c1_16);    // load_sp <- load_sp - 1
+            c->builder.CreateSub(load_sp, c1_8);    // load_sp <- load_sp - 1
+
         c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
         c->builder.CreateCall(c->write_fn, {sp_addr, v});  // [addr] <- v
     }
 
     llvm::Value* StackPull()
     {
-        // llvm::Value* value = ReadMemory(addr);
+        // Calculate stack address
         llvm::Value* load_sp =
             c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
-        llvm::Constant* c_0x0100 = llvm::ConstantInt::get(int16, 0x0100);
-        llvm::Constant* c1_16 = llvm::ConstantInt::get(int16, 1);
-        llvm::Value* sp_addr = c->builder.CreateOr(
-            {load_sp, c_0x0100});  // addr <- load_sp or 0x0100
+
+        // Add 1 to stack pointer
+        llvm::Constant* c1_8 = llvm::ConstantInt::get(int8, 1);
         load_sp =
-            c->builder.CreateAdd(load_sp, c1_16);    // load_sp <- load_sp + 1
+            c->builder.CreateAdd(load_sp, c1_8);    // load_sp <- load_sp + 1
+
+        llvm::Value* sp_addr = GetStackAddress(load_sp);
+
         c->builder.CreateStore(load_sp, c->reg_sp);  // reg_sp <- load_sp
         return c->builder.CreateCall(c->read_fn, {sp_addr});  // [addr] <- v
     }

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "cxxopts.hpp"
+#include "time.h"
 #include "llvmes/interpreter/cpu.h"
 
 using namespace llvmes;
@@ -36,17 +37,9 @@ void writeMemory(std::uint16_t addr, std::uint8_t data)
     else if (addr == 0x200B) {
         std::cout << ToHexString(cpu->reg_y) << std::endl;
     }
-    // Write N to stdout
+    // Write status to stdout
     else if (addr == 0x200C) {
-        std::cout << cpu->reg_status.N << std::endl;
-    }
-    // Write C to stdout
-    else if (addr == 0x200D) {
-        std::cout << cpu->reg_status.C << std::endl;
-    }
-    // Write Z to stdout
-    else if (addr == 0x200E) {
-        std::cout << cpu->reg_status.Z << std::endl;
+        std::cout << ToHexString((uint8_t)cpu->reg_status) << std::endl;
     }
     // Exit program with exit code from reg A
     else if (addr == 0x200F) {
@@ -55,37 +48,6 @@ void writeMemory(std::uint16_t addr, std::uint8_t data)
     }
     else {
         memory[addr] = data;
-    }
-}
-
-enum class TimeFormat { Milli, Micro, Seconds };
-
-long long GetDuration(TimeFormat format, steady_clock::time_point start,
-                      steady_clock::time_point stop)
-{
-    switch (format) {
-        case TimeFormat::Micro:
-            return duration_cast<microseconds>(stop - start).count();
-        case TimeFormat::Milli:
-            return duration_cast<milliseconds>(stop - start).count();
-        case TimeFormat::Seconds:
-            return duration_cast<seconds>(stop - start).count();
-        default:
-            return duration_cast<microseconds>(stop - start).count();
-    }
-}
-
-std::string GetTimeFormatAbbreviation(TimeFormat format)
-{
-    switch (format) {
-        case TimeFormat::Micro:
-            return "us";
-        case TimeFormat::Milli:
-            return "ms";
-        case TimeFormat::Seconds:
-            return "s";
-        default:
-            return "us";
     }
 }
 
@@ -129,16 +91,23 @@ try {
     }
 
     auto input = result["positional"].as<std::string>();
+    // End - parsing command line
 
-    auto start = high_resolution_clock::now();
-
-    cpu = std::make_shared<CPU>();
-
+    // Read in the binary in to host RAM, don't count this into total time
+    // Same applies to the JIT Compiler
     std::ifstream in{input, std::ios::binary};
     if (in.fail())
         throw std::runtime_error("The file doesn't exist");
     auto program = std::vector<char>{std::istreambuf_iterator<char>(in),
                                      std::istreambuf_iterator<char>()};
+
+
+    // Start of Total time is defined as this point, when the actual virtual CPU is created
+
+    ClockType start = high_resolution_clock::now();
+    ClockType exec_start, stop;
+
+    cpu = std::make_shared<CPU>();
 
     std::copy(program.begin(), program.end(), &memory[0x8000]);
 
@@ -146,15 +115,14 @@ try {
     cpu->Write = writeMemory;
     cpu->Reset();
 
-    auto exec_start = high_resolution_clock::now();
+    exec_start = high_resolution_clock::now();
     cpu->Run();
-
-    auto stop = high_resolution_clock::now();
+    stop = high_resolution_clock::now();
 
     std::cout << "Execution time: "
-              << GetDuration(time_format, exec_start, stop)
+              << GetDuration<ClockType>(time_format, exec_start, stop)
               << GetTimeFormatAbbreviation(time_format) << std::endl;
-    std::cout << "Total time: " << GetDuration(time_format, start, stop)
+    std::cout << "Total time: " << GetDuration<ClockType>(time_format, start, stop)
               << GetTimeFormatAbbreviation(time_format) << std::endl;
 
     if (save) {
