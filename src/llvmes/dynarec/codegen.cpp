@@ -188,7 +188,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x69: {  // ADC Immediate
-            llvm::Constant* load_value = AddressModeImmediate(i.arg);
+            llvm::Value* load_value = AddressModeImmediate(i.arg);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
@@ -1220,7 +1220,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xE9: {  // SBC Immediate
 
-            llvm::Constant* load_value = AddressModeImmediate(i.arg);
+            llvm::Value* load_value = AddressModeImmediate(i.arg);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
@@ -1803,7 +1803,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x29: {  // AND Immediate
-            llvm::Constant* operand = AddressModeImmediate(i.arg);
+            llvm::Value* operand = AddressModeImmediate(i.arg);
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* result = c->builder.CreateAnd(load_a, operand);
             // Set Z to zero if result is zero

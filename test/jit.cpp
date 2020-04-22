@@ -96,11 +96,10 @@ try {
     auto c = llvmes::make_unique<Compiler>(ast, input);
     if (write_ir)
         c->SetDumpDir(".");
-    c->SetRAM(std::move(ram));
 
+    c->SetRAM(std::move(ram));
     compile_start = high_resolution_clock::now();
-    c->Compile();
-    auto main = c->GetMain(optimize);
+    auto main = c->Compile(optimize);
     compile_stop = high_resolution_clock::now();
 
     exec_start = high_resolution_clock::now();
@@ -135,8 +134,6 @@ try {
         fstream.write((char*)ram_ref.data(), ram_ref.size());
         fstream.close();
     }
-
-    ast.Cleanup();
 
     return 0;
 }

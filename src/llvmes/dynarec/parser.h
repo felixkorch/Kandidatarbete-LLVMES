@@ -55,12 +55,6 @@ class ParseException : public std::exception {
 struct AST {
     std::unordered_map<uint16_t, std::string> labels;
     std::map<uint16_t, Instruction*> instructions;
-
-    void Cleanup()
-    {
-        for(auto& i : instructions)
-            delete i.second;
-    }
 };
 
 class Parser {
