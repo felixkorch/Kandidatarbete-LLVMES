@@ -17,14 +17,21 @@ int8_t read_memory(int16_t addr)
     return s_compiler->Read(addr);
 }
 
-inline void putreg(int8_t r)
+void putreg(int8_t r)
 {
     printf("%s\n", ToHexString(r).c_str());
 }
 
-inline void putchar(int8_t c)
+void putchar(int8_t c)
 {
     std::cout << c;
+}
+
+void putstatus(int8_t s)
+{
+    printf("[N: %d V: %d Z: %d C: %d] (%s)\n", (bool)(s & 0x80),
+           (bool)(s & 0x40), (bool)(s & 0x02), (bool)(s & 0x01),
+           ToHexString((uint8_t)s).c_str());
 }
 
 Compiler::Compiler(AST ast, const std::string& program_name)
@@ -47,6 +54,10 @@ Compiler::Compiler(AST ast, const std::string& program_name)
     auto putchar_fn =
         RegisterFunction({int8}, void_ty, "putchar", (void*)putchar);
     c->putchar_fn = putchar_fn;
+
+    auto putstatus_fn =
+        RegisterFunction({int8}, void_ty, "putstatus", (void*)putstatus);
+    c->putstatus_fn = putstatus_fn;
 
     auto write_fn =
         RegisterFunction({int16, int8}, void_ty, "write", (void*)write_memory);

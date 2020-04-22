@@ -9,11 +9,6 @@
 
 namespace llvmes {
 
-void putreg(int8_t r);
-void putchar(int8_t c);
-void write_memory(int16_t addr, int8_t val);
-int8_t read_memory(int16_t addr);
-
 struct Compilation {
     JITTIR::Jitter jitter;
     std::unique_ptr<llvm::Module> m;
@@ -35,6 +30,7 @@ struct Compilation {
     llvm::Value* main_fn = nullptr;
     llvm::Value* putreg_fn = nullptr;
     llvm::Value* putchar_fn = nullptr;
+    llvm::Value* putstatus_fn = nullptr;
     llvm::Value* write_fn = nullptr;
     llvm::Value* read_fn = nullptr;
 
