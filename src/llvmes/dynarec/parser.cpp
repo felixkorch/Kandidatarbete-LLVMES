@@ -33,21 +33,7 @@ void Parser::ParseInstructions(uint16_t start)
         instr->op_type = mos_instr.op;
         instr->opcode = opcode;
 
-        assert(instr->size == 1 || instr->size == 2 || instr->size == 3);
-
-        if (instr->size == 2) {
-            if (index + 1 >= data.size())
-                throw ParseException("Machine code has illegal format");
-
-            instr->arg = data[index + 1];
-        }
-        else if (instr->size == 3) {
-            if (index + 2 >= data.size())
-                throw ParseException("Machine code has illegal format");
-
-            instr->arg = data[index + 1] | data[index + 2] << 8;
-        }
-
+        instr->arg = ParseArgument(instr);
         instructions[index] = instr;
 
         // According to our ABI, this is a return statement
@@ -87,6 +73,28 @@ void Parser::ParseInstructions(uint16_t start)
 
         index += instr->size;
     }
+}
+
+uint16_t Parser::ParseArgument(Instruction* instruction)
+{
+    assert(instruction->size == 1 || instruction->size == 2 ||
+           instruction->size == 3);
+
+    uint16_t argument;
+    if (instruction->size == 2) {
+        if (index + 1 >= data.size())
+            throw ParseException("Machine code has illegal format");
+
+        argument = data[index + 1];
+    }
+    else if (instruction->size == 3) {
+        if (index + 2 >= data.size())
+            throw ParseException("Machine code has illegal format");
+
+        argument = data[index + 1] | data[index + 2] << 8;
+    }
+
+    return argument;
 }
 
 AST Parser::Parse()
