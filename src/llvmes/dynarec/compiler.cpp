@@ -285,6 +285,7 @@ llvm::Value* Compiler::AddressModeZeropageY(uint16_t addr)
 
 llvm::Value* Compiler::AddressModeIndirect()
 {
+    return nullptr;
 }
 
 llvm::Value* Compiler::AddressModeIndirectX(uint16_t addr)
