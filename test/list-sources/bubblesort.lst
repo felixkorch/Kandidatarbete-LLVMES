@@ -1,0 +1,65 @@
+#macro LIST_SIZE 0 #30 #endmacro
+
+.org $8000
+
+list:
+.db 3, 2, 1, 7, 8, 4, 5, 6, 10, 9, 11, 15, 13, 14, 12, 3, 2, 1, 7, 8, 4, 5, 6, 10, 9, 11, 15, 13, 14, 12 ; List to be sorted
+
+main:
+
+LDA #0
+STA $00
+
+main_loop:
+
+LDA #1
+CMP $00  ; if ($00) = 1 then done
+BEQ done
+LDA #1   ; set done to true
+STA $00
+LDX #0 ; Reset iterator
+
+pass:
+
+LDA list, X
+INX ;
+CMP list, X
+BEQ then
+BCS swap ; If A >= next, swap
+
+then:
+CPX LIST_SIZE
+BEQ main_loop
+JMP pass
+
+
+swap:
+LDY #0
+STY $00 ; if swap neccesary, store done = false
+LDY list, X
+STA list, X
+TXA
+SBC #1
+TAX
+TYA
+STA list, X
+INX
+JMP then
+
+done:
+
+LDX #0
+
+print_loop:
+LDA list, X
+STA $2009
+INX
+CPX LIST_SIZE
+BNE print_loop
+
+exit:
+LDA #0
+STA $200F ; Exit 0
+
+.org $FFFC
+.dw main ; Reset routine

@@ -26,9 +26,8 @@ void putchar(int8_t c)
 
 void putstatus(int8_t s)
 {
-    printf("[N: %d V: %d Z: %d C: %d] (%s)\n", (bool)(s & 0x80),
-           (bool)(s & 0x40), (bool)(s & 0x02), (bool)(s & 0x01),
-           ToHexString((uint8_t)s).c_str());
+    printf("[N: %d V: %d Z: %d C: %d] (%s)\n", (bool)(s & 0x80), (bool)(s & 0x40),
+           (bool)(s & 0x02), (bool)(s & 0x01), ToHexString((uint8_t)s).c_str());
 }
 
 Compiler::Compiler(AST ast, const std::string& program_name)
@@ -48,12 +47,10 @@ Compiler::Compiler(AST ast, const std::string& program_name)
     auto putreg_fn = RegisterFunction({int8}, void_ty, "putreg", (void*)putreg);
     c->putreg_fn = putreg_fn;
 
-    auto putchar_fn =
-        RegisterFunction({int8}, void_ty, "putchar", (void*)putchar);
+    auto putchar_fn = RegisterFunction({int8}, void_ty, "putchar", (void*)putchar);
     c->putchar_fn = putchar_fn;
 
-    auto putstatus_fn =
-        RegisterFunction({int8}, void_ty, "putstatus", (void*)putstatus);
+    auto putstatus_fn = RegisterFunction({int8}, void_ty, "putstatus", (void*)putstatus);
     c->putstatus_fn = putstatus_fn;
 
     auto write_fn =
@@ -169,8 +166,8 @@ llvm::Value* Compiler::GetRAMPtr(uint16_t addr)
                                (int64_t)c->ram.data() + (int64_t)addr);
 
     return llvm::ConstantExpr::getIntToPtr(
-        ram_ptr_value, llvm::PointerType::getUnqual(
-                           llvm::Type::getInt8Ty(c->m->getContext())));
+        ram_ptr_value,
+        llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(c->m->getContext())));
 }
 
 void Compiler::WriteMemory(uint16_t addr, llvm::Value* v)
@@ -195,8 +192,7 @@ llvm::Value* Compiler::GetStackAddress(llvm::Value* sp)
 void Compiler::StackPush(llvm::Value* v)
 {
     // Calculate stack address
-    llvm::Value* load_sp =
-        c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
+    llvm::Value* load_sp = c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
     llvm::Value* sp_addr = GetStackAddress(load_sp);
 
     // Subtract 1 from stack pointer
@@ -210,8 +206,7 @@ void Compiler::StackPush(llvm::Value* v)
 llvm::Value* Compiler::StackPull()
 {
     // Calculate stack address
-    llvm::Value* load_sp =
-        c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
+    llvm::Value* load_sp = c->builder.CreateLoad(c->reg_sp);  // load_sp <- reg_sp
 
     // Add 1 to stack pointer
     llvm::Constant* c1_8 = llvm::ConstantInt::get(int8, 1);
@@ -247,8 +242,7 @@ llvm::Value* Compiler::AddressModeAbsoluteX(uint16_t addr)
 {
     llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
     llvm::Value* load_x_16 = c->builder.CreateZExt(load_x, int16);
-    llvm::Value* addr_base =
-        c->builder.CreateAdd(load_x_16, GetConstant16(addr));
+    llvm::Value* addr_base = c->builder.CreateAdd(load_x_16, GetConstant16(addr));
     return addr_base;
 }
 
@@ -256,8 +250,7 @@ llvm::Value* Compiler::AddressModeAbsoluteY(uint16_t addr)
 {
     llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
     llvm::Value* load_y_16 = c->builder.CreateZExt(load_y, int16);
-    llvm::Value* addr_base =
-        c->builder.CreateAdd(load_y_16, GetConstant16(addr));
+    llvm::Value* addr_base = c->builder.CreateAdd(load_y_16, GetConstant16(addr));
     return addr_base;
 }
 
@@ -299,11 +292,9 @@ llvm::Value* Compiler::AddressModeIndirectX(uint16_t addr)
     llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
 
     // high
-    llvm::Value* addr_get_high =
-        c->builder.CreateAdd(addr_base, GetConstant8(1));
+    llvm::Value* addr_get_high = c->builder.CreateAdd(addr_base, GetConstant8(1));
     llvm::Value* addr_get_high_16 = c->builder.CreateZExt(addr_get_high, int16);
-    llvm::Value* addr_high =
-        c->builder.CreateCall(c->read_fn, addr_get_high_16);
+    llvm::Value* addr_high = c->builder.CreateCall(c->read_fn, addr_get_high_16);
     llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
     llvm::Value* addr_high_shl = c->builder.CreateShl(high_addr_16, 8);
 
@@ -318,15 +309,13 @@ llvm::Value* Compiler::AddressModeIndirectY(uint16_t addr)
     llvm::Value* load_y_16 = c->builder.CreateZExt(load_y, int16);
 
     // low
-    llvm::Value* addr_low =
-        c->builder.CreateCall(c->read_fn, GetConstant16(addr));
+    llvm::Value* addr_low = c->builder.CreateCall(c->read_fn, GetConstant16(addr));
     llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
 
     // high
     llvm::Value* addr_get_high_16 =
         c->builder.CreateAdd(GetConstant16(addr), GetConstant16(1));
-    llvm::Value* addr_high =
-        c->builder.CreateCall(c->read_fn, addr_get_high_16);
+    llvm::Value* addr_high = c->builder.CreateCall(c->read_fn, addr_get_high_16);
     llvm::Value* addr_high_16 = c->builder.CreateZExt(addr_high, int16);
     llvm::Value* addr_high_shl = c->builder.CreateShl(addr_high_16, 8);
 
@@ -336,14 +325,13 @@ llvm::Value* Compiler::AddressModeIndirectY(uint16_t addr)
     return addr_or_with_y;
 }
 
-llvm::Function* Compiler::RegisterFunction(
-    llvm::ArrayRef<llvm::Type*> arg_types, llvm::Type* return_type,
-    const std::string& name, void* fn_ptr)
+llvm::Function* Compiler::RegisterFunction(llvm::ArrayRef<llvm::Type*> arg_types,
+                                           llvm::Type* return_type,
+                                           const std::string& name, void* fn_ptr)
 {
-    llvm::FunctionType* fn_type =
-        llvm::FunctionType::get(return_type, arg_types, false);
-    llvm::Function* fn = llvm::Function::Create(
-        fn_type, llvm::Function::ExternalLinkage, name, *c->m);
+    llvm::FunctionType* fn_type = llvm::FunctionType::get(return_type, arg_types, false);
+    llvm::Function* fn =
+        llvm::Function::Create(fn_type, llvm::Function::ExternalLinkage, name, *c->m);
 
     if (fn_ptr != nullptr)
         c->jitter.add_external_symbol(name, fn_ptr);
@@ -370,8 +358,8 @@ std::function<int()> Compiler::Compile(bool optimize)
 void Compiler::PassOne()
 {
     for (auto& label : ast.labels) {
-        llvm::BasicBlock* bb = llvm::BasicBlock::Create(
-            c->m->getContext(), label.second, (llvm::Function*)c->main_fn);
+        llvm::BasicBlock* bb = llvm::BasicBlock::Create(c->m->getContext(), label.second,
+                                                        (llvm::Function*)c->main_fn);
         c->basicblocks[label.second] = bb;
     }
 }

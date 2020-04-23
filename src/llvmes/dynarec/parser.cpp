@@ -3,9 +3,7 @@
 namespace llvmes {
 
 Parser::Parser(std::vector<uint8_t>&& data_in, uint16_t start_location)
-    : data(0x10000),
-      program_size(data_in.size()),
-      start_location(start_location)
+    : data(0x10000), program_size(data_in.size()), start_location(start_location)
 {
     auto temp = std::move(data_in);
     if (start_location + program_size >= 0xFFFF)
@@ -58,7 +56,7 @@ void Parser::ParseInstructions(uint16_t start)
 
         bool JMP_Abs = instr->opcode == 0x4C;
         if (IsBranch(mos_instr.op) || JMP_Abs) {
-            instr->is_branchinstruction = true;
+            instr->is_branchinstruction = IsBranch(mos_instr.op) ? true : false;
             uint16_t target_index = 0;
 
             // Unconditional branch
