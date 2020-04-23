@@ -1675,8 +1675,8 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* result = c->builder.CreateStore(load_a, c->reg_x);
 
             // flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            DynamicTestZ(load_a);
+            DynamicTestN(load_a);
             break;
         }
         case 0xA8: {  // TAY Implied
