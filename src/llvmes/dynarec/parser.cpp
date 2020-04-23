@@ -69,7 +69,6 @@ void Parser::ParseInstructions(uint16_t start)
         instr->addressing_mode = mos_instr.addr_mode;
         instr->op_type = mos_instr.op;
         instr->opcode = opcode;
-        instr->is_branchinstruction = IsBranchInstruction(instr);
         instr->arg = ParseArgument(instr);
 
         instructions[index] = instr;
@@ -77,7 +76,7 @@ void Parser::ParseInstructions(uint16_t start)
         if (IsAbiReturn(instr))
             break;
 
-        if (instr->is_branchinstruction) {
+        if (IsBranchInstruction(instr)) {
             instr->target_label = AddLabel(instr);
             // JMP ends a branch
             if (IsJumpReturn(instr))

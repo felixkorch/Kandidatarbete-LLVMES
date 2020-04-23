@@ -26,7 +26,6 @@ struct Instruction {
     MOS6502::AddressingMode addressing_mode = {};
     MOS6502::Op op_type = {};
 
-    bool is_branchinstruction = false;
     std::string target_label;
 
     void Print()
