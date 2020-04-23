@@ -1935,7 +1935,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x65: {  // ADC Zeropage
             llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
-            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
+            llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
@@ -2019,7 +2019,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x6D: {  // ADC Absolute
             llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
-            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
+            llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
