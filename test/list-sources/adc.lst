@@ -7,9 +7,9 @@ INX
 JMP %1
 #endmacro
 
-#macro SBC_CMP 3
+#macro ADC_CMP 3
 LDA %1
-SBC %2
+ADC %2
 CMP %3
 #endmacro
 
@@ -27,26 +27,24 @@ err_str:
 main:
 
 
-SBC_CMP #$0A #$05 #$04 ; should be $04 because c = 0
+ADC_CMP #$0A #$05 #$0F ; should be $04 because c = 0
 BNE print_err
 ;STA $200C
 
 
 
-SBC_CMP #$04 #$04 #$00 ; should be $00 because c = 1 
+ADC_CMP #$04 #$04 #$09 ; should be $00 because c = 1 
 BNE print_err
 ;STA $200C ; should be Flags: 0011
 
 
 
-SBC_CMP #$A0 #$40 #$60
+ADC_CMP #$A0 #$40 #$E1
 BNE print_err
 ;STA $200C
     
 
-
-
-SBC_CMP #$04 #$08 #$FC
+ADC_CMP #$FF #$01 #$01
 BNE print_err
 ;STA $200C
 
