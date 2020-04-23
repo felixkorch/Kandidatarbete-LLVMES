@@ -1672,7 +1672,7 @@ void Compiler::CodeGen(Instruction& i)
         case 0xAA: {  // TAX Implied
 
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateStore(load_a, c->reg_x);
+            c->builder.CreateStore(load_a, c->reg_x);
 
             // flag test
             DynamicTestZ(load_a);
@@ -1682,20 +1682,20 @@ void Compiler::CodeGen(Instruction& i)
         case 0xA8: {  // TAY Implied
 
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateStore(load_a, c->reg_y);
+            c->builder.CreateStore(load_a, c->reg_y);
 
             // flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            DynamicTestZ(load_a);
+            DynamicTestN(load_a);
             break;
         }
         case 0xBA: {  // TSX Implied
             llvm::Value* load_sp = c->builder.CreateLoad(c->reg_sp);
-            llvm::Value* result = c->builder.CreateStore(load_sp, c->reg_x);
+            c->builder.CreateStore(load_sp, c->reg_x);
 
             // Flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            DynamicTestZ(load_sp);
+            DynamicTestN(load_sp);
             break;
         }
         case 0x8A: {  // TXA Implied
