@@ -387,7 +387,7 @@ void Compiler::PassTwo()
         bool label_exists = ast.labels.count(index);
 
         if (prev.second) {
-            if (label_exists && !prev.second->is_branchinstruction)
+            if (label_exists && prev.second->op_type != MOS6502::Op::JMP)
                 c->builder.CreateBr(c->basicblocks[ast.labels[index]]);
         }
 
