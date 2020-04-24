@@ -1159,6 +1159,10 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x60: {  // RTS Implied
+            // TODO: use this llvm::value to dynamically jump to a return address
+            llvm::Value* return_addr = StackPull();
+            uint16_t return_addr_s = return_map[current_block_address];
+            c->builder.CreateBr(c->basicblocks[return_addr_s]);
             break;
         }
         case 0xE9: {  // SBC Immediate
