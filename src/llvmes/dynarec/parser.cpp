@@ -57,9 +57,6 @@ uint16_t ParseBranchTarget(Instruction* instruction)
     }
     else if (instruction->op_type == MOS6502::Op::JMP &&
              instruction->addressing_mode == MOS6502::AddressingMode::Indirect) {
-        std::cout << "INDIRECT JUMP" << std::endl;
-        std::cout << instruction->offset << std::endl;
-        std::cout << (uint16_t)instruction->offset + 3 << std::endl;
         target = (uint16_t)instruction->offset + 3;
     }
     // Conditional branch
