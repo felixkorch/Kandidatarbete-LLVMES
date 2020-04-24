@@ -81,6 +81,9 @@ void Parser::ParseInstructions(uint16_t start)
         if (IsAbiReturn(instr))
             break;
 
+        if (IsRTS(instr))
+            break;
+
         if (IsBranchInstruction(instr)) {
             instr->target_label = AddLabel(instr);
             // JMP ends a branch
