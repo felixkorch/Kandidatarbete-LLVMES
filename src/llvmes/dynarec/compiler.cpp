@@ -224,12 +224,18 @@ llvm::Value* Compiler::StackPull()
 
 void Compiler::CreateCondBranch(llvm::Value* pred, llvm::BasicBlock* target)
 {
+    llvm::BasicBlock* continue_block = CreateAutoLabel();
+    c->builder.CreateCondBr(pred, target, continue_block);
+    c->builder.SetInsertPoint(continue_block);
+}
+
+llvm::BasicBlock* Compiler::CreateAutoLabel()
+{
     std::stringstream auto_label;
     auto_label << "AutoLabel " << auto_labels++;
     llvm::BasicBlock* continue_block = llvm::BasicBlock::Create(
         c->m->getContext(), auto_label.str(), (llvm::Function*)c->main_fn);
-    c->builder.CreateCondBr(pred, target, continue_block);
-    c->builder.SetInsertPoint(continue_block);
+    return continue_block;
 }
 
 llvm::Value* Compiler::AddressModeImmediate(uint16_t operand)
