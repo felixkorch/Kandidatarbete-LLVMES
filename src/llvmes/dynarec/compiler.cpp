@@ -367,10 +367,10 @@ std::function<int()> Compiler::Compile(bool optimize)
 
 void Compiler::PassOne()
 {
-    for (auto& label : ast.labels) {
-        llvm::BasicBlock* bb = llvm::BasicBlock::Create(c->m->getContext(), label.second,
-                                                        (llvm::Function*)c->main_fn);
-        c->basicblocks[label.second] = bb;
+    for (auto& pair : ast.labels) {
+        llvm::BasicBlock* bb = llvm::BasicBlock::Create(
+            c->m->getContext(), pair.second.name, (llvm::Function*)c->main_fn);
+        c->basicblocks[pair.second.address] = bb;
     }
 }
 
