@@ -1,5 +1,7 @@
 #include "llvmes/dynarec/parser.h"
 
+#include "llvmes/dynarec/6502_opcode.h"
+
 namespace llvmes {
 
 Parser::Parser(std::vector<uint8_t>&& data_in, uint16_t start_location)
@@ -27,6 +29,12 @@ bool IsJumpReturn(Instruction* instruction)
     return instruction->opcode == 0x4C;
 }
 
+bool IsJumpIndirect(Instruction* instruction)
+{
+    // Absolute and Indirect
+    return instruction->opcode == 0x6C;
+}
+
 bool IsRTS(Instruction* instruction)
 {
     return instruction->opcode == 0x60;
@@ -34,7 +42,8 @@ bool IsRTS(Instruction* instruction)
 
 bool IsBranchInstruction(Instruction* instruction)
 {
-    return IsBranch(instruction->op_type) || IsJumpReturn(instruction);
+    return IsBranch(instruction->op_type) || IsJumpReturn(instruction) ||
+           IsJumpIndirect(instruction);
 }
 
 uint16_t ParseBranchTarget(Instruction* instruction)
@@ -46,9 +55,16 @@ uint16_t ParseBranchTarget(Instruction* instruction)
     if (instruction->op_type == MOS6502::Op::JSR || IsJumpReturn(instruction)) {
         target = argument;
     }
+    else if (instruction->op_type == MOS6502::Op::JMP &&
+             instruction->addressing_mode == MOS6502::AddressingMode::Indirect) {
+        std::cout << "INDIRECT JUMP" << std::endl;
+        std::cout << instruction->offset << std::endl;
+        std::cout << (uint16_t)instruction->offset + 3 << std::endl;
+        target = (uint16_t)instruction->offset + 3;
+    }
     // Conditional branch
     else {
-        target = (int8_t)argument + index + 2;
+        target = (int16_t)argument + index + 2;
     }
     return target;
 }
