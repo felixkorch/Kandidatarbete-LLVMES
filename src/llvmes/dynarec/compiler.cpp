@@ -369,8 +369,8 @@ llvm::Function* Compiler::RegisterFunction(llvm::ArrayRef<llvm::Type*> arg_types
 std::function<int()> Compiler::Compile(bool optimize)
 {
     PassOne();
-    PassTwo();
     AddDynJumpTable();
+    PassTwo();
 
     if (optimize)
         c->jitter.enable_optimize_module(true);
