@@ -376,7 +376,13 @@ void Compiler::PassOne()
 
 void Compiler::PassTwo()
 {
-    c->builder.CreateBr(c->basicblocks["Reset"]);
+    llvm::BasicBlock* reset_block;
+    for (auto& l : ast.labels) {
+        if (l.second.name == "Reset")
+            reset_block = c->basicblocks[l.second.address];
+    }
+    assert(reset_block);
+    c->builder.CreateBr(reset_block);
 
     std::pair<uint16_t, Instruction*> prev;
 
