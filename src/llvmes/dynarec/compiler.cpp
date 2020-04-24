@@ -397,8 +397,10 @@ void Compiler::PassTwo()
 {
     llvm::BasicBlock* reset_block;
     for (auto& l : ast.labels) {
-        if (l.second.name == "Reset")
+        if (l.second.name == "Reset") {
             reset_block = c->basicblocks[l.second.address];
+            break;
+        }
     }
     assert(reset_block);
     c->builder.CreateBr(reset_block);
