@@ -158,7 +158,8 @@ local valid_successors = {
         ["Name"] = true,
         ["ImmediateValue"] = true,
         ["IndirectArgument"] = true,
-        ["Instruction"] = true
+        ["Instruction"] = true,
+        ["Label"] = true
     },
     ["Label"] = {
         ["Instruction"] = true,
@@ -248,7 +249,11 @@ local function get_addressing_mode(tokens, i)
     elseif token1.type == "IndirectArgument" then
         addressing_mode = "IND"
     elseif token1.type == "Name" then
-        addressing_mode = instruction.data == "JMP" and "ABS" or "REL"
+        if instruction.data == "JSR" or instruction.data == "JMP" then
+            addressing_mode = "ABS"
+        else
+            addressing_mode = "REL"
+        end
     else
         addressing_mode = "IMP"
     end
