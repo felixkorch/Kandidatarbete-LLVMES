@@ -2,7 +2,7 @@
 
 main:
 
-LDA $801E
+LDA adress
 JMP setup
 
 setup:
@@ -16,7 +16,7 @@ DEY
 STA $200A ; Print X
 BNE loop
 STX $801E
-JMP ($801E)
+JMP (adress)
 
 exit:
 
