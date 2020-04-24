@@ -140,6 +140,13 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x20: {  // JSR Absolute
+            uint16_t return_addr = i.offset + i.size;
+            return_map[i.target_label.address] = return_addr;
+            StackPush(GetConstant8(return_addr));
+            c->builder.CreateBr(c->basicblocks[i.target_label]);
+            llvm::BasicBlock* continue_block = CreateAutoLabel();
+            c->builder.SetInsertPoint(continue_block);
+            c->basicblocks[return_addr] = continue_block;
             break;
         }
         case 0x24: {  // BIT Zeropage
