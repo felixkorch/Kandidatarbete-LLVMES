@@ -2,6 +2,8 @@
 
 namespace llvmes {
 
+static std::unordered_map<uint16_t, uint16_t> return_map;
+
 void Compiler::CodeGen(Instruction& i)
 {
     switch (i.opcode) {
