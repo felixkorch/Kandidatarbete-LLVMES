@@ -1,0 +1,30 @@
+.org $8000
+
+main:
+
+LDA adress
+JMP setup
+
+setup:
+
+STA $2009 ; Print A - should be $800C
+LDY #$18
+
+loop:
+INX
+DEY
+STA $200A ; Print X
+BNE loop
+STX $801E
+JMP (adress)
+
+exit:
+
+LDA $801E
+STA $2009
+
+adress:
+.dw $800C
+
+.org $FFFC
+.dw main
