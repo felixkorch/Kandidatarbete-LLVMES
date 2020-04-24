@@ -97,7 +97,7 @@ void Parser::ParseInstructions(uint16_t start)
 
 // Returns the label to be added. If label already exists, return name of that
 // label.
-std::string Parser::AddLabel(Instruction* instruction)
+Label Parser::AddLabel(Instruction* instruction)
 {
     uint16_t target_index = ParseBranchTarget(instruction);
     bool label_exists = labels.count(target_index) > 0;
@@ -109,7 +109,7 @@ std::string Parser::AddLabel(Instruction* instruction)
         std::stringstream ss;
         ss << "Label " << ToHexString(target_index);
         branches.push(target_index);
-        std::string new_label = ss.str();
+        Label new_label = {target_index, ss.str()};
 
         labels[target_index] = new_label;
         return new_label;
@@ -118,8 +118,7 @@ std::string Parser::AddLabel(Instruction* instruction)
 
 uint16_t Parser::ParseArgument(Instruction* instruction)
 {
-    assert(instruction->size == 1 || instruction->size == 2 ||
-           instruction->size == 3);
+    assert(instruction->size == 1 || instruction->size == 2 || instruction->size == 3);
 
     uint16_t argument;
     if (instruction->size == 2) {
@@ -142,7 +141,7 @@ AST Parser::Parse()
 {
     uint16_t reset = data[0xFFFC] | (data[0xFFFD] << 8);
     reset_address = reset;
-    labels[reset_address] = "Reset";
+    labels[reset_address] = {reset_address, "Reset"};
     index = reset_address;
     branches.push(index);
 

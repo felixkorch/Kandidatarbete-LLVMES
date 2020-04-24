@@ -17,6 +17,12 @@
 
 namespace llvmes {
 
+struct Label {
+    uint16_t address;
+    std::string name;
+    operator uint16_t() { return address; }
+};
+
 struct Instruction {
     int size = 0;
     uint16_t offset = 0;
@@ -26,15 +32,7 @@ struct Instruction {
     MOS6502::AddressingMode addressing_mode = {};
     MOS6502::Op op_type = {};
 
-    std::string target_label;
-
-    void Print()
-    {
-        std::cout << "[" << ToHexString(offset) << "]: " << ToHexString(opcode)
-                  << std::endl;
-    }
-
-    int GetOffset() { return offset; }
+    Label target_label;
 };
 
 class ParseException : public std::exception {
@@ -52,7 +50,7 @@ class ParseException : public std::exception {
 };
 
 struct AST {
-    std::unordered_map<uint16_t, std::string> labels;
+    std::unordered_map<uint16_t, Label> labels;
     std::map<uint16_t, Instruction*> instructions;
 };
 
@@ -63,13 +61,13 @@ class Parser {
     uint16_t reset_address;
     uint16_t index;
 
-    std::unordered_map<uint16_t, std::string> labels;
+    std::unordered_map<uint16_t, Label> labels;
     std::map<uint16_t, Instruction*> instructions;
     std::queue<uint16_t> branches;
 
     void ParseInstructions(uint16_t start);
     uint16_t ParseArgument(Instruction* instruction);
-    std::string AddLabel(Instruction* instruction);
+    Label AddLabel(Instruction* instruction);
 
    public:
     Parser(std::vector<uint8_t>&& data_in, uint16_t start_location);
