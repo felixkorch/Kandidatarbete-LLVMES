@@ -36,7 +36,7 @@ struct Compilation {
 
     std::vector<uint8_t> ram;
 
-    std::unordered_map<std::string, llvm::BasicBlock*> basicblocks;
+    std::unordered_map<uint16_t, llvm::BasicBlock*> basicblocks;
 
     Compilation(const std::string& program_name)
         : jitter(),
