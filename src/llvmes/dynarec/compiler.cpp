@@ -396,8 +396,10 @@ void Compiler::PassTwo()
                 c->builder.CreateBr(c->basicblocks[index]);
         }
 
-        if (label_exists)
-            c->builder.SetInsertPoint(c->basicblocks[ast.labels[index]]);
+        if (label_exists) {
+            c->builder.SetInsertPoint(c->basicblocks[index]);
+            current_block_address = ast.labels[index].address;
+        }
 
         CodeGen(*instr.second);
         prev = instr;
