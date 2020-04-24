@@ -113,6 +113,7 @@ class Compiler {
     llvm::Value* StackPull();
 
     void CreateCondBranch(llvm::Value* pred, llvm::BasicBlock* target);
+    llvm::BasicBlock* CreateAutoLabel();
 
     llvm::Value* AddressModeImmediate(uint16_t operand);
     llvm::Value* AddressModeAbsolute(uint16_t addr);
