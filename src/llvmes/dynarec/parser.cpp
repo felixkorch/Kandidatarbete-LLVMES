@@ -27,6 +27,11 @@ bool IsJumpReturn(Instruction* instruction)
     return instruction->opcode == 0x4C;
 }
 
+bool IsRTS(Instruction* instruction)
+{
+    return instruction->opcode == 0x60;
+}
+
 bool IsBranchInstruction(Instruction* instruction)
 {
     return IsBranch(instruction->op_type) || IsJumpReturn(instruction);
