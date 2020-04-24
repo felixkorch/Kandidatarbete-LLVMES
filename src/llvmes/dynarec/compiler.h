@@ -78,6 +78,7 @@ class Compiler {
     void CodeGen(Instruction& i);
     void PassOne();
     void PassTwo();
+    void AddDynJumpTable();
 
     llvm::Constant* GetConstant1(bool v) { return llvm::ConstantInt::get(int1, v); }
     llvm::Constant* GetConstant8(uint8_t v) { return llvm::ConstantInt::get(int8, v); }

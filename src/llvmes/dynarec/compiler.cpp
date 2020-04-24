@@ -175,7 +175,7 @@ llvm::Value* Compiler::GetRAMPtr(uint16_t addr)
         llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(c->m->getContext())));
 }
 
-llvm::Value* GetRAMPtr16(uint16_t addr)
+llvm::Value* Compiler::GetRAMPtr16(uint16_t addr)
 {
     llvm::Constant* ram_ptr_value =
         llvm::ConstantInt::get(llvm::Type::getInt64Ty(c->m->getContext()),
@@ -198,7 +198,7 @@ llvm::Value* Compiler::ReadMemory(uint16_t addr)
     return c->builder.CreateLoad(ram_ptr);
 }
 
-llvm::Value* ReadMemory16(uint16_t addr)
+llvm::Value* Compiler::ReadMemory16(uint16_t addr)
 {
     llvm::Value* ram_ptr = GetRAMPtr16(addr);
     return c->builder.CreateLoad(ram_ptr);
@@ -370,6 +370,7 @@ std::function<int()> Compiler::Compile(bool optimize)
 {
     PassOne();
     PassTwo();
+    AddDynJumpTable();
 
     if (optimize)
         c->jitter.enable_optimize_module(true);
@@ -426,7 +427,7 @@ void Compiler::PassTwo()
     c->builder.CreateRet(GetConstant32(0));
 }
 
-void addDynJumpTable()
+void Compiler::AddDynJumpTable()
 {
     // Since we modify the insert point while inserting panic block and
     // jump table, we need to restore the insert point before returning
@@ -450,7 +451,7 @@ void addDynJumpTable()
     // Here, panic block causes a runtime error and crashes.
     llvm::SwitchInst* sw =
         c->builder.CreateSwitch(reg_idr, c->panicBlock, c->basicblocks.size());
-    for (auto& addr : c->basicblocks) {
+    for (std::pair<uint16_t, llvm::BasicBlock*> addr : c->basicblocks) {
         llvm::ConstantInt* addrVal =
             llvm::ConstantInt::get(llvm::IntegerType::getInt16Ty(c->m->getContext()),
                                    (u_int64_t)addr.first, false);
