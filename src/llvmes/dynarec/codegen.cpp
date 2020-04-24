@@ -1,3 +1,5 @@
+// #include "llvmes/dynarec/codegen.h"
+
 #include "llvmes/dynarec/compiler.h"
 
 namespace llvmes {
@@ -11,7 +13,7 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* load_z = c->builder.CreateLoad(c->status_z);
             llvm::Value* is_nonzero =
                 c->builder.CreateICmpNE(load_z, GetConstant1(1), "ne");
-            CreateCondBranch(is_nonzero, c->basicblocks[i.target_label]);
+            CreateCondBranch(is_nonzero, c->basicblocks[i.target_addr]);
             break;
         }
         case 0xF0: {  // BEQ Immediate
@@ -135,7 +137,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x4C: {  // JMP Absolute
-            c->builder.CreateBr(c->basicblocks[i.target_label]);
+            c->builder.CreateBr(c->basicblocks[i.target_addr]);
             break;
         }
         case 0x6C: {  // JMP Indirect

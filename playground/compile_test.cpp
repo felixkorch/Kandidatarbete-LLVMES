@@ -608,8 +608,6 @@ std::vector<uint8_t> jmp_indirect{
     0x0C, 0x80         // Data for JMP Indirect $801E
 };
 
-using namespace llvmes;
-
 // 0x8D, 0x0C, 0x20,  // Print status N - should print 00
 // 0x8D, 0x0D, 0x20,  // Print status C - should print 00
 // 0x8D, 0x0E, 0x20,  // Print status Z - should print 01
@@ -735,7 +733,6 @@ std::vector<uint8_t> txa_Implied{
     0x8D, 0x09, 0x20,  // Print A - should be 0x00 = 0
     0x8D, 0x0C, 0x20,  // Print N - should be 0x00 = 0
     0x8D, 0x0E, 0x20,  // Print Z - should be 0x00 = 1
-
 };
 
 using namespace llvmes;

@@ -34,6 +34,8 @@ struct Compilation {
     llvm::Value* putstatus_fn = nullptr;
     llvm::Value* write_fn = nullptr;
     llvm::Value* read_fn = nullptr;
+    llvm::BasicBlock* dynJumpBlock = nullptr;
+    llvm::BasicBlock* panicBlock = nullptr;
 
     std::vector<uint8_t> ram;
 
