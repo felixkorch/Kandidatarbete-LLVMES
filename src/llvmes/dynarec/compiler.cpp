@@ -413,8 +413,10 @@ void Compiler::PassTwo()
 
         if (prev.second) {
             if (label_exists && prev.second->op_type != MOS6502::Op::JMP &&
-                prev.second->op_type != MOS6502::Op::RTS)
-                c->builder.CreateBr(c->basicblocks[index]);
+                prev.second->op_type != MOS6502::Op::RTS) {
+                if (ast.labels[index].name != "Reset")
+                    c->builder.CreateBr(c->basicblocks[index]);
+            }
         }
 
         if (label_exists) {
@@ -454,9 +456,8 @@ void Compiler::AddDynJumpTable()
     llvm::SwitchInst* sw =
         c->builder.CreateSwitch(reg_idr, c->panicBlock, c->basicblocks.size());
     for (std::pair<uint16_t, llvm::BasicBlock*> addr : c->basicblocks) {
-        llvm::ConstantInt* addrVal =
-            llvm::ConstantInt::get(llvm::IntegerType::getInt16Ty(c->m->getContext()),
-                                   (u_int64_t)addr.first, false);
+        llvm::ConstantInt* addrVal = llvm::ConstantInt::get(
+            llvm::IntegerType::getInt16Ty(c->m->getContext()), addr.first, false);
         sw->addCase(addrVal, addr.second);
     }
     c->builder.SetInsertPoint(originalInsertPoint);
