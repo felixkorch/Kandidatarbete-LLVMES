@@ -60,6 +60,7 @@ class Compiler {
     llvm::Type* void_ty = nullptr;
 
     int auto_labels = 0;
+    uint16_t current_block_address = 0;
 
    public:
     Compiler(AST ast, const std::string& program_name);
