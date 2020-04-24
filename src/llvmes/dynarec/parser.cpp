@@ -64,7 +64,7 @@ uint16_t ParseBranchTarget(Instruction* instruction)
     }
     // Conditional branch
     else {
-        target = (int16_t)argument + index + 2;
+        target = (int8_t)argument + index + 2;
     }
     return target;
 }
