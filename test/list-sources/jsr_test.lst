@@ -1,0 +1,22 @@
+.org $8000
+
+main:
+
+JSR routine
+JMP exit
+
+routine:
+
+LDA #10
+DEX
+DEY
+STA $2009
+RTS
+
+exit:
+
+LDA #0
+STA $200F ; exit 0
+
+.org $FFFC
+.dw main
