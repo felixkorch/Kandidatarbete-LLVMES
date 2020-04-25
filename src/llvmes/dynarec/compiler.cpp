@@ -395,28 +395,15 @@ void Compiler::PassOne()
 
 void Compiler::PassTwo()
 {
-    llvm::BasicBlock* reset_block;
-    for (auto& l : ast.labels) {
-        if (l.second.name == "Reset") {
-            reset_block = c->basicblocks[l.second.address];
-            break;
-        }
-    }
-    assert(reset_block);
-    c->builder.CreateBr(reset_block);
-
-    std::pair<uint16_t, Instruction*> prev;
+    std::pair<uint16_t, Instruction*> prev = *ast.instructions.begin();
 
     for (auto& instr : ast.instructions) {
         uint16_t index = instr.first;
         bool label_exists = ast.labels.count(index);
 
-        if (prev.second) {
-            if (label_exists && prev.second->op_type != MOS6502::Op::JMP &&
-                prev.second->op_type != MOS6502::Op::RTS) {
-                if (ast.labels[index].name != "Reset")
-                    c->builder.CreateBr(c->basicblocks[index]);
-            }
+        if (label_exists && prev.second->op_type != MOS6502::Op::JMP &&
+            prev.second->op_type != MOS6502::Op::RTS) {
+            c->builder.CreateBr(c->basicblocks[index]);
         }
 
         if (label_exists) {
