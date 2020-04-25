@@ -1,0 +1,55 @@
+.org $8000
+
+#macro FACTOR_ONE 0 3 #endmacro
+#macro FACTOR_TWO 0 4 #endmacro
+#macro REF_VALUE 0 #12 #endmacro
+
+; Algorithm originally written by Leif Stensson
+; Desc: Can multiply two 8-bit numbers, result will be stored in
+;       factor_one (low) & factor_two (high)
+;
+; This file can be seen as a test for: LSR / ROR
+
+factor_one:
+    .db FACTOR_ONE
+
+factor_two:
+    .db FACTOR_TWO
+
+main:
+    LDA     #0
+    LDX     #$8
+    LSR     factor_one
+loop:
+    BCC     no_add
+    CLC
+    ADC     factor_two
+no_add:
+    ROR
+    ROR     factor_one
+    DEX
+    BNE     loop
+    STA     factor_two
+
+    LDA     REF_VALUE
+    CMP     factor_one
+    BNE     fail
+    JMP     success
+
+fail:
+    LDA     factor_one
+    STA     $2009
+    LDA     #1
+    JMP     exit
+
+success:
+    LDA     factor_one
+    STA     $2009
+    LDA     #0
+    JMP     exit
+
+exit:
+    STA     $200F
+
+.org $FFFC
+.dw main ; Reset routine

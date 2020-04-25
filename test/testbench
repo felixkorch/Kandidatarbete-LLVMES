@@ -14,8 +14,7 @@ test_list = [
     "tay_test",
     "tsx_test",
     "txs_test",
-    
-
+    "mul_test",
 ]
 
 for test in test_list:
