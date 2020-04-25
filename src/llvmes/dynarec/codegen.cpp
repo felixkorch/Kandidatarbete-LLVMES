@@ -706,40 +706,28 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
             llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_y);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDY(load_value);
             break;
         }
         case 0xB4: {  // LDY ZeropageX
             llvm::Value* ram_pointer = AddressModeZeropageX(i.arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_y);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDY(load_value);
             break;
         }
         case 0xAC: {  // LDY Absolute
             llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
             llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_y);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDY(load_value);
             break;
         }
         case 0xBC: {  // LDY AbsoluteX
             llvm::Value* ram_pointer = AddressModeAbsoluteX(i.arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_y);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDY(load_value);
             break;
         }
         case 0x4A: {  // LSR Accumulator
@@ -1774,6 +1762,14 @@ void Compiler::OP_LDA(llvm::Value* operand)
 void Compiler::OP_LDX(llvm::Value* operand)
 {
     c->builder.CreateStore(operand, c->reg_x);
+
+    DynamicTestZ(operand);
+    DynamicTestN(operand);
+}
+
+void Compiler::OP_LDY(llvm::Value* operand)
+{
+    c->builder.CreateStore(operand, c->reg_y);
 
     DynamicTestZ(operand);
     DynamicTestN(operand);
