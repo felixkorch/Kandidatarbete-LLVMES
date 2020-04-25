@@ -174,7 +174,8 @@ class Compiler {
     void OP_PHP(llvm::Value* v);
     void OP_PLA(llvm::Value* v);
     void OP_PLP(llvm::Value* v);
-    void OP_ROL(llvm::Value* v);
+    void OP_ROL(llvm::Value* v, bool s);
+    void OP_ROL_A();
     void OP_ROR(llvm::Value* v, bool s);
     void OP_ROR_A();
     void OP_RTI(llvm::Value* v);
