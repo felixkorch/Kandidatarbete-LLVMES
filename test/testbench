@@ -20,7 +20,7 @@ test_list = [
 
 for test in test_list:
     bin = "list-bins/%s.bin" % (test)
-    proc = subprocess.run(["./list-bins/jit", "-O", bin])
+    proc = subprocess.run(["./list-bins/jit", "-O", bin], stdout=subprocess.DEVNULL)
     if proc.returncode != 0:
         print(test + " failed with exit code " + str(proc.returncode))
     else:
