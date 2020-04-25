@@ -1974,295 +1974,365 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x61: {  // ADC IndirectX
             llvm::Value* ram_pointer = AddressModeIndirectX(i.arg);
-            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
+            operand = c->builder.CreateZExtOrBitCast(operand, int16);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            load_a = c->builder.CreateZExtOrBitCast(load_a, int16);
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-            load_c = c->builder.CreateZExt(load_c, int8);
+            load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
-            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, load_value);
+            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, operand);
             llvm::Value* result = c->builder.CreateAdd(result_a_ram, load_c);
 
             // Handling overflow
 
-            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
+            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
 
-            llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
-            llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
+            llvm::Value* xor_result = c->builder.CreateXor(load_a, result);
+            llvm::Value* xor_operand = c->builder.CreateXor(load_a, operand);
 
-            llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
-            llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
+            llvm::Value* and_result = c->builder.CreateAnd(xor_result, c_0x80);
+            llvm::Value* and_operand = c->builder.CreateAnd(xor_operand, c_0x80);
 
-            llvm::Value* SGT_1 = c->builder.CreateICmpNE(and_1, GetConstant8(0));
-            llvm::Value* SGT_2 = c->builder.CreateICmpNE(and_2, GetConstant8(0));
+            llvm::Value* NE = c->builder.CreateICmpNE(and_result, GetConstant16(0));
+            llvm::Value* EQ = c->builder.CreateICmpEQ(and_operand, GetConstant16(0));
 
-            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
-
-            overflow = c->builder.CreateNot(overflow);
+            llvm::Value* overflow = c->builder.CreateAnd(EQ, NE);
 
             c->builder.CreateStore(overflow, c->status_v);
 
-            DynamicTestN(result);
-            DynamicTestZ(result);
-            llvm::Value* result_16_extended = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16_extended);
+            // Test Z
+            llvm::Value* Z = c->builder.CreateICmpEQ(result, GetConstant16(0));
+            c->builder.CreateStore(Z, c->status_z);
 
+            // Test N
+            llvm::Value* N = c->builder.CreateAnd(result, GetConstant16(0x80));
+            N = c->builder.CreateICmpEQ(N, GetConstant16(0x80));
+            c->builder.CreateStore(N, c->status_n);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateICmpUGT(result, GetConstant16(0xFF));
+            c->builder.CreateStore(C, c->status_c);
+
+            // Truncate result and store in A
+            result = c->builder.CreateZExtOrTrunc(result, int8);
             c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x71: {  // ADC IndirectY
             llvm::Value* ram_pointer = AddressModeIndirectY(i.arg);
-            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
+            operand = c->builder.CreateZExtOrBitCast(operand, int16);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            load_a = c->builder.CreateZExtOrBitCast(load_a, int16);
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-            load_c = c->builder.CreateZExt(load_c, int8);
+            load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
-            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, load_value);
+            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, operand);
             llvm::Value* result = c->builder.CreateAdd(result_a_ram, load_c);
 
             // Handling overflow
 
-            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
+            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
 
-            llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
-            llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
+            llvm::Value* xor_result = c->builder.CreateXor(load_a, result);
+            llvm::Value* xor_operand = c->builder.CreateXor(load_a, operand);
 
-            llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
-            llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
+            llvm::Value* and_result = c->builder.CreateAnd(xor_result, c_0x80);
+            llvm::Value* and_operand = c->builder.CreateAnd(xor_operand, c_0x80);
 
-            llvm::Value* SGT_1 = c->builder.CreateICmpNE(and_1, GetConstant8(0));
-            llvm::Value* SGT_2 = c->builder.CreateICmpNE(and_2, GetConstant8(0));
+            llvm::Value* NE = c->builder.CreateICmpNE(and_result, GetConstant16(0));
+            llvm::Value* EQ = c->builder.CreateICmpEQ(and_operand, GetConstant16(0));
 
-            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
-
-            overflow = c->builder.CreateNot(overflow);
+            llvm::Value* overflow = c->builder.CreateAnd(EQ, NE);
 
             c->builder.CreateStore(overflow, c->status_v);
 
-            DynamicTestN(result);
-            DynamicTestZ(result);
-            llvm::Value* result_16_extended = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16_extended);
+            // Test Z
+            llvm::Value* Z = c->builder.CreateICmpEQ(result, GetConstant16(0));
+            c->builder.CreateStore(Z, c->status_z);
 
+            // Test N
+            llvm::Value* N = c->builder.CreateAnd(result, GetConstant16(0x80));
+            N = c->builder.CreateICmpEQ(N, GetConstant16(0x80));
+            c->builder.CreateStore(N, c->status_n);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateICmpUGT(result, GetConstant16(0xFF));
+            c->builder.CreateStore(C, c->status_c);
+
+            // Truncate result and store in A
+            result = c->builder.CreateZExtOrTrunc(result, int8);
             c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x65: {  // ADC Zeropage
             llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
-            llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
+            llvm::Value* operand = c->builder.CreateLoad(ram_pointer);
+            operand = c->builder.CreateZExtOrBitCast(operand, int16);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            load_a = c->builder.CreateZExtOrBitCast(load_a, int16);
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-            load_c = c->builder.CreateZExt(load_c, int8);
+            load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
-            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, load_value);
+            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, operand);
             llvm::Value* result = c->builder.CreateAdd(result_a_ram, load_c);
 
             // Handling overflow
 
-            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
+            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
 
-            llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
-            llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
+            llvm::Value* xor_result = c->builder.CreateXor(load_a, result);
+            llvm::Value* xor_operand = c->builder.CreateXor(load_a, operand);
 
-            llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
-            llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
+            llvm::Value* and_result = c->builder.CreateAnd(xor_result, c_0x80);
+            llvm::Value* and_operand = c->builder.CreateAnd(xor_operand, c_0x80);
 
-            llvm::Value* SGT_1 = c->builder.CreateICmpNE(and_1, GetConstant8(0));
-            llvm::Value* SGT_2 = c->builder.CreateICmpNE(and_2, GetConstant8(0));
+            llvm::Value* NE = c->builder.CreateICmpNE(and_result, GetConstant16(0));
+            llvm::Value* EQ = c->builder.CreateICmpEQ(and_operand, GetConstant16(0));
 
-            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
-
-            overflow = c->builder.CreateNot(overflow);
+            llvm::Value* overflow = c->builder.CreateAnd(EQ, NE);
 
             c->builder.CreateStore(overflow, c->status_v);
 
-            DynamicTestN(result);
-            DynamicTestZ(result);
-            llvm::Value* result_16_extended = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16_extended);
+            // Test Z
+            llvm::Value* Z = c->builder.CreateICmpEQ(result, GetConstant16(0));
+            c->builder.CreateStore(Z, c->status_z);
 
+            // Test N
+            llvm::Value* N = c->builder.CreateAnd(result, GetConstant16(0x80));
+            N = c->builder.CreateICmpEQ(N, GetConstant16(0x80));
+            c->builder.CreateStore(N, c->status_n);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateICmpUGT(result, GetConstant16(0xFF));
+            c->builder.CreateStore(C, c->status_c);
+
+            // Truncate result and store in A
+            result = c->builder.CreateZExtOrTrunc(result, int8);
             c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x75: {  // ADC ZeropageX
             llvm::Value* ram_pointer = AddressModeZeropageX(i.arg);
-            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
+            operand = c->builder.CreateZExtOrBitCast(operand, int16);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            load_a = c->builder.CreateZExtOrBitCast(load_a, int16);
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-            load_c = c->builder.CreateZExt(load_c, int8);
+            load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
-            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, load_value);
+            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, operand);
             llvm::Value* result = c->builder.CreateAdd(result_a_ram, load_c);
 
             // Handling overflow
 
-            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
+            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
 
-            llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
-            llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
+            llvm::Value* xor_result = c->builder.CreateXor(load_a, result);
+            llvm::Value* xor_operand = c->builder.CreateXor(load_a, operand);
 
-            llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
-            llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
+            llvm::Value* and_result = c->builder.CreateAnd(xor_result, c_0x80);
+            llvm::Value* and_operand = c->builder.CreateAnd(xor_operand, c_0x80);
 
-            llvm::Value* SGT_1 = c->builder.CreateICmpNE(and_1, GetConstant8(0));
-            llvm::Value* SGT_2 = c->builder.CreateICmpNE(and_2, GetConstant8(0));
+            llvm::Value* NE = c->builder.CreateICmpNE(and_result, GetConstant16(0));
+            llvm::Value* EQ = c->builder.CreateICmpEQ(and_operand, GetConstant16(0));
 
-            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
-
-            overflow = c->builder.CreateNot(overflow);
+            llvm::Value* overflow = c->builder.CreateAnd(EQ, NE);
 
             c->builder.CreateStore(overflow, c->status_v);
 
-            DynamicTestN(result);
-            DynamicTestZ(result);
-            llvm::Value* result_16_extended = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16_extended);
+            // Test Z
+            llvm::Value* Z = c->builder.CreateICmpEQ(result, GetConstant16(0));
+            c->builder.CreateStore(Z, c->status_z);
 
+            // Test N
+            llvm::Value* N = c->builder.CreateAnd(result, GetConstant16(0x80));
+            N = c->builder.CreateICmpEQ(N, GetConstant16(0x80));
+            c->builder.CreateStore(N, c->status_n);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateICmpUGT(result, GetConstant16(0xFF));
+            c->builder.CreateStore(C, c->status_c);
+
+            // Truncate result and store in A
+            result = c->builder.CreateZExtOrTrunc(result, int8);
             c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x6D: {  // ADC Absolute
             llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
-            llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
+            llvm::Value* operand = c->builder.CreateLoad(ram_pointer);
+            operand = c->builder.CreateZExtOrBitCast(operand, int16);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            load_a = c->builder.CreateZExtOrBitCast(load_a, int16);
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-            load_c = c->builder.CreateZExt(load_c, int8);
+            load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
-            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, load_value);
+            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, operand);
             llvm::Value* result = c->builder.CreateAdd(result_a_ram, load_c);
 
             // Handling overflow
 
-            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
+            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
 
-            llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
-            llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
+            llvm::Value* xor_result = c->builder.CreateXor(load_a, result);
+            llvm::Value* xor_operand = c->builder.CreateXor(load_a, operand);
 
-            llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
-            llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
+            llvm::Value* and_result = c->builder.CreateAnd(xor_result, c_0x80);
+            llvm::Value* and_operand = c->builder.CreateAnd(xor_operand, c_0x80);
 
-            llvm::Value* SGT_1 = c->builder.CreateICmpNE(and_1, GetConstant8(0));
-            llvm::Value* SGT_2 = c->builder.CreateICmpNE(and_2, GetConstant8(0));
+            llvm::Value* NE = c->builder.CreateICmpNE(and_result, GetConstant16(0));
+            llvm::Value* EQ = c->builder.CreateICmpEQ(and_operand, GetConstant16(0));
 
-            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
-
-            overflow = c->builder.CreateNot(overflow);
+            llvm::Value* overflow = c->builder.CreateAnd(EQ, NE);
 
             c->builder.CreateStore(overflow, c->status_v);
 
-            DynamicTestN(result);
-            DynamicTestZ(result);
-            llvm::Value* result_16_extended = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16_extended);
+            // Test Z
+            llvm::Value* Z = c->builder.CreateICmpEQ(result, GetConstant16(0));
+            c->builder.CreateStore(Z, c->status_z);
 
+            // Test N
+            llvm::Value* N = c->builder.CreateAnd(result, GetConstant16(0x80));
+            N = c->builder.CreateICmpEQ(N, GetConstant16(0x80));
+            c->builder.CreateStore(N, c->status_n);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateICmpUGT(result, GetConstant16(0xFF));
+            c->builder.CreateStore(C, c->status_c);
+
+            // Truncate result and store in A
+            result = c->builder.CreateZExtOrTrunc(result, int8);
             c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x7D: {  // ADC AbsoluteX
             llvm::Value* ram_pointer = AddressModeAbsoluteX(i.arg);
-            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
+            operand = c->builder.CreateZExtOrBitCast(operand, int16);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            load_a = c->builder.CreateZExtOrBitCast(load_a, int16);
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-            load_c = c->builder.CreateZExt(load_c, int8);
+            load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
-            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, load_value);
+            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, operand);
             llvm::Value* result = c->builder.CreateAdd(result_a_ram, load_c);
 
             // Handling overflow
 
-            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
+            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
 
-            llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
-            llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
+            llvm::Value* xor_result = c->builder.CreateXor(load_a, result);
+            llvm::Value* xor_operand = c->builder.CreateXor(load_a, operand);
 
-            llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
-            llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
+            llvm::Value* and_result = c->builder.CreateAnd(xor_result, c_0x80);
+            llvm::Value* and_operand = c->builder.CreateAnd(xor_operand, c_0x80);
 
-            llvm::Value* SGT_1 = c->builder.CreateICmpNE(and_1, GetConstant8(0));
-            llvm::Value* SGT_2 = c->builder.CreateICmpNE(and_2, GetConstant8(0));
+            llvm::Value* NE = c->builder.CreateICmpNE(and_result, GetConstant16(0));
+            llvm::Value* EQ = c->builder.CreateICmpEQ(and_operand, GetConstant16(0));
 
-            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
-
-            overflow = c->builder.CreateNot(overflow);
+            llvm::Value* overflow = c->builder.CreateAnd(EQ, NE);
 
             c->builder.CreateStore(overflow, c->status_v);
 
-            DynamicTestN(result);
-            DynamicTestZ(result);
-            llvm::Value* result_16_extended = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16_extended);
+            // Test Z
+            llvm::Value* Z = c->builder.CreateICmpEQ(result, GetConstant16(0));
+            c->builder.CreateStore(Z, c->status_z);
 
+            // Test N
+            llvm::Value* N = c->builder.CreateAnd(result, GetConstant16(0x80));
+            N = c->builder.CreateICmpEQ(N, GetConstant16(0x80));
+            c->builder.CreateStore(N, c->status_n);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateICmpUGT(result, GetConstant16(0xFF));
+            c->builder.CreateStore(C, c->status_c);
+
+            // Truncate result and store in A
+            result = c->builder.CreateZExtOrTrunc(result, int8);
             c->builder.CreateStore(result, c->reg_a);
             break;
         }
         case 0x79: {  // ADC AbsoluteY
             llvm::Value* ram_pointer = AddressModeAbsoluteY(i.arg);
-            llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
+            operand = c->builder.CreateZExtOrBitCast(operand, int16);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            load_a = c->builder.CreateZExtOrBitCast(load_a, int16);
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
-            load_c = c->builder.CreateZExt(load_c, int8);
+            load_c = c->builder.CreateZExt(load_c, int16);
 
             // Subtract ram & carry from A
-            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, load_value);
+            llvm::Value* result_a_ram = c->builder.CreateAdd(load_a, operand);
             llvm::Value* result = c->builder.CreateAdd(result_a_ram, load_c);
 
             // Handling overflow
 
-            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
+            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
 
-            llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
-            llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
+            llvm::Value* xor_result = c->builder.CreateXor(load_a, result);
+            llvm::Value* xor_operand = c->builder.CreateXor(load_a, operand);
 
-            llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
-            llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
+            llvm::Value* and_result = c->builder.CreateAnd(xor_result, c_0x80);
+            llvm::Value* and_operand = c->builder.CreateAnd(xor_operand, c_0x80);
 
-            llvm::Value* SGT_1 = c->builder.CreateICmpNE(and_1, GetConstant8(0));
-            llvm::Value* SGT_2 = c->builder.CreateICmpNE(and_2, GetConstant8(0));
+            llvm::Value* NE = c->builder.CreateICmpNE(and_result, GetConstant16(0));
+            llvm::Value* EQ = c->builder.CreateICmpEQ(and_operand, GetConstant16(0));
 
-            llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
-
-            overflow = c->builder.CreateNot(overflow);
+            llvm::Value* overflow = c->builder.CreateAnd(EQ, NE);
 
             c->builder.CreateStore(overflow, c->status_v);
 
-            DynamicTestN(result);
-            DynamicTestZ(result);
-            llvm::Value* result_16_extended = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16_extended);
+            // Test Z
+            llvm::Value* Z = c->builder.CreateICmpEQ(result, GetConstant16(0));
+            c->builder.CreateStore(Z, c->status_z);
 
+            // Test N
+            llvm::Value* N = c->builder.CreateAnd(result, GetConstant16(0x80));
+            N = c->builder.CreateICmpEQ(N, GetConstant16(0x80));
+            c->builder.CreateStore(N, c->status_n);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateICmpUGT(result, GetConstant16(0xFF));
+            c->builder.CreateStore(C, c->status_c);
+
+            // Truncate result and store in A
+            result = c->builder.CreateZExtOrTrunc(result, int8);
             c->builder.CreateStore(result, c->reg_a);
             break;
         }
