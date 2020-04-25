@@ -5,7 +5,7 @@ from pathlib import Path
 number_of_tests_successful = 0
 
 test_list = [
-    "adc",
+    "adc_test",
     "jmp_idr_test",
     "cpy_abs",
     "jsr_test",
