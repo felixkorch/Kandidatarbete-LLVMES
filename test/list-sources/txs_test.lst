@@ -1,0 +1,62 @@
+#macro PRINT 2
+%1:
+LDA %2, Y
+BEQ exit
+STA $2008
+INY
+JMP %1
+#endmacro
+
+#macro TAX_CMP 2
+LDA %1
+TAX 
+CPX %2
+#endmacro
+
+.org $8000
+
+ok_str:
+.db "ok", 10, 0
+
+err_str:
+.db "err", 10, 0
+
+; Flags: N V U B D I Z C
+
+; Immediate test
+main:
+LDY #0
+
+LDX #$03
+TXS
+TSX
+CPX #$03
+
+LDX #$FF
+TXS
+TSX
+CPX #$FF
+
+
+LDX #$AD
+TXS
+TSX
+CPX #$AD
+
+
+BNE print_err
+
+
+
+JMP print_ok
+
+
+PRINT print_ok ok_str
+PRINT print_err err_str
+
+exit:
+LDA #0
+STA $200F ; exit 0
+
+.org $FFFC
+.dw main ; Reset routine
