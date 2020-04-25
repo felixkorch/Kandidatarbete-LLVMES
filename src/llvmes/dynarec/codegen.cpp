@@ -1191,7 +1191,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x66: {  // ROR Zeropage
             llvm::Value* addr = AddressModeZeropage(i.arg);
-            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
+            llvm::Value* operand = c->builder.CreateLoad(addr);
             // Get status_c
             llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
             // Get carry_out
@@ -1202,8 +1202,8 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
             llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
             llvm::Value* result = c->builder.CreateOr(operand_Shr, carry_in_shl);
-            // Stor reg_a
-            c->builder.CreateStore(result, c->reg_a);
+            // Store in memory
+            c->builder.CreateStore(result, addr);
             // Set status_c
             llvm::Value* carry_out_1 =
                 c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
@@ -1227,8 +1227,8 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
             llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
             llvm::Value* result = c->builder.CreateOr(operand_Shr, carry_in_shl);
-            // Stor reg_a
-            c->builder.CreateStore(result, c->reg_a);
+            // Store in memory
+            c->builder.CreateCall(c->write_fn, {addr, result});
             // Set status_c
             llvm::Value* carry_out_1 =
                 c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
@@ -1240,7 +1240,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x6E: {  // ROR Absolute
             llvm::Value* addr = AddressModeAbsolute(i.arg);
-            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
+            llvm::Value* operand = c->builder.CreateLoad(addr);
             // Get status_c
             llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
             // Get carry_out
@@ -1251,8 +1251,8 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
             llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
             llvm::Value* result = c->builder.CreateOr(operand_Shr, carry_in_shl);
-            // Stor reg_a
-            c->builder.CreateStore(result, c->reg_a);
+            // Store in memory
+            c->builder.CreateStore(result, addr);
             // Set status_c
             llvm::Value* carry_out_1 =
                 c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
@@ -1275,8 +1275,8 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
             llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
             llvm::Value* result = c->builder.CreateOr(operand_Shr, carry_in_shl);
-            // Stor reg_a
-            c->builder.CreateStore(result, c->reg_a);
+            // Store in memory
+            c->builder.CreateCall(c->write_fn, {addr, result});
             // Set status_c
             llvm::Value* carry_out_1 =
                 c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
