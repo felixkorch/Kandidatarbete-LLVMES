@@ -141,7 +141,8 @@ class Compiler {
     void OP_EOR(llvm::Value* v);
     void OP_ORA(llvm::Value* v);
     void OP_ASL(llvm::Value* v);
-    void OP_LSR(llvm::Value* v);
+    void OP_LSR(llvm::Value* v, bool s);
+    void OP_LSR_A();
     void OP_ADC(llvm::Value* v);
     void OP_JSR(llvm::Value* v);
     void OP_JMP(llvm::Value* v);
