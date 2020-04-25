@@ -1464,96 +1464,48 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x29: {  // AND Immediate
             llvm::Value* operand = AddressModeImmediate(i.arg);
-            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateAnd(load_a, operand);
-            // Set Z to zero if result is zero
-            // Set N if bit 7 set
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
+            OP_AND(operand);
             break;
         }
         case 0x25: {  // AND Zeropage
-            llvm::Value* target_addr = AddressModeZeropage(i.arg);
-            llvm::Value* operand = c->builder.CreateLoad(target_addr);
-            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateAnd(load_a, operand);
-            // Set Z to zero if result is zero
-            // Set N if bit 7 set
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
+            llvm::Value* addr = AddressModeZeropage(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(addr);
+            OP_AND(operand);
             break;
         }
         case 0x35: {  // AND ZeropageX
-            llvm::Value* target_addr = AddressModeZeropageX(i.arg);
-            llvm::Value* operand = c->builder.CreateLoad(target_addr);
-            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateAnd(load_a, operand);
-            // Set Z to zero if result is zero
-            // // Set N if bit 7 set
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
+            llvm::Value* addr = AddressModeZeropageX(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
+            OP_AND(operand);
             break;
         }
         case 0x2D: {  // AND Absolute
             llvm::Value* operand = ReadMemory(i.arg);
-            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateAnd(load_a, operand);
-            // Set Z to zero if result is zero
-            // Set N if bit 7 set
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
+            OP_AND(operand);
             break;
         }
         case 0x3D: {  // AND AbsoluteX
-            llvm::Value* target_addr = AddressModeAbsoluteX(i.arg);
-            llvm::Value* operand = c->builder.CreateLoad(target_addr);
-            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateAnd(load_a, operand);
-            // Set Z to zero if result is zero
-            // Set N if bit 7 set
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
+            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
+            OP_AND(operand);
             break;
         }
         case 0x39: {  // AND AbsoluteY
-            llvm::Value* target_addr = AddressModeAbsoluteY(i.arg);
-            llvm::Value* operand = c->builder.CreateLoad(target_addr);
-            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateAnd(load_a, operand);
-            // Set Z to zero if result is zero
-            // Set N if bit 7 set
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
+            llvm::Value* addr = AddressModeAbsoluteY(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
+            OP_AND(operand);
             break;
         }
         case 0x21: {  // AND IndirectX
-            llvm::Value* target_addr = AddressModeIndirectX(i.arg);
-            llvm::Value* operand = c->builder.CreateLoad(target_addr);
-            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateAnd(load_a, operand);
-            // Set Z to zero if result is zero
-            // Set N if bit 7 set
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
+            llvm::Value* addr = AddressModeIndirectX(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
+            OP_AND(operand);
             break;
         }
         case 0x31: {  // AND IndirectY
-            llvm::Value* target_addr = AddressModeIndirectY(i.arg);
-            llvm::Value* operand = c->builder.CreateLoad(target_addr);
-            llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* result = c->builder.CreateAnd(load_a, operand);
-            // Set Z to zero if result is zero
-            // Set N if bit 7 set
-            DynamicTestZ(result);
-            DynamicTestN(result);
-            llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
+            llvm::Value* addr = AddressModeIndirectY(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
+            OP_AND(operand);
             break;
         }
         case 0x0A: {  // ACC Accumulator
@@ -1766,6 +1718,17 @@ void Compiler::OP_BIT(llvm::Value* operand)
     c->builder.CreateStore(is_overflow, c->status_v);
     // Set N to Bit 7 of Memory value
     DynamicTestN(operand);
+}
+
+void Compiler::OP_AND(llvm::Value* operand)
+{
+    llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+    llvm::Value* result = c->builder.CreateAnd(load_a, operand);
+    // Set Z to zero if result is zero
+    // Set N if bit 7 set
+    DynamicTestZ(result);
+    DynamicTestN(result);
+    llvm::Value* store = c->builder.CreateStore(result, c->reg_a);
 }
 
 }  // namespace llvmes
