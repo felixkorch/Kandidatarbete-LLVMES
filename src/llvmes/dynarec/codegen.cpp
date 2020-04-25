@@ -820,7 +820,7 @@ void Compiler::CodeGen(Instruction& instr)
             OP_AND(operand);
             break;
         }
-        case 0x0A: {  // ACC Accumulator
+        case 0x0A: {  // ASL Accumulator
             OP_ASL_A();
             break;
         }
