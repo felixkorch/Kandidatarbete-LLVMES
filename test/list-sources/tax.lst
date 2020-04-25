@@ -1,10 +1,9 @@
 #macro PRINT 2
-LDX #$00
 %1:
-LDA %2, X
+LDA %2, Y
 BEQ exit
 STA $2008
-INX
+INY
 JMP %1
 #endmacro
 
@@ -26,7 +25,7 @@ err_str:
 
 ; Immediate test
 main:
-
+LDY #0
 LDA #$05
 TAX
 CPX #$05
