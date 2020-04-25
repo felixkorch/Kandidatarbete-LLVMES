@@ -1007,6 +1007,7 @@ void Compiler::CodeGen(Instruction& instr)
             break;
         }
         case 0x0A: {  // ACC Accumulator
+            OP_ASL_A();
             break;
         }
         case 0x06: {  // ASL Zeropage
@@ -1328,7 +1329,7 @@ void Compiler::OP_ASL_A()
    // Test C
     llvm::Value* C = c->builder.CreateAnd(reg_a, GetConstant8(0x80));
     C = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
-    c->builder.CreateStore(C, c->status_n);
+    c->builder.CreateStore(C, c->status_c);
 
     reg_a = c->builder.CreateShl(reg_a, 1);
 
