@@ -11,16 +11,13 @@ using namespace std::chrono;
 
 int main(int argc, char** argv)
 try {
-    cxxopts::Options options("JIT Compiler",
-                             "Run a bin file using the jit compiler");
+    cxxopts::Options options("JIT Compiler", "Run a bin file using the jit compiler");
 
-    options.add_options()("f,positional", "File",
-                          cxxopts::value<std::string>())(
+    options.add_options()("f,positional", "File", cxxopts::value<std::string>())(
         "v,verbose", "Enable verbose output", cxxopts::value<bool>())(
         "i,ir", "Write IR to file", cxxopts::value<bool>())(
-        "O,optimize", "Optimize", cxxopts::value<bool>())(
-        "h,help", "Print usage")("t,time", "Set time format (ms/us/s)",
-                                 cxxopts::value<std::string>())(
+        "O,optimize", "Optimize", cxxopts::value<bool>())("h,help", "Print usage")(
+        "t,time", "Set time format (ms/us/s)", cxxopts::value<std::string>())(
         "s,save", "Save memory to disk", cxxopts::value<std::string>());
 
     options.parse_positional({"positional"});
@@ -70,8 +67,7 @@ try {
     // Same as interpreter, this chunk above doesn't count
 
     ClockType start = high_resolution_clock::now();
-    ClockType stop, exec_start, parse_start, parse_stop, compile_start,
-        compile_stop;
+    ClockType stop, exec_start, parse_start, parse_stop, compile_start, compile_stop;
 
     Parser parser(std::move(in_file), 0x8000);
 
@@ -103,7 +99,7 @@ try {
     compile_stop = high_resolution_clock::now();
 
     exec_start = high_resolution_clock::now();
-    main();
+    int exit_code = main();
     stop = high_resolution_clock::now();
 
     if (verbose) {
@@ -111,15 +107,12 @@ try {
                   << GetDuration<ClockType>(time_format, exec_start, stop)
                   << GetTimeFormatAbbreviation(time_format) << std::endl;
         std::cout << "Parse time: "
-                  << GetDuration<ClockType>(time_format, parse_start,
-                                            parse_stop)
+                  << GetDuration<ClockType>(time_format, parse_start, parse_stop)
                   << GetTimeFormatAbbreviation(time_format) << std::endl;
         std::cout << "Compile time: "
-                  << GetDuration<ClockType>(time_format, compile_start,
-                                            compile_stop)
+                  << GetDuration<ClockType>(time_format, compile_start, compile_stop)
                   << GetTimeFormatAbbreviation(time_format) << std::endl;
-        std::cout << "Total time: "
-                  << GetDuration<ClockType>(time_format, start, stop)
+        std::cout << "Total time: " << GetDuration<ClockType>(time_format, start, stop)
                   << GetTimeFormatAbbreviation(time_format) << std::endl;
     }
 
@@ -135,7 +128,7 @@ try {
         fstream.close();
     }
 
-    return 0;
+    return exit_code;
 }
 catch (std::exception& e) {
     std::cout << e.what() << std::endl;
