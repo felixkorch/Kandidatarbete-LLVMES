@@ -9,7 +9,13 @@ test_list = [
     "jmp_idr_test",
     "cpy_abs",
     "jsr_test",
-    "sbc"
+    "sbc_test",
+    "tax_test",
+    "tay_test",
+    "tsx_test",
+    "txs_test",
+    
+
 ]
 
 for test in test_list:

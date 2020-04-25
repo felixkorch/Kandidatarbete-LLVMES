@@ -29,25 +29,29 @@ LDY #0
 LDA #$05
 TAX
 CPX #$05
-BNE print_err
+BNE fail
 
 
 LDY #0
-LDA #$F1
+LDA #$F2
 TAX
-CPX #$F1
-BNE print_err
+CPX #$F2
+BNE fail
 
 
-JMP print_ok
+JMP success
 
 
-PRINT print_ok ok_str
-PRINT print_err err_str
+fail:
+LDA #1
+JMP exit
+
+success:
+LDA #0
+JMP exit
 
 exit:
-LDA #0
-STA $200F ; exit 0
+STA $200F
 
 .org $FFFC
 .dw main ; Reset routine

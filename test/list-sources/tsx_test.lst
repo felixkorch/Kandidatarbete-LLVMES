@@ -31,32 +31,34 @@ LDX #$02
 TXS
 TSX
 CPX #$02
+BNE fail
 
 LDX #$F1
 TXS
 TSX
 CPX #$F1
-
+BNE fail
 
 LDX #$A3
 TXS
 TSX
 CPX #$A3
+BNE fail
 
 
-BNE print_err
+JMP success
 
 
+fail:
+LDA #1
+JMP exit
 
-JMP print_ok
-
-
-PRINT print_ok ok_str
-PRINT print_err err_str
+success:
+LDA #0
+JMP exit
 
 exit:
-LDA #0
-STA $200F ; exit 0
+STA $200F
 
 .org $FFFC
 .dw main ; Reset routine
