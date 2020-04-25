@@ -1016,7 +1016,7 @@ void Compiler::CodeGen(Instruction& instr)
         }
         case 0x16: {  // ASL ZeropageX
             llvm::Value* addr = AddressModeZeropageX(i->arg);
-            OP_LSR(addr, false);
+            OP_ASL(addr, false);
             break;
         }
         case 0x0E: {  // ASL Absolute
@@ -1026,7 +1026,7 @@ void Compiler::CodeGen(Instruction& instr)
         }
         case 0x1E: {  // ASL AbsoluteX
             llvm::Value* addr = AddressModeAbsoluteX(i->arg);
-            OP_LSR(addr, false);
+            OP_ASL(addr, false);
             break;
         }
         case 0x69: {  // ADC Immediate
