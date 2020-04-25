@@ -6,9 +6,12 @@ namespace llvmes {
 
 static std::unordered_map<uint16_t, uint16_t> return_map;
 
-void Compiler::CodeGen(Instruction& i)
+Instruction* i = nullptr;
+
+void Compiler::CodeGen(Instruction& instr)
 {
-    switch (i.opcode) {
+    i = &instr;
+    switch (instr.opcode) {
         case 0xD0: {  // BNE Immediate
             OP_BNE(nullptr);
             break;
@@ -74,15 +77,15 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xE6: {  // INC Zeropage
-            llvm::Value* zpg_value = ReadMemory(i.arg);
+            llvm::Value* zpg_value = ReadMemory(i->arg);
             llvm::Value* inc = c->builder.CreateAdd(zpg_value, GetConstant8(1));
-            WriteMemory(i.arg, inc);
+            WriteMemory(i->arg, inc);
             DynamicTestZ(inc);
             DynamicTestN(inc);
             break;
         }
         case 0xF6: {  // INC ZeropageX
-            llvm::Value* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* zpg_addr = GetConstant8(i->arg);
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             llvm::Value* zpg_x_addr = c->builder.CreateAdd(zpg_addr, load_x);
             llvm::Value* zpg_x_addr_16 = c->builder.CreateZExt(zpg_x_addr, int16);
@@ -94,15 +97,15 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xEE: {  // INC Absolute
-            llvm::Value* value = ReadMemory(i.arg);
+            llvm::Value* value = ReadMemory(i->arg);
             llvm::Value* inca = c->builder.CreateAdd(value, GetConstant8(1));
-            WriteMemory(i.arg, inca);
+            WriteMemory(i->arg, inca);
             DynamicTestZ(inca);
             DynamicTestN(inca);
             break;
         }
         case 0xFE: {  // INC AbsoluteX
-            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Constant* addr = GetConstant16(i->arg);
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
             llvm::Value* addr_x = c->builder.CreateAdd(addr, load_x);
@@ -114,11 +117,11 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x4C: {  // JMP Absolute
-            c->builder.CreateBr(c->basicblocks[i.target_label]);
+            c->builder.CreateBr(c->basicblocks[i->target_label]);
             break;
         }
         case 0x6C: {  // JMP Indirect
-            c->builder.CreateStore(ReadMemory16(i.arg), c->reg_idr);
+            c->builder.CreateStore(ReadMemory16(i->arg), c->reg_idr);
             c->builder.CreateBr(c->dynJumpBlock);
             break;
         }
@@ -127,13 +130,13 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x24: {  // BIT Zeropage
-            llvm::Value* addr = AddressModeZeropage(i.arg);
+            llvm::Value* addr = AddressModeZeropage(i->arg);
             llvm::Value* operand = c->builder.CreateLoad(addr);
             OP_BIT(operand);
             break;
         }
         case 0x2C: {  // BIT Absolute
-            llvm::Value* addr = AddressModeAbsolute(i.arg);
+            llvm::Value* addr = AddressModeAbsolute(i->arg);
             llvm::Value* operand = c->builder.CreateLoad(addr);
             OP_BIT(operand);
             break;
@@ -143,7 +146,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xC9: {  // CMP Immediate
             // In data
-            llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* operand = llvm::ConstantInt::get(int8, i->arg);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
@@ -158,7 +161,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xC5: {  // CMP Zeropage
             // In data
-            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand = ReadMemory(i->arg);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
@@ -173,7 +176,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xD5: {  // CMP ZeropageX
             // In data
-            llvm::Constant* zpg_addr = GetConstant8(i.arg);
+            llvm::Constant* zpg_addr = GetConstant8(i->arg);
             // Get reg_a and reg_x
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
@@ -194,7 +197,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xCD: {  // CMP Absolute
             // In data
-            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand = ReadMemory(i->arg);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_a
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
@@ -209,7 +212,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xDD: {  // CMP AbsoluteX
             // In data
-            llvm::Constant* abs_addr = GetConstant16(i.arg);
+            llvm::Constant* abs_addr = GetConstant16(i->arg);
             // Get reg_a and reg_x
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
@@ -230,7 +233,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xD9: {  // CMP AbsoluteY
             // In data
-            llvm::Constant* abs_addr = GetConstant16(i.arg);
+            llvm::Constant* abs_addr = GetConstant16(i->arg);
             // Get reg_a and reg_y
             llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
             llvm::Value* reg_a_16 = c->builder.CreateZExt(reg_a, int16);
@@ -251,7 +254,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xC1: {  // CMP IndirectX
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* addr_base = c->builder.CreateAdd(load_x, GetConstant8(i.arg));
+            llvm::Value* addr_base = c->builder.CreateAdd(load_x, GetConstant8(i->arg));
 
             // low
             llvm::Value* addr_base_16 = c->builder.CreateZExt(addr_base, int16);
@@ -283,12 +286,12 @@ void Compiler::CodeGen(Instruction& i)
 
             // low
             llvm::Value* addr_low =
-                c->builder.CreateCall(c->read_fn, GetConstant8(i.arg));
+                c->builder.CreateCall(c->read_fn, GetConstant8(i->arg));
             llvm::Value* addr_low_16 = c->builder.CreateZExt(addr_low, int16);
 
             // high
             llvm::Value* addr_get_high =
-                c->builder.CreateAdd(GetConstant8(i.arg), GetConstant8(1));
+                c->builder.CreateAdd(GetConstant8(i->arg), GetConstant8(1));
             llvm::Value* addr_get_high_16 = c->builder.CreateZExt(addr_get_high, int16);
             llvm::Value* addr_high = c->builder.CreateCall(c->read_fn, addr_get_high);
             llvm::Value* high_addr_16 = c->builder.CreateZExt(addr_high, int16);
@@ -309,7 +312,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xE0: {  // CPX Immediate
             // In data
-            llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* operand = llvm::ConstantInt::get(int8, i->arg);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_x
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
@@ -324,7 +327,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xE4: {  // CPX Zeropage
             // In data
-            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand = ReadMemory(i->arg);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_x
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
@@ -339,7 +342,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xEC: {  // CPX Absolute
             // In data
-            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand = ReadMemory(i->arg);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_x
             llvm::Value* reg_x = c->builder.CreateLoad(c->reg_x);
@@ -354,7 +357,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xC0: {  // CPY Immediate
             // In data
-            llvm::Value* operand = llvm::ConstantInt::get(int8, i.arg);
+            llvm::Value* operand = llvm::ConstantInt::get(int8, i->arg);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_y
             llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
@@ -369,7 +372,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xC4: {  // CPY Zeropage
             // In data
-            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand = ReadMemory(i->arg);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_y
             llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
@@ -384,7 +387,7 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0xCC: {  // CPY Absolute
             // In data
-            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand = ReadMemory(i->arg);
             llvm::Value* operand_16 = c->builder.CreateZExt(operand, int16);
             // Get reg_y
             llvm::Value* reg_y = c->builder.CreateLoad(c->reg_y);
@@ -398,15 +401,15 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xC6: {  // DEC Zeropage
-            llvm::Value* zpg_value = ReadMemory(i.arg);
+            llvm::Value* zpg_value = ReadMemory(i->arg);
             llvm::Value* dec = c->builder.CreateSub(zpg_value, GetConstant8(1));
-            WriteMemory(i.arg, dec);
+            WriteMemory(i->arg, dec);
             DynamicTestZ(dec);
             DynamicTestN(dec);
             break;
         }
         case 0xD6: {  // DEC ZeropageX
-            llvm::Value* zpg_addr = GetConstant8(i.arg);
+            llvm::Value* zpg_addr = GetConstant8(i->arg);
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             llvm::Value* zpg_x_addr = c->builder.CreateAdd(zpg_addr, load_x);
             llvm::Value* zpg_x_value = c->builder.CreateLoad(zpg_x_addr);
@@ -417,15 +420,15 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xCE: {  // DEC Absolute
-            llvm::Value* value = ReadMemory(i.arg);
+            llvm::Value* value = ReadMemory(i->arg);
             llvm::Value* deca = c->builder.CreateSub(value, GetConstant8(1));
-            WriteMemory(i.arg, deca);
+            WriteMemory(i->arg, deca);
             DynamicTestZ(deca);
             DynamicTestN(deca);
             break;
         }
         case 0xDE: {  // DEC AbsoluteX
-            llvm::Constant* addr = GetConstant16(i.arg);
+            llvm::Constant* addr = GetConstant16(i->arg);
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
             llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
             llvm::Value* addr_x = c->builder.CreateAdd(addr, load_x);
@@ -438,160 +441,160 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x49: {  // EOR Immediate
             // In data
-            llvm::Value* operand = AddressModeImmediate(i.arg);
+            llvm::Value* operand = AddressModeImmediate(i->arg);
             OP_EOR(operand);
             break;
         }
         case 0x45: {  // EOR Zeropage
-            llvm::Value* addr = AddressModeZeropage(i.arg);
+            llvm::Value* addr = AddressModeZeropage(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             OP_EOR(operand);
             break;
         }
         case 0x55: {  // EOR ZeropageX
             // In data
-            llvm::Value* addr = AddressModeZeropageX(i.arg);
+            llvm::Value* addr = AddressModeZeropageX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             OP_EOR(operand);
             break;
         }
         case 0x4D: {  // EOR Absolute
-            llvm::Value* addr = AddressModeAbsolute(i.arg);
+            llvm::Value* addr = AddressModeAbsolute(i->arg);
             llvm::Value* operand = c->builder.CreateLoad(addr);
             OP_EOR(operand);
             break;
         }
         case 0x5D: {  // EOR AbsoluteX
-            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* addr = AddressModeAbsoluteX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             OP_EOR(operand);
             break;
         }
         case 0x59: {  // EOR AbsoluteY
-            llvm::Value* addr = AddressModeAbsoluteY(i.arg);
+            llvm::Value* addr = AddressModeAbsoluteY(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             OP_EOR(operand);
             break;
         }
         case 0x41: {  // EOR IndirectX
-            llvm::Value* addr = AddressModeIndirectX(i.arg);
+            llvm::Value* addr = AddressModeIndirectX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             OP_EOR(operand);
             break;
         }
         case 0x51: {  // EOR IndirectY
-            llvm::Value* addr = AddressModeIndirectY(i.arg);
+            llvm::Value* addr = AddressModeIndirectY(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             OP_EOR(operand);
             break;
         }
         case 0xA9: {  // LDA Immediate
-            llvm::Value* load_value = AddressModeImmediate(i.arg);
+            llvm::Value* load_value = AddressModeImmediate(i->arg);
             c->builder.CreateStore(load_value, c->reg_a);
-            StaticTestZ(i.arg);
-            StaticTestN(i.arg);
+            StaticTestZ(i->arg);
+            StaticTestN(i->arg);
             break;
         }
         case 0xA5: {  // LDA Zeropage
-            llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
+            llvm::Value* ram_pointer = AddressModeZeropage(i->arg);
             llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
             OP_LDA(load_value);
             break;
         }
         case 0xB5: {  // LDA ZeropageX
-            llvm::Value* ram_pointer = AddressModeZeropageX(i.arg);
+            llvm::Value* ram_pointer = AddressModeZeropageX(i->arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_LDA(load_value);
             break;
         }
         case 0xA1: {  // LDA IndirectX
-            llvm::Value* ram_pointer = AddressModeIndirectX(i.arg);
+            llvm::Value* ram_pointer = AddressModeIndirectX(i->arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_LDA(load_value);
             break;
         }
         case 0xB1: {  // LDA IndirectY
-            llvm::Value* ram_pointer = AddressModeIndirectY(i.arg);
+            llvm::Value* ram_pointer = AddressModeIndirectY(i->arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_LDA(load_value);
             break;
         }
         case 0xAD: {  // LDA Absolute
-            llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsolute(i->arg);
             llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
             OP_LDA(load_value);
             break;
         }
         case 0xBD: {  // LDA AbsoluteX
-            llvm::Value* ram_pointer = AddressModeAbsoluteX(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsoluteX(i->arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_LDA(load_value);
             break;
         }
         case 0xB9: {  // LDA AbsoluteY
-            llvm::Value* ram_pointer = AddressModeAbsoluteY(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsoluteY(i->arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_LDA(load_value);
             break;
         }
         case 0xA2: {  // LDX Immediate
-            llvm::Value* load_value = AddressModeImmediate(i.arg);
+            llvm::Value* load_value = AddressModeImmediate(i->arg);
             c->builder.CreateStore(load_value, c->reg_x);
-            StaticTestZ(i.arg);
-            StaticTestN(i.arg);
+            StaticTestZ(i->arg);
+            StaticTestN(i->arg);
             break;
         }
         case 0xA6: {  // LDX Zeropage
-            llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
+            llvm::Value* ram_pointer = AddressModeZeropage(i->arg);
             llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
             OP_LDX(load_value);
             break;
         }
         case 0xB6: {  // LDX ZeropageY
-            llvm::Value* ram_pointer = AddressModeZeropageY(i.arg);
+            llvm::Value* ram_pointer = AddressModeZeropageY(i->arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_LDX(load_value);
             break;
         }
         case 0xAE: {  // LDX Absolute
-            llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsolute(i->arg);
             llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
             OP_LDX(load_value);
             break;
         }
         case 0xBE: {  // LDX AbsoluteY
-            llvm::Value* ram_pointer = AddressModeAbsoluteY(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsoluteY(i->arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_LDX(load_value);
             break;
         }
         case 0xA0: {  // LDY Immediate
-            llvm::Value* load_value = AddressModeImmediate(i.arg);
+            llvm::Value* load_value = AddressModeImmediate(i->arg);
             c->builder.CreateStore(load_value, c->reg_y);
-            StaticTestZ(i.arg);
-            StaticTestN(i.arg);
+            StaticTestZ(i->arg);
+            StaticTestN(i->arg);
             break;
         }
         case 0xA4: {  // LDY Zeropage
-            llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
+            llvm::Value* ram_pointer = AddressModeZeropage(i->arg);
             llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
             OP_LDY(load_value);
             break;
         }
         case 0xB4: {  // LDY ZeropageX
-            llvm::Value* ram_pointer = AddressModeZeropageX(i.arg);
+            llvm::Value* ram_pointer = AddressModeZeropageX(i->arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_LDY(load_value);
             break;
         }
         case 0xAC: {  // LDY Absolute
-            llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsolute(i->arg);
             llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
             OP_LDY(load_value);
             break;
         }
         case 0xBC: {  // LDY AbsoluteX
-            llvm::Value* ram_pointer = AddressModeAbsoluteX(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsoluteX(i->arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_LDY(load_value);
             break;
@@ -601,73 +604,73 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x46: {  // LSR Zeropage
-            llvm::Value* addr = AddressModeZeropage(i.arg);
+            llvm::Value* addr = AddressModeZeropage(i->arg);
             OP_LSR(addr, true);
             break;
         }
         case 0x56: {  // LSR ZeropageX
-            llvm::Value* addr = AddressModeZeropageX(i.arg);
+            llvm::Value* addr = AddressModeZeropageX(i->arg);
             OP_LSR(addr, false);
             break;
         }
         case 0x4E: {  // LSR Absolute
-            llvm::Value* addr = AddressModeAbsolute(i.arg);
+            llvm::Value* addr = AddressModeAbsolute(i->arg);
             OP_LSR(addr, true);
             break;
         }
         case 0x5E: {  // LSR AbsoluteX
-            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* addr = AddressModeAbsoluteX(i->arg);
             OP_LSR(addr, false);
             break;
         }
         case 0x09: {  // ORA Immediate
             // Fetch operands
-            llvm::Value* operand = AddressModeImmediate(i.arg);
+            llvm::Value* operand = AddressModeImmediate(i->arg);
             OP_ORA(operand);
             break;
         }
         case 0x05: {  // ORA Zeropage
             // Fetch operands
-            llvm::Value* target_addr = AddressModeZeropage(i.arg);
+            llvm::Value* target_addr = AddressModeZeropage(i->arg);
             llvm::Value* operand = c->builder.CreateLoad(target_addr);
             OP_ORA(operand);
             break;
         }
         case 0x15: {  // ORA ZeropageX
             // Fetch operands
-            llvm::Value* addr = AddressModeZeropageX(i.arg);
+            llvm::Value* addr = AddressModeZeropageX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
             OP_ORA(operand);
             break;
         }
         case 0x0D: {  // ORA Absolute
-            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand = ReadMemory(i->arg);
             OP_ORA(operand);
             break;
         }
         case 0x1D: {  // ORA AbsoluteX
-            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* addr = AddressModeAbsoluteX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
             OP_ORA(operand);
             break;
         }
         case 0x19: {  // ORA AbsoluteY
             // Fetch operands
-            llvm::Value* addr = AddressModeAbsoluteY(i.arg);
+            llvm::Value* addr = AddressModeAbsoluteY(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
             OP_ORA(operand);
             break;
         }
         case 0x01: {  // ORA IndirectX
             // Fetch operands
-            llvm::Value* addr = AddressModeIndirectX(i.arg);
+            llvm::Value* addr = AddressModeIndirectX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
             OP_ORA(operand);
             break;
         }
         case 0x11: {  // ORA IndirectY
             // Fetch operands
-            llvm::Value* addr = AddressModeIndirectY(i.arg);
+            llvm::Value* addr = AddressModeIndirectY(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
             OP_ORA(operand);
             break;
@@ -762,7 +765,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x26: {  // ROL Zeropage
-            llvm::Value* addr = AddressModeZeropage(i.arg);
+            llvm::Value* addr = AddressModeZeropage(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             // Get status_c
             llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
@@ -785,7 +788,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x36: {  // ROL ZeropageX
-            llvm::Value* addr = AddressModeZeropageX(i.arg);
+            llvm::Value* addr = AddressModeZeropageX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             // Get status_c
             llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
@@ -808,7 +811,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x2E: {  // ROL Absolute
-            llvm::Value* addr = AddressModeAbsolute(i.arg);
+            llvm::Value* addr = AddressModeAbsolute(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             // Get status_c
             llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
@@ -831,7 +834,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x3E: {  // ROL AbsoluteX
-            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* addr = AddressModeAbsoluteX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
             // Get status_c
             llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
@@ -854,123 +857,28 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x6A: {  // ROR Accumulator
-            // Get reg_a and status_c
-            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
-            // Get carry_out
-            llvm::Value* carry_out = c->builder.CreateAnd(reg_a, GetConstant8(0x01));
-            // Shift reg_a
-            llvm::Value* reg_a_Shr = c->builder.CreateLShr(reg_a, 1);
-            // Add carry_in
-            llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
-            llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
-            llvm::Value* result = c->builder.CreateOr(reg_a_Shr, carry_in_shl);
-            // Stor reg_a
-            c->builder.CreateStore(result, c->reg_a);
-            // Set status_c
-            llvm::Value* carry_out_1 =
-                c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
-            c->builder.CreateStore(carry_out_1, c->status_c);
-            // Flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            OP_ROR_A();
             break;
         }
         case 0x66: {  // ROR Zeropage
-            llvm::Value* addr = AddressModeZeropage(i.arg);
-            llvm::Value* operand = c->builder.CreateLoad(addr);
-            // Get status_c
-            llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
-            // Get carry_out
-            llvm::Value* carry_out = c->builder.CreateAnd(operand, GetConstant8(0x01));
-            // Shift reg_a
-            llvm::Value* operand_Shr = c->builder.CreateLShr(operand, 1);
-            // Add carry_in
-            llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
-            llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
-            llvm::Value* result = c->builder.CreateOr(operand_Shr, carry_in_shl);
-            // Store in memory
-            c->builder.CreateStore(result, addr);
-            // Set status_c
-            llvm::Value* carry_out_1 =
-                c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
-            c->builder.CreateStore(carry_out_1, c->status_c);
-            // Flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* addr = AddressModeZeropage(i->arg);
+            OP_ROR(addr, true);
 
             break;
         }
         case 0x76: {  // ROR ZeropageX
-            llvm::Value* addr = AddressModeZeropageX(i.arg);
-            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
-            // Get status_c
-            llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
-            // Get carry_out
-            llvm::Value* carry_out = c->builder.CreateAnd(operand, GetConstant8(0x01));
-            // Shift reg_a
-            llvm::Value* operand_Shr = c->builder.CreateLShr(operand, 1);
-            // Add carry_in
-            llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
-            llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
-            llvm::Value* result = c->builder.CreateOr(operand_Shr, carry_in_shl);
-            // Store in memory
-            c->builder.CreateCall(c->write_fn, {addr, result});
-            // Set status_c
-            llvm::Value* carry_out_1 =
-                c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
-            c->builder.CreateStore(carry_out_1, c->status_c);
-            // Flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* addr = AddressModeZeropageX(i->arg);
+            OP_ROR(addr, false);
             break;
         }
         case 0x6E: {  // ROR Absolute
-            llvm::Value* addr = AddressModeAbsolute(i.arg);
-            llvm::Value* operand = c->builder.CreateLoad(addr);
-            // Get status_c
-            llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
-            // Get carry_out
-            llvm::Value* carry_out = c->builder.CreateAnd(operand, GetConstant8(0x01));
-            // Shift reg_a
-            llvm::Value* operand_Shr = c->builder.CreateLShr(operand, 1);
-            // Add carry_in
-            llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
-            llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
-            llvm::Value* result = c->builder.CreateOr(operand_Shr, carry_in_shl);
-            // Store in memory
-            c->builder.CreateStore(result, addr);
-            // Set status_c
-            llvm::Value* carry_out_1 =
-                c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
-            c->builder.CreateStore(carry_out_1, c->status_c);
-            // Flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* addr = AddressModeAbsolute(i->arg);
+            OP_ROR(addr, true);
             break;
         }
         case 0x7E: {  // ROR AbsoluteX
-            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
-            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
-            // Get status_c
-            llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
-            // Get carry_out
-            llvm::Value* carry_out = c->builder.CreateAnd(operand, GetConstant8(0x01));
-            // Shift reg_a
-            llvm::Value* operand_Shr = c->builder.CreateLShr(operand, 1);
-            // Add carry_in
-            llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
-            llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
-            llvm::Value* result = c->builder.CreateOr(operand_Shr, carry_in_shl);
-            // Store in memory
-            c->builder.CreateCall(c->write_fn, {addr, result});
-            // Set status_c
-            llvm::Value* carry_out_1 =
-                c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
-            c->builder.CreateStore(carry_out_1, c->status_c);
-            // Flag test
-            DynamicTestZ(result);
-            DynamicTestN(result);
+            llvm::Value* addr = AddressModeAbsoluteX(i->arg);
+            OP_ROR(addr, false);
             break;
         }
         case 0x40: {  // RTI Implied
@@ -984,48 +892,48 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xE9: {  // SBC Immediate
-            llvm::Value* operand = AddressModeImmediate(i.arg);
+            llvm::Value* operand = AddressModeImmediate(i->arg);
             OP_SBC(operand);
             break;
         }
         case 0xE5: {  // SBC Zeropage
-            llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
+            llvm::Value* ram_pointer = AddressModeZeropage(i->arg);
             llvm::Value* operand = c->builder.CreateLoad(ram_pointer);
             OP_SBC(operand);
             break;
         }
         case 0xF5: {  // SBC ZeropageX
-            llvm::Value* ram_pointer = AddressModeZeropageX(i.arg);
+            llvm::Value* ram_pointer = AddressModeZeropageX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_SBC(operand);
             break;
         }
         case 0xED: {  // SBC Absolute
-            llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsolute(i->arg);
             llvm::Value* operand = c->builder.CreateLoad(ram_pointer);
             OP_SBC(operand);
             break;
         }
         case 0xFD: {  // SBC AbsoluteX
-            llvm::Value* ram_pointer = AddressModeAbsoluteX(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsoluteX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_SBC(operand);
             break;
         }
         case 0xF9: {  // SBC AbsoluteY
-            llvm::Value* ram_pointer = AddressModeAbsoluteY(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsoluteY(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_SBC(operand);
             break;
         }
         case 0xE1: {  // SBC IndirectX
-            llvm::Value* ram_pointer = AddressModeIndirectX(i.arg);
+            llvm::Value* ram_pointer = AddressModeIndirectX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_SBC(operand);
             break;
         }
         case 0xF1: {  // SBC IndirectY
-            llvm::Value* ram_pointer = AddressModeIndirectY(i.arg);
+            llvm::Value* ram_pointer = AddressModeIndirectY(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_SBC(operand);
             break;
@@ -1070,138 +978,73 @@ void Compiler::CodeGen(Instruction& i)
         }
         case 0x85: {  // STA Zeropage
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            WriteMemory(i.arg, load_a);
+            WriteMemory(i->arg, load_a);
             break;
         }
         case 0x95: {  // STA ZeropageX
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* target_addr = AddressModeZeropageX(i.arg);
+            llvm::Value* target_addr = AddressModeZeropageX(i->arg);
             c->builder.CreateCall(c->write_fn, {target_addr, load_a});
             break;
         }
         case 0x8D: {  // STA Absolute
-            uint16_t addr = i.arg;
-            // Write to '0x2008' and 'A' will be written to stdout as
-            // char
-            if (addr == 0x2008) {
-                llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-                c->builder.CreateCall(c->putchar_fn, {load_a});
-            }
-            // Write A to stdout
-            else if (addr == 0x2009) {
-                llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-                c->builder.CreateCall(c->putreg_fn, {load_a});
-            }
-            // Write X to stdout
-            else if (addr == 0x200A) {
-                llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-                c->builder.CreateCall(c->putreg_fn, {load_x});
-            }
-            // Write Y to stdout
-            else if (addr == 0x200B) {
-                llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-                c->builder.CreateCall(c->putreg_fn, {load_y});
-            }
-            // Write flags to stdout
-            else if (addr == 0x200C) {
-                llvm::Value* status_c = c->builder.CreateLoad(c->status_c);
-                status_c = c->builder.CreateZExt(status_c, int8);
-                llvm::Value* status_z = c->builder.CreateLoad(c->status_z);
-                status_z = c->builder.CreateZExt(status_z, int8);
-                status_z = c->builder.CreateShl(status_z, 1);
-                llvm::Value* status_i = c->builder.CreateLoad(c->status_i);
-                status_i = c->builder.CreateZExt(status_i, int8);
-                status_i = c->builder.CreateShl(status_i, 2);
-                llvm::Value* status_d = c->builder.CreateLoad(c->status_d);
-                status_d = c->builder.CreateZExt(status_d, int8);
-                status_d = c->builder.CreateShl(status_d, 3);
-                llvm::Value* status_b = c->builder.CreateLoad(c->status_b);
-                status_b = c->builder.CreateZExt(status_b, int8);
-                status_b = c->builder.CreateShl(status_b, 4);
-                llvm::Value* status_u = c->builder.CreateLoad(c->status_u);
-                status_u = c->builder.CreateZExt(status_u, int8);
-                status_u = c->builder.CreateShl(status_u, 5);
-                llvm::Value* status_v = c->builder.CreateLoad(c->status_v);
-                status_v = c->builder.CreateZExt(status_v, int8);
-                status_v = c->builder.CreateShl(status_v, 6);
-                llvm::Value* status_n = c->builder.CreateLoad(c->status_n);
-                status_n = c->builder.CreateZExt(status_n, int8);
-                status_n = c->builder.CreateShl(status_n, 7);
-                llvm::Value* status = c->builder.CreateOr(status_z, status_c);
-                status = c->builder.CreateOr(status, status_i);
-                status = c->builder.CreateOr(status, status_d);
-                status = c->builder.CreateOr(status, status_b);
-                status = c->builder.CreateOr(status, status_u);
-                status = c->builder.CreateOr(status, status_v);
-                status = c->builder.CreateOr(status, status_n);
-                c->builder.CreateCall(c->putstatus_fn, {status});
-            }
-            else if (addr == 0x200F) {  // Exit
-                llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-                llvm::Value* a_32 = c->builder.CreateZExt(load_a, int32);
-                c->builder.CreateRet(a_32);
-            }
-            // Store normally
-            else {
-                llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-                WriteMemory(addr, load_a);
-            }
+            OP_STA_ABS(nullptr);
             break;
         }
         case 0x9D: {  // STA AbsoluteX
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* addr_base = AddressModeAbsoluteX(i.arg);
+            llvm::Value* addr_base = AddressModeAbsoluteX(i->arg);
             c->builder.CreateCall(c->write_fn, {addr_base, load_a});
             break;
         }
         case 0x99: {  // STA AbsoluteY
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* addr_base = AddressModeAbsoluteY(i.arg);
+            llvm::Value* addr_base = AddressModeAbsoluteY(i->arg);
             c->builder.CreateCall(c->write_fn, {addr_base, load_a});
             break;
         }
         case 0x81: {  // STA IndirectX
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* addr_hl_or = AddressModeIndirectX(i.arg);
+            llvm::Value* addr_hl_or = AddressModeIndirectX(i->arg);
             c->builder.CreateCall(c->write_fn, {addr_hl_or, load_a});
             break;
         }
         case 0x91: {  // STA IndirectY
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
-            llvm::Value* addr_hl_or = AddressModeIndirectY(i.arg);
+            llvm::Value* addr_hl_or = AddressModeIndirectY(i->arg);
             c->builder.CreateCall(c->write_fn, {addr_hl_or, load_a});
             break;
         }
         case 0x86: {  // STX Zeropage
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            WriteMemory(i.arg, load_x);
+            WriteMemory(i->arg, load_x);
             break;
         }
         case 0x96: {  // STX ZeropageY
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* target_addr = AddressModeZeropageY(i.arg);
+            llvm::Value* target_addr = AddressModeZeropageY(i->arg);
             c->builder.CreateCall(c->write_fn, {target_addr, load_x});
             break;
         }
         case 0x8E: {  // STX Absolute
             llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            WriteMemory(i.arg, load_x);
+            WriteMemory(i->arg, load_x);
             break;
         }
         case 0x84: {  // STY Zeropage
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            WriteMemory(i.arg, load_y);
+            WriteMemory(i->arg, load_y);
             break;
         }
         case 0x94: {  // STY ZeropageX
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            llvm::Value* target_addr = AddressModeZeropageX(i.arg);
+            llvm::Value* target_addr = AddressModeZeropageX(i->arg);
             c->builder.CreateCall(c->write_fn, {target_addr, load_y});
             break;
         }
         case 0x8C: {  // STY Absolute
             llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
-            WriteMemory(i.arg, load_y);
+            WriteMemory(i->arg, load_y);
             break;
         }
         case 0xAA: {  // TAX Implied
@@ -1258,47 +1101,47 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x29: {  // AND Immediate
-            llvm::Value* operand = AddressModeImmediate(i.arg);
+            llvm::Value* operand = AddressModeImmediate(i->arg);
             OP_AND(operand);
             break;
         }
         case 0x25: {  // AND Zeropage
-            llvm::Value* addr = AddressModeZeropage(i.arg);
+            llvm::Value* addr = AddressModeZeropage(i->arg);
             llvm::Value* operand = c->builder.CreateLoad(addr);
             OP_AND(operand);
             break;
         }
         case 0x35: {  // AND ZeropageX
-            llvm::Value* addr = AddressModeZeropageX(i.arg);
+            llvm::Value* addr = AddressModeZeropageX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
             OP_AND(operand);
             break;
         }
         case 0x2D: {  // AND Absolute
-            llvm::Value* operand = ReadMemory(i.arg);
+            llvm::Value* operand = ReadMemory(i->arg);
             OP_AND(operand);
             break;
         }
         case 0x3D: {  // AND AbsoluteX
-            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* addr = AddressModeAbsoluteX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
             OP_AND(operand);
             break;
         }
         case 0x39: {  // AND AbsoluteY
-            llvm::Value* addr = AddressModeAbsoluteY(i.arg);
+            llvm::Value* addr = AddressModeAbsoluteY(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
             OP_AND(operand);
             break;
         }
         case 0x21: {  // AND IndirectX
-            llvm::Value* addr = AddressModeIndirectX(i.arg);
+            llvm::Value* addr = AddressModeIndirectX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
             OP_AND(operand);
             break;
         }
         case 0x31: {  // AND IndirectY
-            llvm::Value* addr = AddressModeIndirectY(i.arg);
+            llvm::Value* addr = AddressModeIndirectY(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
             OP_AND(operand);
             break;
@@ -1319,48 +1162,48 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x69: {  // ADC Immediate
-            llvm::Value* operand = AddressModeImmediate(i.arg);
+            llvm::Value* operand = AddressModeImmediate(i->arg);
             OP_ADC(operand);
             break;
         }
         case 0x61: {  // ADC IndirectX
-            llvm::Value* ram_pointer = AddressModeIndirectX(i.arg);
+            llvm::Value* ram_pointer = AddressModeIndirectX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_ADC(operand);
             break;
         }
         case 0x71: {  // ADC IndirectY
-            llvm::Value* ram_pointer = AddressModeIndirectY(i.arg);
+            llvm::Value* ram_pointer = AddressModeIndirectY(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_ADC(operand);
             break;
         }
         case 0x65: {  // ADC Zeropage
-            llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
+            llvm::Value* ram_pointer = AddressModeZeropage(i->arg);
             llvm::Value* operand = c->builder.CreateLoad(ram_pointer);
             OP_ADC(operand);
             break;
         }
         case 0x75: {  // ADC ZeropageX
-            llvm::Value* ram_pointer = AddressModeZeropageX(i.arg);
+            llvm::Value* ram_pointer = AddressModeZeropageX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_ADC(operand);
             break;
         }
         case 0x6D: {  // ADC Absolute
-            llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsolute(i->arg);
             llvm::Value* operand = c->builder.CreateLoad(ram_pointer);
             OP_ADC(operand);
             break;
         }
         case 0x7D: {  // ADC AbsoluteX
-            llvm::Value* ram_pointer = AddressModeAbsoluteX(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsoluteX(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_ADC(operand);
             break;
         }
         case 0x79: {  // ADC AbsoluteY
-            llvm::Value* ram_pointer = AddressModeAbsoluteY(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsoluteY(i->arg);
             llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
             OP_ADC(operand);
             break;
@@ -1586,10 +1429,10 @@ void Compiler::OP_LSR_A()
 
 void Compiler::OP_JSR(llvm::Value* v)
 {
-    uint16_t return_addr = i.offset + i.size;
-    return_map[i.target_label.address] = return_addr;
+    uint16_t return_addr = i->offset + i->size;
+    return_map[i->target_label.address] = return_addr;
     StackPush(GetConstant8(return_addr));
-    c->builder.CreateBr(c->basicblocks[i.target_label]);
+    c->builder.CreateBr(c->basicblocks[i->target_label]);
     llvm::BasicBlock* continue_block = CreateAutoLabel();
     c->builder.SetInsertPoint(continue_block);
     c->basicblocks[return_addr] = continue_block;
@@ -1601,50 +1444,175 @@ void Compiler::OP_BNE(llvm::Value* v)
 {
     llvm::Value* load_z = c->builder.CreateLoad(c->status_z);
     llvm::Value* is_nonzero = c->builder.CreateICmpNE(load_z, GetConstant1(1), "ne");
-    CreateCondBranch(is_nonzero, c->basicblocks[i.target_label]);
+    CreateCondBranch(is_nonzero, c->basicblocks[i->target_label]);
 }
 void Compiler::OP_BEQ(llvm::Value* v)
 {
     llvm::Value* load_z = c->builder.CreateLoad(c->status_z);
     llvm::Value* is_zero = c->builder.CreateICmpEQ(load_z, GetConstant1(1), "eq");
-    CreateCondBranch(is_zero, c->basicblocks[i.target_label]);
+    CreateCondBranch(is_zero, c->basicblocks[i->target_label]);
 }
 void Compiler::OP_BMI(llvm::Value* v)
 {
     llvm::Value* load_n = c->builder.CreateLoad(c->status_n);
     llvm::Value* is_negative = c->builder.CreateICmpEQ(load_n, GetConstant1(1), "eq");
-    CreateCondBranch(is_negative, c->basicblocks[i.target_label]);
+    CreateCondBranch(is_negative, c->basicblocks[i->target_label]);
 }
 void Compiler::OP_BCC(llvm::Value* v)
 {
     llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
     llvm::Value* is_carry_clear = c->builder.CreateICmpEQ(load_c, GetConstant1(0), "eq");
-    CreateCondBranch(is_carry_clear, c->basicblocks[i.target_label]);
+    CreateCondBranch(is_carry_clear, c->basicblocks[i->target_label]);
 }
 void Compiler::OP_BCS(llvm::Value* v)
 {
     llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
     llvm::Value* is_carry_set = c->builder.CreateICmpEQ(load_c, GetConstant1(1), "eq");
-    CreateCondBranch(is_carry_set, c->basicblocks[i.target_label]);
+    CreateCondBranch(is_carry_set, c->basicblocks[i->target_label]);
 }
 void Compiler::OP_BPL(llvm::Value* v)
 {
     llvm::Value* load_n = c->builder.CreateLoad(c->status_n);
     llvm::Value* is_positive = c->builder.CreateICmpEQ(load_n, GetConstant1(0), "eq");
-    CreateCondBranch(is_positive, c->basicblocks[i.target_label]);
+    CreateCondBranch(is_positive, c->basicblocks[i->target_label]);
 }
 void Compiler::OP_BVC(llvm::Value* v)
 {
     llvm::Value* load_v = c->builder.CreateLoad(c->status_v);
     llvm::Value* is_overflow_clear =
         c->builder.CreateICmpEQ(load_v, GetConstant1(0), "eq");
-    CreateCondBranch(is_overflow_clear, c->basicblocks[i.target_label]);
+    CreateCondBranch(is_overflow_clear, c->basicblocks[i->target_label]);
 }
 void Compiler::OP_BVS(llvm::Value* v)
 {
     llvm::Value* load_v = c->builder.CreateLoad(c->status_v);
     llvm::Value* is_overflow_set = c->builder.CreateICmpEQ(load_v, GetConstant1(1), "eq");
-    CreateCondBranch(is_overflow_set, c->basicblocks[i.target_label]);
+    CreateCondBranch(is_overflow_set, c->basicblocks[i->target_label]);
+}
+
+void Compiler::OP_STA_ABS(llvm::Value* v)
+{
+    uint16_t addr = i->arg;
+    // Write to '0x2008' and 'A' will be written to stdout as
+    // char
+    if (addr == 0x2008) {
+        llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+        c->builder.CreateCall(c->putchar_fn, {load_a});
+    }
+    // Write A to stdout
+    else if (addr == 0x2009) {
+        llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+        c->builder.CreateCall(c->putreg_fn, {load_a});
+    }
+    // Write X to stdout
+    else if (addr == 0x200A) {
+        llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
+        c->builder.CreateCall(c->putreg_fn, {load_x});
+    }
+    // Write Y to stdout
+    else if (addr == 0x200B) {
+        llvm::Value* load_y = c->builder.CreateLoad(c->reg_y);
+        c->builder.CreateCall(c->putreg_fn, {load_y});
+    }
+    // Write flags to stdout
+    else if (addr == 0x200C) {
+        llvm::Value* status_c = c->builder.CreateLoad(c->status_c);
+        status_c = c->builder.CreateZExt(status_c, int8);
+        llvm::Value* status_z = c->builder.CreateLoad(c->status_z);
+        status_z = c->builder.CreateZExt(status_z, int8);
+        status_z = c->builder.CreateShl(status_z, 1);
+        llvm::Value* status_i = c->builder.CreateLoad(c->status_i);
+        status_i = c->builder.CreateZExt(status_i, int8);
+        status_i = c->builder.CreateShl(status_i, 2);
+        llvm::Value* status_d = c->builder.CreateLoad(c->status_d);
+        status_d = c->builder.CreateZExt(status_d, int8);
+        status_d = c->builder.CreateShl(status_d, 3);
+        llvm::Value* status_b = c->builder.CreateLoad(c->status_b);
+        status_b = c->builder.CreateZExt(status_b, int8);
+        status_b = c->builder.CreateShl(status_b, 4);
+        llvm::Value* status_u = c->builder.CreateLoad(c->status_u);
+        status_u = c->builder.CreateZExt(status_u, int8);
+        status_u = c->builder.CreateShl(status_u, 5);
+        llvm::Value* status_v = c->builder.CreateLoad(c->status_v);
+        status_v = c->builder.CreateZExt(status_v, int8);
+        status_v = c->builder.CreateShl(status_v, 6);
+        llvm::Value* status_n = c->builder.CreateLoad(c->status_n);
+        status_n = c->builder.CreateZExt(status_n, int8);
+        status_n = c->builder.CreateShl(status_n, 7);
+        llvm::Value* status = c->builder.CreateOr(status_z, status_c);
+        status = c->builder.CreateOr(status, status_i);
+        status = c->builder.CreateOr(status, status_d);
+        status = c->builder.CreateOr(status, status_b);
+        status = c->builder.CreateOr(status, status_u);
+        status = c->builder.CreateOr(status, status_v);
+        status = c->builder.CreateOr(status, status_n);
+        c->builder.CreateCall(c->putstatus_fn, {status});
+    }
+    else if (addr == 0x200F) {  // Exit
+        llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+        llvm::Value* a_32 = c->builder.CreateZExt(load_a, int32);
+        c->builder.CreateRet(a_32);
+    }
+    // Store normally
+    else {
+        llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+        WriteMemory(addr, load_a);
+    }
+}
+
+void Compiler::OP_ROR(llvm::Value* addr, bool static_address)
+{
+    llvm::Value* operand;
+    if (static_address)
+        operand = c->builder.CreateLoad(addr);
+    else
+        operand = c->builder.CreateCall(c->read_fn, {addr});
+
+    // Get status_c
+    llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
+    // Get carry_out
+    llvm::Value* carry_out = c->builder.CreateAnd(operand, GetConstant8(0x01));
+    // Shift reg_a
+    llvm::Value* operand_Shr = c->builder.CreateLShr(operand, 1);
+    // Add carry_in
+    llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
+    llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
+    llvm::Value* result = c->builder.CreateOr(operand_Shr, carry_in_shl);
+    // Set status_c
+    llvm::Value* carry_out_1 = c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
+    c->builder.CreateStore(carry_out_1, c->status_c);
+    // Flag test
+    DynamicTestZ(result);
+    DynamicTestN(result);
+
+    // Store in memory
+    if (static_address)
+        c->builder.CreateStore(result, addr);
+    else
+        c->builder.CreateCall(c->write_fn, {addr, result});
+}
+
+void Compiler::OP_ROR_A()
+{
+    // Get reg_a and status_c
+    llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+    llvm::Value* carry_in = c->builder.CreateLoad(c->status_c);
+    // Get carry_out
+    llvm::Value* carry_out = c->builder.CreateAnd(reg_a, GetConstant8(0x01));
+    // Shift reg_a
+    llvm::Value* reg_a_Shr = c->builder.CreateLShr(reg_a, 1);
+    // Add carry_in
+    llvm::Value* carry_in_8 = c->builder.CreateZExt(carry_in, int8);
+    llvm::Value* carry_in_shl = c->builder.CreateShl(carry_in_8, 7);
+    llvm::Value* result = c->builder.CreateOr(reg_a_Shr, carry_in_shl);
+    // Stor reg_a
+    c->builder.CreateStore(result, c->reg_a);
+    // Set status_c
+    llvm::Value* carry_out_1 = c->builder.CreateICmpEQ(carry_out, GetConstant8(0x01));
+    c->builder.CreateStore(carry_out_1, c->status_c);
+    // Flag test
+    DynamicTestZ(result);
+    DynamicTestN(result);
 }
 
 }  // namespace llvmes

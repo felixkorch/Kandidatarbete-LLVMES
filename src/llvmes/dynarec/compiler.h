@@ -175,13 +175,15 @@ class Compiler {
     void OP_PLA(llvm::Value* v);
     void OP_PLP(llvm::Value* v);
     void OP_ROL(llvm::Value* v);
-    void OP_ROR(llvm::Value* v);
+    void OP_ROR(llvm::Value* v, bool s);
+    void OP_ROR_A();
     void OP_RTI(llvm::Value* v);
     void OP_RTS(llvm::Value* v);
     void OP_SBC(llvm::Value* v);
     void OP_SEC(llvm::Value* v);
     void OP_SED(llvm::Value* v);
     void OP_STA(llvm::Value* v);
+    void OP_STA_ABS(llvm::Value* v);
     void OP_STX(llvm::Value* v);
     void OP_STY(llvm::Value* v);
     void OP_TAX(llvm::Value* v);
