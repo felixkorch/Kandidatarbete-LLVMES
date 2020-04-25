@@ -415,7 +415,7 @@ void Compiler::PassTwo()
         prev = instr;
     }
 
-    c->builder.CreateRet(GetConstant32(0));
+    // c->builder.CreateRet(GetConstant32(0));
 }
 
 void Compiler::AddDynJumpTable()

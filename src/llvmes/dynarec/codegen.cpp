@@ -1698,6 +1698,11 @@ void Compiler::CodeGen(Instruction& i)
                 status = c->builder.CreateOr(status, status_n);
                 c->builder.CreateCall(c->putstatus_fn, {status});
             }
+            else if (addr == 0x200F) {  // Exit
+                llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+                llvm::Value* a_32 = c->builder.CreateZExt(load_a, int32);
+                c->builder.CreateRet(a_32);
+            }
             // Store normally
             else {
                 llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
