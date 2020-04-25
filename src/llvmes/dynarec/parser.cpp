@@ -100,7 +100,7 @@ void Parser::ParseInstructions(uint16_t start)
         if (IsBranchInstruction(instr)) {
             instr->target_label = AddLabel(instr);
             // JMP ends a branch
-            if (IsJumpReturn(instr))
+            if (IsJumpReturn(instr) || IsJumpIndirect(instr))
                 break;
         }
 
