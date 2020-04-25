@@ -32,6 +32,13 @@ CPX #$05
 BNE print_err
 
 
+LDY #0
+LDA #$F1
+TAX
+CPX #$F1
+BNE print_err
+
+
 JMP print_ok
 
 
