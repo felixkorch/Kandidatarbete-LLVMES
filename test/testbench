@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+import subprocess
+from pathlib import Path
+
+number_of_tests_successful = 0
+
+test_list = [
+    "adc",
+    "jmp_idr_test",
+    "cpy_abs",
+    "jsr_test",
+    "sbc"
+]
+
+for test in test_list:
+    bin = "list-bins/%s.bin" % (test)
+    proc = subprocess.run(["./list-bins/jit", "-O", bin])
+    if proc.returncode != 0:
+        print(test + " failed with exit code " + str(proc.returncode))
+    else:
+        number_of_tests_successful += 1
+
+print("----------------------------------------------")
+print(str(number_of_tests_successful) + " / " + str(len(test_list)) + " passed")
