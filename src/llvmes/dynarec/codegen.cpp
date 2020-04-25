@@ -611,70 +611,49 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
             llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_a);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDA(load_value);
             break;
         }
         case 0xB5: {  // LDA ZeropageX
             llvm::Value* ram_pointer = AddressModeZeropageX(i.arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_a);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDA(load_value);
             break;
         }
         case 0xA1: {  // LDA IndirectX
             llvm::Value* ram_pointer = AddressModeIndirectX(i.arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_a);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDA(load_value);
             break;
         }
         case 0xB1: {  // LDA IndirectY
             llvm::Value* ram_pointer = AddressModeIndirectY(i.arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_a);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDA(load_value);
             break;
         }
         case 0xAD: {  // LDA Absolute
             llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
             llvm::Value* load_value = c->builder.CreateLoad(ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_a);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDA(load_value);
             break;
         }
         case 0xBD: {  // LDA AbsoluteX
             llvm::Value* ram_pointer = AddressModeAbsoluteX(i.arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_a);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDA(load_value);
             break;
         }
         case 0xB9: {  // LDA AbsoluteY
             llvm::Value* ram_pointer = AddressModeAbsoluteY(i.arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
 
-            c->builder.CreateStore(load_value, c->reg_a);
-
-            DynamicTestZ(load_value);
-            DynamicTestN(load_value);
+            OP_LDA(load_value);
             break;
         }
         case 0xA2: {  // LDX Immediate
@@ -1793,6 +1772,15 @@ void Compiler::OP_SBC(llvm::Value* operand)
     // Truncate result and store in A
     result = c->builder.CreateZExtOrTrunc(result, int8);
     c->builder.CreateStore(result, c->reg_a);
+}
+
+void Compiler::OP_LDA(llvm::Value* operand)
+{
+    c->builder.CreateStore(operand, c->reg_a);
+
+    DynamicTestZ(operand);
+    DynamicTestN(operand);
+    
 }
 
 }  // namespace llvmes
