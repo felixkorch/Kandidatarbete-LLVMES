@@ -263,7 +263,7 @@ llvm::Value* Compiler::AddressModeImmediate(uint16_t operand)
 
 llvm::Value* Compiler::AddressModeAbsolute(uint16_t addr)
 {
-    return GetConstant16(addr);
+    return GetRAMPtr(addr);
 }
 
 llvm::Value* Compiler::AddressModeAbsoluteX(uint16_t addr)
