@@ -1582,15 +1582,68 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x06: {  // ASL Zeropage
+
+            llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(ram_pointer);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateAnd(operand, GetConstant8(0x80));
+            C = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
+            c->builder.CreateStore(C, c->status_n);
+
+            operand = c->builder.CreateShl(operand, 1);
+
+            DynamicTestZ(operand);
+            DynamicTestN(operand);
+            c->builder.CreateStore(operand, ram_pointer);        
             break;
         }
         case 0x16: {  // ASL ZeropageX
+            llvm::Value* ram_pointer = AddressModeZeropageX(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateAnd(operand, GetConstant8(0x80));
+            C = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
+            c->builder.CreateStore(C, c->status_n);
+
+            operand = c->builder.CreateShl(operand, 1);
+
+            DynamicTestZ(operand);
+            DynamicTestN(operand);
+            c->builder.CreateCall(c->write_fn, {ram_pointer, operand});
             break;
         }
         case 0x0E: {  // ASL Absolute
+            llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(ram_pointer);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateAnd(operand, GetConstant8(0x80));
+            C = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
+            c->builder.CreateStore(C, c->status_n);
+
+            operand = c->builder.CreateShl(operand, 1);
+
+            DynamicTestZ(operand);
+            DynamicTestN(operand);
+            c->builder.CreateStore(operand, ram_pointer);
             break;
         }
         case 0x1E: {  // ASL AbsoluteX
+            llvm::Value* ram_pointer = AddressModeAbsoluteX(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateAnd(operand, GetConstant8(0x80));
+            C = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
+            c->builder.CreateStore(C, c->status_n);
+
+            operand = c->builder.CreateShl(operand, 1);
+
+            DynamicTestZ(operand);
+            DynamicTestN(operand);
+            c->builder.CreateCall(c->write_fn, {ram_pointer, operand});
             break;
         }
         case 0x69: {  // ADC Immediate
@@ -1774,6 +1827,7 @@ void Compiler::OP_LDY(llvm::Value* operand)
     DynamicTestZ(operand);
     DynamicTestN(operand);
 }
+
 
 
 }  // namespace llvmes
