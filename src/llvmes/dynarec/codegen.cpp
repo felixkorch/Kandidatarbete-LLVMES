@@ -1010,68 +1010,23 @@ void Compiler::CodeGen(Instruction& instr)
             break;
         }
         case 0x06: {  // ASL Zeropage
-
-            llvm::Value* ram_pointer = AddressModeZeropage(i.arg);
-            llvm::Value* operand = c->builder.CreateLoad(ram_pointer);
-
-            // Test C
-            llvm::Value* C = c->builder.CreateAnd(operand, GetConstant8(0x80));
-            C = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
-            c->builder.CreateStore(C, c->status_n);
-
-            operand = c->builder.CreateShl(operand, 1);
-
-            DynamicTestZ(operand);
-            DynamicTestN(operand);
-            c->builder.CreateStore(operand, ram_pointer);        
+            llvm::Value* addr = AddressModeZeropage(i->arg);
+            OP_ASL(addr, true);
             break;
         }
         case 0x16: {  // ASL ZeropageX
-            llvm::Value* ram_pointer = AddressModeZeropageX(i.arg);
-            llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
-
-            // Test C
-            llvm::Value* C = c->builder.CreateAnd(operand, GetConstant8(0x80));
-            C = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
-            c->builder.CreateStore(C, c->status_n);
-
-            operand = c->builder.CreateShl(operand, 1);
-
-            DynamicTestZ(operand);
-            DynamicTestN(operand);
-            c->builder.CreateCall(c->write_fn, {ram_pointer, operand});
+            llvm::Value* addr = AddressModeZeropageX(i->arg);
+            OP_LSR(addr, false);
             break;
         }
         case 0x0E: {  // ASL Absolute
-            llvm::Value* ram_pointer = AddressModeAbsolute(i.arg);
-            llvm::Value* operand = c->builder.CreateLoad(ram_pointer);
-
-            // Test C
-            llvm::Value* C = c->builder.CreateAnd(operand, GetConstant8(0x80));
-            C = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
-            c->builder.CreateStore(C, c->status_n);
-
-            operand = c->builder.CreateShl(operand, 1);
-
-            DynamicTestZ(operand);
-            DynamicTestN(operand);
-            c->builder.CreateStore(operand, ram_pointer);
+            llvm::Value* addr = AddressModeAbsolute(i->arg);
+            OP_ASL(addr, true);
             break;
         }
         case 0x1E: {  // ASL AbsoluteX
-            llvm::Value* ram_pointer = AddressModeAbsoluteX(i.arg);
-            llvm::Value* operand = c->builder.CreateCall(c->read_fn, ram_pointer);
-
-            // Test C
-            llvm::Value* C = c->builder.CreateAnd(operand, GetConstant8(0x80));
-            C = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
-            c->builder.CreateStore(C, c->status_n);
-
-            operand = c->builder.CreateShl(operand, 1);
-
-            DynamicTestZ(operand);
-            DynamicTestN(operand);
-            c->builder.CreateCall(c->write_fn, {ram_pointer, operand});
+            llvm::Value* addr = AddressModeAbsoluteX(i->arg);
+            OP_LSR(addr, false);
             break;
         }
         case 0x69: {  // ADC Immediate
@@ -1335,6 +1290,48 @@ void Compiler::OP_LSR_A()
     llvm::Value* status_c = c->builder.CreateICmpEQ(and_1, GetConstant8(1));
     c->builder.CreateStore(status_c, c->status_c);
     reg_a = c->builder.CreateLShr(reg_a, 1);
+    DynamicTestZ(reg_a);
+    DynamicTestN(reg_a);
+    c->builder.CreateStore(reg_a, c->reg_a);
+}
+
+void Compiler::OP_ASL(llvm::Value* addr, bool static_address)
+{
+    llvm::Value* operand;
+
+    if (static_address)
+        operand = c->builder.CreateLoad(addr);
+    else
+        operand = c->builder.CreateCall(c->read_fn, {addr});
+
+
+     // Test C
+    llvm::Value* C = c->builder.CreateAnd(operand, GetConstant8(0x80));
+    llvm::Value* status_c = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
+    c->builder.CreateStore(status_c, c->status_c);
+
+    operand = c->builder.CreateShl(operand, 1);
+
+    DynamicTestZ(operand);
+    DynamicTestN(operand);
+
+    if (static_address)
+        c->builder.CreateStore(operand, addr);
+    else
+        c->builder.CreateCall(c->write_fn, {addr, operand});
+}
+
+void Compiler::OP_ASL_A()
+{
+    llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+
+   // Test C
+    llvm::Value* C = c->builder.CreateAnd(reg_a, GetConstant8(0x80));
+    C = c->builder.CreateICmpEQ(C, GetConstant8(0x80));
+    c->builder.CreateStore(C, c->status_n);
+
+    reg_a = c->builder.CreateShl(reg_a, 1);
+
     DynamicTestZ(reg_a);
     DynamicTestN(reg_a);
     c->builder.CreateStore(reg_a, c->reg_a);
