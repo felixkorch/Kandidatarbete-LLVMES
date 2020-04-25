@@ -1309,14 +1309,16 @@ void Compiler::CodeGen(Instruction& i)
         case 0xE9: {  // SBC Immediate
 
             llvm::Value* load_value = AddressModeImmediate(i.arg);
+            load_value = c->builder.CreateZExtOrBitCast(load_value, int16);
 
             // Loads the A register into a placeholder
             llvm::Value* load_a = c->builder.CreateLoad(c->reg_a);
+            load_a = c->builder.CreateZExtOrBitCast(load_a, int16);
 
             // Loads Carry register into a placeholder
             llvm::Value* load_c = c->builder.CreateLoad(c->status_c);
             load_c = c->builder.CreateNot(load_c);
-            load_c = c->builder.CreateZExt(load_c, int8);
+            load_c = c->builder.CreateZExtOrBitCast(load_c, int16);
 
             // Subtract ram & carry from A
             llvm::Value* result_a_ram = c->builder.CreateSub(load_a, load_value);
@@ -1324,7 +1326,7 @@ void Compiler::CodeGen(Instruction& i)
 
             // Handling overflow
 
-            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int8, 0x80);
+            llvm::Constant* c_0x80 = llvm::ConstantInt::get(int16, 0x80);
 
             llvm::Value* xor_1 = c->builder.CreateXor(load_a, result);
             llvm::Value* xor_2 = c->builder.CreateXor(load_a, load_value);
@@ -1332,20 +1334,30 @@ void Compiler::CodeGen(Instruction& i)
             llvm::Value* and_1 = c->builder.CreateAnd(xor_1, c_0x80);
             llvm::Value* and_2 = c->builder.CreateAnd(xor_2, c_0x80);
 
-            llvm::Value* SGT_1 = c->builder.CreateICmpNE(and_1, GetConstant8(0));
-            llvm::Value* SGT_2 = c->builder.CreateICmpNE(and_2, GetConstant8(0));
+            llvm::Value* SGT_1 = c->builder.CreateICmpNE(and_1, GetConstant16(0));
+            llvm::Value* SGT_2 = c->builder.CreateICmpNE(and_2, GetConstant16(0));
 
             llvm::Value* overflow = c->builder.CreateAnd(SGT_2, SGT_1);
 
             c->builder.CreateStore(overflow, c->status_v);
 
-            DynamicTestN(result);
-            DynamicTestZ(result);
-            llvm::Value* result_16_extended = c->builder.CreateZExt(result, int16);
-            DynamicTestCCmp(result_16_extended);
 
+            //TEST Z
+            llvm::Value* Z = c->builder.CreateICmpEQ(result, GetConstant16(0));
+            c->builder.CreateStore(Z, c->status_z);
+
+            // Test N
+            llvm::Value* N = c->builder.CreateAnd(result, GetConstant16(0x80));
+            N = c->builder.CreateICmpEQ(N, GetConstant16(0x80));
+            c->builder.CreateStore(N, c->status_n);
+
+            // Test C
+            llvm::Value* C = c->builder.CreateICmpULT(result, GetConstant16(0x0100));
+            c->builder.CreateStore(C, c->status_c);
+
+            //Truncate result and store in A
+            result = c->builder.CreateZExtOrTrunc(result, int8);
             c->builder.CreateStore(result, c->reg_a);
-
             break;
         }
         case 0xE5: {  // SBC Zeropage
