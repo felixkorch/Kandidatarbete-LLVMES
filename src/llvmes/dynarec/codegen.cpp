@@ -709,7 +709,7 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xB9: {  // LDA AbsoluteY
-            llvm::Value* ram_pointer = AddressModeAbsoluteX(i.arg);
+            llvm::Value* ram_pointer = AddressModeAbsoluteY(i.arg);
             llvm::Value* load_value = c->builder.CreateCall(c->read_fn, ram_pointer);
 
             c->builder.CreateStore(load_value, c->reg_a);
