@@ -1,8 +1,9 @@
 .org $8000
 
-#macro FACTOR_ONE 0 3 #endmacro
-#macro FACTOR_TWO 0 4 #endmacro
-#macro REF_VALUE 0 #12 #endmacro
+#macro FACTOR_ONE 0 $0F #endmacro ; 15 *
+#macro FACTOR_TWO 0 $2D #endmacro ; 45 = 675 ($02A3)
+#macro REF_VALUE_LOW 0 #$A3 #endmacro
+#macro REF_VALUE_HIGH 0 #$02 #endmacro
 
 ; Algorithm originally written by Leif Stensson
 ; Desc: Can multiply two 8-bit numbers, result will be stored in
@@ -31,18 +32,25 @@ no_add:
     BNE     loop
     STA     factor_two
 
-    LDA     REF_VALUE
+    LDA     REF_VALUE_LOW
     CMP     factor_one
+    BNE     fail
+    LDA     REF_VALUE_HIGH
+    CMP     factor_two
     BNE     fail
     JMP     success
 
 fail:
+    LDA     factor_two
+    STA     $2009
     LDA     factor_one
     STA     $2009
     LDA     #1
     JMP     exit
 
 success:
+    LDA     factor_two
+    STA     $2009
     LDA     factor_one
     STA     $2009
     LDA     #0
