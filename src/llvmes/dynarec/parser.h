@@ -50,7 +50,7 @@ class ParseException : public std::exception {
 };
 
 struct AST {
-    std::unordered_map<uint16_t, Label> labels;
+    std::map<uint16_t, Label> labels;
     std::map<uint16_t, Instruction*> instructions;
 };
 
@@ -61,7 +61,7 @@ class Parser {
     uint16_t reset_address;
     uint16_t index;
 
-    std::unordered_map<uint16_t, Label> labels;
+    std::map<uint16_t, Label> labels;
     std::map<uint16_t, Instruction*> instructions;
     std::queue<uint16_t> branches;
 

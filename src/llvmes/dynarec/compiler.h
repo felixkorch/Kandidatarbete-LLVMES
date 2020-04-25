@@ -19,6 +19,7 @@ struct Compilation {
     llvm::Value* reg_y = nullptr;
     llvm::Value* reg_a = nullptr;
     llvm::Value* reg_sp = nullptr;
+    llvm::Value* reg_idr = nullptr;
     llvm::Value* status_v = nullptr;
     llvm::Value* status_n = nullptr;
     llvm::Value* status_c = nullptr;
@@ -33,6 +34,8 @@ struct Compilation {
     llvm::Value* putstatus_fn = nullptr;
     llvm::Value* write_fn = nullptr;
     llvm::Value* read_fn = nullptr;
+    llvm::BasicBlock* dynJumpBlock = nullptr;
+    llvm::BasicBlock* panicBlock = nullptr;
 
     std::vector<uint8_t> ram;
 
@@ -75,6 +78,7 @@ class Compiler {
     void CodeGen(Instruction& i);
     void PassOne();
     void PassTwo();
+    void AddDynJumpTable();
 
     llvm::Constant* GetConstant1(bool v) { return llvm::ConstantInt::get(int1, v); }
     llvm::Constant* GetConstant8(uint8_t v) { return llvm::ConstantInt::get(int8, v); }
@@ -95,6 +99,7 @@ class Compiler {
     void DynamicTestCCmp(llvm::Value* v);
     // Calculates the ram-address as a constant-expr
     llvm::Value* GetRAMPtr(uint16_t addr);
+    llvm::Value* GetRAMPtr16(uint16_t addr);
 
     // Can be called by LLVM on runtime
     void Write(uint16_t addr, uint8_t val) { c->ram[addr] = val; }
@@ -107,6 +112,7 @@ class Compiler {
     // to addresses that are known on compile-time
     void WriteMemory(uint16_t addr, llvm::Value* v);
     llvm::Value* ReadMemory(uint16_t addr);
+    llvm::Value* ReadMemory16(uint16_t addr);
 
     llvm::Value* GetStackAddress(llvm::Value* sp);
     void StackPush(llvm::Value* v);
@@ -128,5 +134,4 @@ class Compiler {
     llvm::Value* AddressModeImplied();
     llvm::Value* AddressModeAccumulator();
 };
-
 }  // namespace llvmes

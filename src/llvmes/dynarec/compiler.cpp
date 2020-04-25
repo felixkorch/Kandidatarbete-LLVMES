@@ -77,6 +77,7 @@ Compiler::Compiler(AST ast, const std::string& program_name)
     c->reg_x = c->builder.CreateAlloca(int8, 0, "X");
     c->reg_y = c->builder.CreateAlloca(int8, 0, "Y");
     c->reg_a = c->builder.CreateAlloca(int8, 0, "A");
+    c->reg_idr = c->builder.CreateAlloca(int16, 0, "IDR");
     c->status_z = c->builder.CreateAlloca(int1, 0, "Z");
     c->status_n = c->builder.CreateAlloca(int1, 0, "N");
     c->status_v = c->builder.CreateAlloca(int1, 0, "V");
@@ -174,6 +175,17 @@ llvm::Value* Compiler::GetRAMPtr(uint16_t addr)
         llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(c->m->getContext())));
 }
 
+llvm::Value* Compiler::GetRAMPtr16(uint16_t addr)
+{
+    llvm::Constant* ram_ptr_value =
+        llvm::ConstantInt::get(llvm::Type::getInt64Ty(c->m->getContext()),
+                               (int64_t)c->ram.data() + (int64_t)addr);
+
+    return llvm::ConstantExpr::getIntToPtr(
+        ram_ptr_value,
+        llvm::PointerType::getUnqual(llvm::Type::getInt16Ty(c->m->getContext())));
+}
+
 void Compiler::WriteMemory(uint16_t addr, llvm::Value* v)
 {
     llvm::Value* ram_ptr = GetRAMPtr(addr);
@@ -183,6 +195,12 @@ void Compiler::WriteMemory(uint16_t addr, llvm::Value* v)
 llvm::Value* Compiler::ReadMemory(uint16_t addr)
 {
     llvm::Value* ram_ptr = GetRAMPtr(addr);
+    return c->builder.CreateLoad(ram_ptr);
+}
+
+llvm::Value* Compiler::ReadMemory16(uint16_t addr)
+{
+    llvm::Value* ram_ptr = GetRAMPtr16(addr);
     return c->builder.CreateLoad(ram_ptr);
 }
 
@@ -351,6 +369,7 @@ llvm::Function* Compiler::RegisterFunction(llvm::ArrayRef<llvm::Type*> arg_types
 std::function<int()> Compiler::Compile(bool optimize)
 {
     PassOne();
+    AddDynJumpTable();
     PassTwo();
 
     if (optimize)
@@ -376,24 +395,15 @@ void Compiler::PassOne()
 
 void Compiler::PassTwo()
 {
-    llvm::BasicBlock* reset_block;
-    for (auto& l : ast.labels) {
-        if (l.second.name == "Reset")
-            reset_block = c->basicblocks[l.second.address];
-    }
-    assert(reset_block);
-    c->builder.CreateBr(reset_block);
-
-    std::pair<uint16_t, Instruction*> prev;
+    std::pair<uint16_t, Instruction*> prev = *ast.instructions.begin();
 
     for (auto& instr : ast.instructions) {
         uint16_t index = instr.first;
         bool label_exists = ast.labels.count(index);
 
-        if (prev.second) {
-            if (label_exists && prev.second->op_type != MOS6502::Op::JMP &&
-                prev.second->op_type != MOS6502::Op::RTS)
-                c->builder.CreateBr(c->basicblocks[index]);
+        if (label_exists && prev.second->op_type != MOS6502::Op::JMP &&
+            prev.second->op_type != MOS6502::Op::RTS) {
+            c->builder.CreateBr(c->basicblocks[index]);
         }
 
         if (label_exists) {
@@ -407,5 +417,37 @@ void Compiler::PassTwo()
 
     c->builder.CreateRet(GetConstant32(0));
 }
+
+void Compiler::AddDynJumpTable()
+{
+    // Since we modify the insert point while inserting panic block and
+    // jump table, we need to restore the insert point before returning
+    llvm::BasicBlock* originalInsertPoint = c->builder.GetInsertBlock();
+
+    // Panic Block. Returns -1 for now.
+    c->panicBlock = llvm::BasicBlock::Create(c->m->getContext(), "PanicBlock",
+                                             (llvm::Function*)c->main_fn);
+    c->builder.SetInsertPoint(c->panicBlock);
+    c->builder.CreateRet(
+        GetConstant32(-1));  // This block should instead handle the case where the adress
+                             // being jumped to by JMP Indirect does not exist, ie we need
+                             // to create it, add it to the module and to the jumptable,
+                             // and try again. Not it just returns -1.
+
+    // Create Dynamic Jump Table
+    c->dynJumpBlock = llvm::BasicBlock::Create(c->m->getContext(), "DynJumpTable",
+                                               (llvm::Function*)c->main_fn);
+    c->builder.SetInsertPoint(c->dynJumpBlock);
+    llvm::LoadInst* reg_idr = c->builder.CreateLoad(c->reg_idr, "");
+    // Here, panic block causes a runtime error and crashes.
+    llvm::SwitchInst* sw =
+        c->builder.CreateSwitch(reg_idr, c->panicBlock, c->basicblocks.size());
+    for (std::pair<uint16_t, llvm::BasicBlock*> addr : c->basicblocks) {
+        llvm::ConstantInt* addrVal = llvm::ConstantInt::get(
+            llvm::IntegerType::getInt16Ty(c->m->getContext()), addr.first, false);
+        sw->addCase(addrVal, addr.second);
+    }
+    c->builder.SetInsertPoint(originalInsertPoint);
+};
 
 }  // namespace llvmes

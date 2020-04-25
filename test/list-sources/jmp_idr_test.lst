@@ -1,0 +1,26 @@
+.org $8000
+
+indirect_ok:
+.db "indirect ok", 10, 0
+
+main:
+LDX #0
+BNE idr_routine
+JMP (address)
+
+idr_routine:
+LDA indirect_ok, X
+BEQ exit ; Jump to exit on '\0'
+STA $2008
+INX
+JMP idr_routine
+
+exit:
+LDA #0
+STA $200F ; Exit 0
+
+address:
+.dw idr_routine
+
+.org $FFFC
+.dw main

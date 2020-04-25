@@ -76,6 +76,17 @@ local addressing_mode_size = {
     IMP = 1
 }
 
+local cond_branches = {
+    ["BNE"] = true,
+    ["BEQ"] = true,
+    ["BPL"] = true,
+    ["BMI"] = true,
+    ["BVS"] = true,
+    ["BVC"] = true,
+    ["BCS"] = true,
+    ["BCC"] = true
+}
+
 local map_op = {
     TXS = {IMP = "9A"},
     TXA = {IMP = "8A"},
@@ -143,6 +154,7 @@ local immediate_value_regex = "^#(%$?%x+)$" -- #0 or #$FF
 local name_regex = "^[a-z_]+$" -- label
 local register_regex = "^[XY]$" -- X, Y
 local indirect_regex = "^%((%$%x+)%)$" -- ($8000) or ($80)
+local indirect_name_regex = "^%(([a-z_]+)%)$" -- (name)
 local name_low_regex = "^#<([a-z_]+)$" -- #<label
 local name_high_regex = "^#>([a-z_]+)$" -- #>label
 
@@ -249,10 +261,10 @@ local function get_addressing_mode(tokens, i)
     elseif token1.type == "IndirectArgument" then
         addressing_mode = "IND"
     elseif token1.type == "Name" then
-        if instruction.data == "JSR" or instruction.data == "JMP" then
-            addressing_mode = "ABS"
-        else
+        if cond_branches[instruction.data] then
             addressing_mode = "REL"
+        else
+            addressing_mode = "ABS"
         end
     else
         addressing_mode = "IMP"
@@ -316,7 +328,7 @@ local function generate_machinecode()
         if v.type == "Instruction" then
             local opcode = map_op[v.data][v.mode]
             if opcode == nil then
-                error("Opcode for " .. v.data .. " doesn't exist")
+                error(v.data .. " doesn't support that addressing mode")
             end
 
             machine_code[#machine_code + 1] = tonumber("0x" .. opcode)
@@ -347,6 +359,8 @@ local function generate_machinecode()
                 end,
                 ["Default"] = function()
                     if arg.type == "Name" then
+                        check_label(arg_value)
+                    elseif arg.sub_type == "Label" then
                         check_label(arg_value)
                     end
                     local b2, b1 = str_to_bytes(arg_value) -- Little endian, so swap order
@@ -478,6 +492,13 @@ local function parse_symbol(line, pos)
         tokens[#tokens + 1] = {data = symbol, type = "Value", line = scan_line}
     elseif symbol:match(indirect_regex) then
         tokens[#tokens + 1] = {data = symbol:match(indirect_regex), type = "IndirectArgument", line = scan_line}
+    elseif symbol:match(indirect_name_regex) then
+        tokens[#tokens + 1] = {
+            data = symbol:match(indirect_name_regex),
+            type = "IndirectArgument",
+            sub_type = "Label",
+            line = scan_line
+        }
     elseif symbol == "" then
     else
         error("Error: Unknown symbol '" .. symbol .. "' at line " .. scan_line)

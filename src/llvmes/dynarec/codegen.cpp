@@ -1,3 +1,5 @@
+// #include "llvmes/dynarec/codegen.h"
+
 #include "llvmes/dynarec/compiler.h"
 
 namespace llvmes {
@@ -139,6 +141,8 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0x6C: {  // JMP Indirect
+            c->builder.CreateStore(ReadMemory16(i.arg), c->reg_idr);
+            c->builder.CreateBr(c->dynJumpBlock);
             break;
         }
         case 0x20: {  // JSR Absolute
