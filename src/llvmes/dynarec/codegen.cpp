@@ -816,19 +816,63 @@ void Compiler::CodeGen(Instruction& i)
             DynamicTestN(load_value);
             break;
         }
-        case 0x4A: {  // ACC Accumulator
+        case 0x4A: {  // LSR Accumulator
+            llvm::Value* reg_a = c->builder.CreateLoad(c->reg_a);
+            llvm::Value* and_1 = c->builder.CreateAnd(reg_a, GetConstant8(1));
+            llvm::Value* status_c = c->builder.CreateICmpEQ(and_1, GetConstant8(1));
+            c->builder.CreateStore(status_c, c->status_c);
+            reg_a = c->builder.CreateLShr(reg_a, 1);
+            DynamicTestZ(reg_a);
+            DynamicTestN(reg_a);
+            c->builder.CreateStore(reg_a, c->reg_a);
             break;
         }
         case 0x46: {  // LSR Zeropage
+            llvm::Value* addr = AddressModeZeropage(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(addr);
+            llvm::Value* and_1 = c->builder.CreateAnd(operand, GetConstant8(1));
+            llvm::Value* status_c = c->builder.CreateICmpEQ(and_1, GetConstant8(1));
+            c->builder.CreateStore(status_c, c->status_c);
+            operand = c->builder.CreateLShr(operand, 1);
+            DynamicTestZ(operand);
+            DynamicTestN(operand);
+            c->builder.CreateStore(operand, addr);
             break;
         }
         case 0x56: {  // LSR ZeropageX
+            llvm::Value* addr = AddressModeZeropageX(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
+            llvm::Value* and_1 = c->builder.CreateAnd(operand, GetConstant8(1));
+            llvm::Value* status_c = c->builder.CreateICmpEQ(and_1, GetConstant8(1));
+            c->builder.CreateStore(status_c, c->status_c);
+            operand = c->builder.CreateLShr(operand, 1);
+            DynamicTestZ(operand);
+            DynamicTestN(operand);
+            c->builder.CreateCall(c->write_fn, {addr, operand});
             break;
         }
         case 0x4E: {  // LSR Absolute
+            llvm::Value* addr = AddressModeAbsolute(i.arg);
+            llvm::Value* operand = c->builder.CreateLoad(addr);
+            llvm::Value* and_1 = c->builder.CreateAnd(operand, GetConstant8(1));
+            llvm::Value* status_c = c->builder.CreateICmpEQ(and_1, GetConstant8(1));
+            c->builder.CreateStore(status_c, c->status_c);
+            operand = c->builder.CreateLShr(operand, 1);
+            DynamicTestZ(operand);
+            DynamicTestN(operand);
+            c->builder.CreateStore(operand, addr);
             break;
         }
         case 0x5E: {  // LSR AbsoluteX
+            llvm::Value* addr = AddressModeAbsoluteX(i.arg);
+            llvm::Value* operand = c->builder.CreateCall(c->read_fn, {addr});
+            llvm::Value* and_1 = c->builder.CreateAnd(operand, GetConstant8(1));
+            llvm::Value* status_c = c->builder.CreateICmpEQ(and_1, GetConstant8(1));
+            c->builder.CreateStore(status_c, c->status_c);
+            operand = c->builder.CreateLShr(operand, 1);
+            DynamicTestZ(operand);
+            DynamicTestN(operand);
+            c->builder.CreateCall(c->write_fn, {addr, operand});
             break;
         }
         case 0x09: {  // ORA Immediate
