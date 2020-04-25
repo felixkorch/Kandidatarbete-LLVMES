@@ -640,11 +640,12 @@ void Compiler::CodeGen(Instruction& i)
             break;
         }
         case 0xA9: {  // LDA Immediate
-            int arg = i.arg;
-            llvm::Value* a = llvm::ConstantInt::get(int8, arg);
-            c->builder.CreateStore(a, c->reg_a);
-            StaticTestZ(arg);
-            StaticTestN(arg);
+            //int arg = i.arg;
+            //llvm::Value* a = llvm::ConstantInt::get(int8, arg);
+            llvm::Value* load_value = AddressModeImmediate(i.arg);
+            c->builder.CreateStore(load_value, c->reg_a);
+            StaticTestZ(i.arg);
+            StaticTestN(i.arg);
             break;
         }
         case 0xA5: {  // LDA Zeropage

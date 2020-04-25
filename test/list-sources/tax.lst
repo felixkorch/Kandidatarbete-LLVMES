@@ -1,4 +1,5 @@
 #macro PRINT 2
+LDX #$00
 %1:
 LDA %2, X
 BEQ exit
@@ -7,10 +8,10 @@ INX
 JMP %1
 #endmacro
 
-#macro TAX_CMP 3
+#macro TAX_CMP 2
 LDA %1
-TAX %2
-CPX %3
+TAX 
+CPX %2
 #endmacro
 
 .org $8000
@@ -26,10 +27,10 @@ err_str:
 ; Immediate test
 main:
 
-
-TAX_CMP #$05 #$05 #$05
+LDA #$05
+TAX
+CPX #$05
 BNE print_err
-
 
 
 JMP print_ok
