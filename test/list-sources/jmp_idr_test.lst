@@ -1,30 +1,26 @@
 .org $8000
 
+indirect_ok:
+.db "indirect ok", 10, 0
+
 main:
+LDX #0
+BNE idr_routine
+JMP (address)
 
-LDA adress
-JMP setup
-
-setup:
-
-STA $2009 ; Print A - should be $800C
-LDY #$18
-
-loop:
+idr_routine:
+LDA indirect_ok, X
+BEQ exit ; Jump to exit on '\0'
+STA $2008
 INX
-DEY
-STA $200A ; Print X
-BNE loop
-STX $801E
-JMP (adress)
+JMP idr_routine
 
 exit:
+LDA #0
+STA $200F ; Exit 0
 
-LDA $801E
-STA $2009
-
-adress:
-.dw $800C
+address:
+.dw idr_routine
 
 .org $FFFC
 .dw main
