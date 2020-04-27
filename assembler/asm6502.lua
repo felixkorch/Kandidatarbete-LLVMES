@@ -145,19 +145,19 @@ local map_op = {
     TAY = {IMP = "A8"}
 }
 
-local label_regex = "^([a-z_]+):$" -- label
+local label_regex = "^([a-z][a-z0-9_]+):$" -- label
 local org_regex = ".org"
 local db_regex = ".db"
 local dw_regex = ".dw"
 local hex_value_regex = "^%$?%x+$" -- $8000 or $80
 local immediate_value_regex = "^#(%$?%x+)$" -- #0 or #$FF
-local name_regex = "^[a-z_]+$" -- label
-local name_plus_x_regex = "^([a-z_]+)%+(%d)$" -- label + x
+local name_regex = "^[a-z][a-z0-9_]+$" -- label
+local name_plus_x_regex = "^([a-z][a-z0-9_]+)%+(%d)$" -- label + x
 local register_regex = "^[XY]$" -- X, Y
 local indirect_regex = "^%((%$%x+)%)$" -- ($8000) or ($80)
-local indirect_name_regex = "^%(([a-z_]+)%)$" -- (name)
-local name_low_regex = "^#<([a-z_]+)$" -- #<label
-local name_high_regex = "^#>([a-z_]+)$" -- #>label
+local indirect_name_regex = "^%(([a-z][a-z0-9_]+)%)$" -- (name)
+local name_low_regex = "^#<([a-z][a-z0-9_]+)$" -- #<label
+local name_high_regex = "^#>([a-z][a-z0-9_]+)$" -- #>label
 
 local tokens = {}
 local labels = {}
@@ -461,8 +461,8 @@ local function parse_symbol(line, pos)
         c = line:sub(pos, pos)
     end
 
-    if map_op[symbol] then
-        tokens[#tokens + 1] = {data = symbol, type = "Instruction", line = scan_line}
+    if map_op[symbol:upper()] then
+        tokens[#tokens + 1] = {data = symbol:upper(), type = "Instruction", line = scan_line}
     elseif symbol:match(name_low_regex) then
         tokens[#tokens + 1] = {
             data = symbol:match(name_low_regex),
