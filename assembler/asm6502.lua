@@ -33,6 +33,11 @@ local function str_to_bytes(str)
 
     if len == 1 or len == 2 then
         return tonumber("0x" .. str), nil
+    elseif len == 3 then
+        str = "0" .. str
+        local b1 = str:sub(1, 2)
+        local b2 = str:sub(3, 4)
+        return tonumber("0x" .. b1), tonumber("0x" .. b2)
     elseif len == 4 then
         local b1 = str:sub(1, 2)
         local b2 = str:sub(3, 4)
