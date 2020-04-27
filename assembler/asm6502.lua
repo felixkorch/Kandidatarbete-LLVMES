@@ -142,7 +142,8 @@ local map_op = {
     BNE = {REL = "D0"},
     BEQ = {REL = "F0"},
     TYA = {IMP = "98"},
-    TAY = {IMP = "A8"}
+    TAY = {IMP = "A8"},
+    ORA = {IMM = "09", ZP = "05", ZPX = "15", ABS = "0D", ABSX = "1D", ABSY = "19", INDX = "01", INDY = "11"}
 }
 
 local label_regex = "^([a-z][a-z0-9_]+):$" -- label
