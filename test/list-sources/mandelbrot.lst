@@ -1422,4 +1422,4 @@ squares_low:
         .db  248
 
 .org $FFFC
-.dw $2061
+.dw $080F
