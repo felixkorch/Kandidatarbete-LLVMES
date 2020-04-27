@@ -461,8 +461,8 @@ local function parse_symbol(line, pos)
         c = line:sub(pos, pos)
     end
 
-    if map_op[symbol] then
-        tokens[#tokens + 1] = {data = symbol, type = "Instruction", line = scan_line}
+    if map_op[symbol:upper()] then
+        tokens[#tokens + 1] = {data = symbol:upper(), type = "Instruction", line = scan_line}
     elseif symbol:match(name_low_regex) then
         tokens[#tokens + 1] = {
             data = symbol:match(name_low_regex),
