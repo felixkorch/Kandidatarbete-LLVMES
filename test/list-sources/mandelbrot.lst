@@ -4,74 +4,74 @@
 ; Rewritten by some people to suit us
 
 basic:
-	.db	11,8,10,0,158,50,48,54,49,0,0,0
-                                ;program "10 sys 2061" for autostart
+        .db        11,8,10,0,158,50,48,54,49,0,0,0
+;program "10 sys 2061" for autostart
 
-                                ; time: 1 min 36 sec - with mirroring
+; time: 1 min 36 sec - with mirroring
 
 byteaddr:
-	.db $fc		;fc, fd used
+        .db $fc                ;fc, fd used
 
 color3:
-	.db 7
+        .db 7
 color1:
-	.db 8
+        .db 8
 color2:
-	.db 9              ;colors of non-mandelbrot set points
+        .db 9              ;colors of non-mandelbrot set points
 
 color0:
-	.db 0              ;color of mandelbrot points and side empty areas
+        .db 0              ;color of mandelbrot points and side empty areas
 
 bmpscreen:
-	.db 8192	;bmpscreen start
+        .dw $2000        ;bmpscreen start
 dummy:
         .db $0
 
 
-	lda	#>bmpscreen	;initialize self-mod code
-	sta	mod3+2
-	lda	#<bmpscreen
-	sta	mod3+1
+        lda        #>bmpscreen        ;initialize self-mod code
+        sta        mod3+2
+        lda        #<bmpscreen
+        sta        mod3+1
 
 
-	lda	#0
-	sta	$d020
+        lda        #0
+        sta        $d020
 
         lda     #color0         ;sets background color
-	sta	$d021
-	
-	ldy	#187-16
-	sty	$d011		;bitmap mode - blanks screen
+        sta        $d021
+
+        ldy        #187-16
+        sty        $d011                ;bitmap mode - blanks screen
 
         ldy     #24
         sty     $d016           ;enables multicolor mode
 
-	ldy	#28
-	sty	$d018		;bitmap base 8192
+        ldy        #28
+        sty        $d018                ;bitmap base 8192
 
 
 
         jsr     clear_screen
 
-	ldx	#$00
-	lda	#(16*color1+color2)       ;sets multicolor 01 and 10
+        ldx        #$00
+        lda        #(16*color1+color2)       ;sets multicolor 01 and 10
 loopcol:
-	sta	$400, x
-	sta	$500, x
-	sta	$600, x
-	sta	$700, x
-	inx
-	bne	loopcol
+        sta        $400, x
+        sta        $500, x
+        sta        $600, x
+        sta        $700, x
+        inx
+        bne        loopcol
 
-        ldx	#$00
-	lda	#color3                 ;sets multicolor 11
+        ldx        #$00
+        lda        #color3                 ;sets multicolor 11
 loopcol2:
-	sta	55296, x
-	sta	55296+$100, x
-	sta	55296+$200, x
-	sta	55296+$300, x
-	inx
-	bne	loopcol2
+        sta        55296, x
+        sta        55296+$100, x
+        sta        55296+$200, x
+        sta        55296+$300, x
+        inx
+        bne        loopcol2
 
         ldy     #187            ;re-enables screen
         sty     $d011
@@ -605,15 +605,15 @@ y_loop_jump:
         
 
 multiply_ab:
-	lda	#$00
-	sta	sum
+        lda        #$00
+        sta        sum
         sta     sum+1
 
         sta     multiplicand_sign
                                 ;multiplicand sign positive
         sta     multiplier_sign ;multiplier sign positive
 
-	ldx	#16		;number of bits
+        ldx        #16                ;number of bits
 
         lda     multiplicand    ;checks sign on high byte
         bpl     skip_multiplicand_comp
@@ -654,16 +654,16 @@ skip_multiplicand_comp:
 
 loop:
 
-	asl	sum+1
+        asl        sum+1
         rol     sum
-	rol	multiplier+1
+        rol        multiplier+1
         rol     multiplier
-	bcc	skip_add
+        bcc        skip_add
 
 
-	clc
-	lda	sum+1
-	adc	multiplicand+1
+        clc
+        lda        sum+1
+        adc        multiplicand+1
         sta     sum+1
         lda     sum
         adc     multiplicand
@@ -671,8 +671,8 @@ loop:
 
 
 skip_add:
-	dex
-	bne	loop
+        dex
+        bne        loop
 
         ;sum is high bite, sum+1 is lower byte
         ;lower byte are simply discarded
@@ -714,21 +714,21 @@ skip_add:
         
 skip_product_complement:
 
-	rts
+        rts
 
 
         
 ;SUBROUTINE: computes 2 * R * I (R * I with offset 32) using 8 bit numbers when possible
 
 multiply_ab8:
-	lda	#$00
-	sta	sum8
+        lda        #$00
+        sta        sum8
 
         sta     multiplicand_sign8
                                 ;multiplicand8 sign positive
         sta     multiplier_sign8 ;multiplier8 sign positive
 
-	ldx	#8		;number of bits
+        ldx        #8                ;number of bits
 
         lda     multiplicand8    ;checks sign on high byte
         bpl     skip_multiplicand_comp8
@@ -760,14 +760,14 @@ skip_multiplicand_comp8:
 
 loop8:
 
-	asl	sum8
-	rol	multiplier8
-	bcc	skip_add8
+        asl        sum8
+        rol        multiplier8
+        bcc        skip_add8
 
 
-	clc
-	lda	sum8
-	adc	multiplicand8
+        clc
+        lda        sum8
+        adc        multiplicand8
         sta     sum8
         lda     multiplier8
         bcc     skip_add8
@@ -775,8 +775,8 @@ loop8:
 
 
 skip_add8:
-	dex
-	bne	loop8
+        dex
+        bne        loop8
 
 ;sum8 is high bite, sum8+1 is lower byte
 ;lower byte are simply discarded
@@ -817,7 +817,7 @@ skip_add8:
         
 skip_product_complement8:
 
-	rts
+        rts
 
 
 ;storage locations for 16 bit multiply
@@ -831,11 +831,11 @@ multiplier_sign8:
         .db    0
 
 multiplicand8:
-	.db	0
+        .db        0
 multiplier8:
-	.db	0               ;high byte of product
+        .db        0               ;high byte of product
 sum8:
-	.db	0               ;low byte of product
+        .db        0               ;low byte of product
 
 
 ;subroutine: plot a point (codebase64.org)
@@ -843,7 +843,7 @@ sum8:
 plot:
 
 
-	
+
 ;bmpscreen = start of bitmap screen
 ;byteaddr = address of the byte where the point to plot lies
 
@@ -856,7 +856,7 @@ plot:
         lda xp
         beq skipadj
 
-        lda #>(xtablehigh + $ff)		;added brackets, otherwise it won't work
+        lda #>(xtablehigh + $ff)                ;added brackets, otherwise it won't work
         sta XTBmdf+2
 skipadj:
 
@@ -887,36 +887,36 @@ XTBmdf:
         sta (byteaddr),y
 
         
-	rts
+        rts
 
 
 ; clear bitmap screen
 
 clear_screen:
 
-	
-	ldy	#32
+
+        ldy        #32
 
 loopbmp:
-	ldx	#$00
-	lda	#$00
+        ldx        #$00
+        lda        #$00
 
 mod3:
-	sta	bmpscreen,x
-	inx
-	cpx	#250
-	bne	mod3
+        sta        bmpscreen,x
+        inx
+        cpx        #250
+        bne        mod3
 
-	clc
-	lda	mod3+1
-	adc	#250
-	sta	mod3+1
-	lda	mod3+2
-	adc	#00
-	sta	mod3+2
+        clc
+        lda        mod3+1
+        adc        #250
+        sta        mod3+1
+        lda        mod3+2
+        adc        #00
+        sta        mod3+2
 
-	dey
-	bne	loopbmp
+        dey
+        bne        loopbmp
 
         lda     #<bmpscreen
         sta     mod3+1
@@ -924,38 +924,38 @@ mod3:
         sta     mod3+2
 
 
-	rts
+        rts
 
 
 ;storage locations for plot routine
 
 
 xp:
-        .db	0,0
+        .db        0,0
 yp:
-        .db	0
+        .db        0
 bit_table:
-        .db	128,64,32,16,8,4,2,1
+        .db        128,64,32,16,8,4,2,1
 temp:
-        .db	0
+        .db        0
 ;temp2:
-;.db	0,0
+;.db        0,0
 byteaddr_y:
-        .db	0,0
+        .db        0,0
 yp_old:
-        .db	0
+        .db        0
 xp_old:
-        .db	0,0
+        .db        0,0
 
 
                                 ;storage locations for 16 bit multiply
 
 multiplicand:
-	.db	0,0
+        .db        0,0
 multiplier:
-	.db	0,0             ;high bytes of product ?
+        .db        0,0             ;high bytes of product ?
 sum:
-	.db	0,0             ;low bytes of product (unused)?
+        .db        0,0             ;low bytes of product (unused)?
 multiplicand_sign:
 
         .db    0
@@ -1286,7 +1286,7 @@ bitable:
         .db 128,64,32,16,8,4,2,1
         .db 128,64,32,16,8,4,2,1
 
-        .db 128,64,32,16,8,4,2,1	;those values from here should not be necessary, but leaved in place for safety
+        .db 128,64,32,16,8,4,2,1        ;those values from here should not be necessary, but leaved in place for safety
         .db 128,64,32,16,8,4,2,1
         .db 128,64,32,16,8,4,2,1
         .db 128,64,32,16,8,4,2,1
