@@ -152,6 +152,7 @@ local dw_regex = ".dw"
 local hex_value_regex = "^%$?%x+$" -- $8000 or $80
 local immediate_value_regex = "^#(%$?%x+)$" -- #0 or #$FF
 local name_regex = "^[a-z_]+$" -- label
+local name_plus_x_regex = "^([a-z_]+)%+(%d)$" -- label + x
 local register_regex = "^[XY]$" -- X, Y
 local indirect_regex = "^%((%$%x+)%)$" -- ($8000) or ($80)
 local indirect_name_regex = "^%(([a-z_]+)%)$" -- (name)
@@ -319,10 +320,12 @@ local function generate_machinecode()
             arg_value = arg.data
         end
 
-        local check_label = function(name)
+        local check_label = function(name, offset)
             local label = labels[name]
             assert(label, "Undefined reference to label '" .. name .. "'")
-            arg_value = label.address
+            local adr = str_to_number(label.address)
+            adr = offset and adr + offset or nil -- addr will be set to nil if offset i non existant
+            arg_value = adr and number_to_str(adr) or label.address -- if adr exists then adr, else the og address
         end
 
         if v.type == "Instruction" then
@@ -359,7 +362,7 @@ local function generate_machinecode()
                 end,
                 ["Default"] = function()
                     if arg.type == "Name" then
-                        check_label(arg_value)
+                        check_label(arg_value, arg.offset)
                     elseif arg.sub_type == "Label" then
                         check_label(arg_value)
                     end
@@ -484,6 +487,15 @@ local function parse_symbol(line, pos)
         tokens[#tokens + 1] = {data = symbol, type = "DataWord", line = scan_line}
     elseif symbol:match(immediate_value_regex) then
         tokens[#tokens + 1] = {data = symbol:match(immediate_value_regex), type = "ImmediateValue", line = scan_line}
+    elseif symbol:match(name_plus_x_regex) then
+        name, offset = symbol:match(name_plus_x_regex)
+        tokens[#tokens + 1] = {
+            data = name,
+            type = "Name",
+            sub_type = "Offset",
+            offset = offset,
+            line = scan_line
+        }
     elseif symbol:match(name_regex) then
         tokens[#tokens + 1] = {data = symbol, type = "Name", line = scan_line}
     elseif symbol:match(register_regex) then
