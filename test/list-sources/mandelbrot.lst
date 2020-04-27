@@ -1,4 +1,4 @@
-* = $801
+.org $801
 
 ; Program: Fast Approximate Mandelbrot Set with Integer Math - Marcello of Retro64 Blog 2018
 ; Rewritten by some people to suit us
@@ -9,16 +9,23 @@ basic:
 
                                 ; time: 1 min 36 sec - with mirroring
 
-        byteaddr = $fc		;fc, fd used
+byteaddr:
+	.db $fc		;fc, fd used
 
-        color3 = 7
-        color1 = 8
-        color2 = 9              ;colors of non-mandelbrot set points
+color3:
+	.db 7
+color1:
+	.db 8
+color2:
+	.db 9              ;colors of non-mandelbrot set points
 
-        color0 = 0              ;color of mandelbrot points and side empty areas
+color0:
+	.db 0              ;color of mandelbrot points and side empty areas
 
-        bmpscreen = 8192	;bmpscreen start
-	dummy	= $0
+bmpscreen:
+	.db 8192	;bmpscreen start
+dummy:
+        .db $0
 
 
 	lda	#>bmpscreen	;initialize self-mod code
@@ -696,10 +703,10 @@ skip_add:
         ;if product is positive, skip product complement
 
         sec
-        lda #< 65536
+        lda #<65536
         sbc sum+1
         sta sum+1
-        lda #> 65536
+        lda #>65536
         sbc sum
         sta sum          ;takes 2 complement of product (16 bit)
 
@@ -799,10 +806,10 @@ skip_add8:
                                 ;if product is positive, skip product complement
 
         sec
-        lda #< 65536
+        lda #<65536
         sbc sum8
         sta sum8
-        lda #> 65536
+        lda #>65536
         sbc multiplier8
         sta multiplier8         ;takes 2 complement of product (16 bit)
 
