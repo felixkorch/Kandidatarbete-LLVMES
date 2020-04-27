@@ -1,0 +1,1417 @@
+* = $801
+
+; Program: Fast Approximate Mandelbrot Set with Integer Math - Marcello of Retro64 Blog 2018
+; Rewritten by some people to suit us
+
+basic:
+	.db	11,8,10,0,158,50,48,54,49,0,0,0
+                                ;program "10 sys 2061" for autostart
+
+                                ; time: 1 min 36 sec - with mirroring
+
+        byteaddr = $fc		;fc, fd used
+
+        color3 = 7
+        color1 = 8
+        color2 = 9              ;colors of non-mandelbrot set points
+
+        color0 = 0              ;color of mandelbrot points and side empty areas
+
+        bmpscreen = 8192	;bmpscreen start
+	dummy	= $0
+
+
+	lda	#>bmpscreen	;initialize self-mod code
+	sta	mod3+2
+	lda	#<bmpscreen
+	sta	mod3+1
+
+
+	lda	#0
+	sta	$d020
+
+        lda     #color0         ;sets background color
+	sta	$d021
+	
+	ldy	#187-16
+	sty	$d011		;bitmap mode - blanks screen
+
+        ldy     #24
+        sty     $d016           ;enables multicolor mode
+
+	ldy	#28
+	sty	$d018		;bitmap base 8192
+
+
+
+        jsr     clear_screen
+
+	ldx	#$00
+	lda	#(16*color1+color2)       ;sets multicolor 01 and 10
+loopcol:
+	sta	$400, x
+	sta	$500, x
+	sta	$600, x
+	sta	$700, x
+	inx
+	bne	loopcol
+
+        ldx	#$00
+	lda	#color3                 ;sets multicolor 11
+loopcol2:
+	sta	55296, x
+	sta	55296+$100, x
+	sta	55296+$200, x
+	sta	55296+$300, x
+	inx
+	bne	loopcol2
+
+        ldy     #187            ;re-enables screen
+        sty     $d011
+
+
+
+        lda #00
+        sta xp          ;initializes high byte of x coordinate (unused)
+
+
+        
+        lda #$00        ;initializes counters for complex numbers
+        sta y_im
+        sta x_real
+
+;sta screen_count
+
+
+y_loop:
+        ldy y_im        ;loads imaginary part of starting value
+        lda i0_tab, y
+        sta i0+1
+
+; sign must be checked. If number is negative, 16 bit complement must be evaluated
+
+        bpl no_16bit_complement_i0
+
+; performs 16 bit complement
+
+        lda #$ff
+        sta i0
+
+
+
+
+        jmp skip_no_16bit_complement_i0
+
+no_16bit_complement_i0:
+
+
+
+
+        lda #$00
+        sta i0                  ;high byte is 0 (the number is positive)
+
+
+
+skip_no_16bit_complement_i0:
+
+
+
+x_loop:
+        lda #$01
+
+        sta k                   ;initializes counter for iterations
+
+        ldx x_real              ;loads real part of starting value
+        lda r0_tab, x
+        sta r0+1
+
+        bpl no_16bit_complement_r0
+
+;performs 16 bit complement
+
+        lda #$ff
+        sta r0
+
+
+
+        jmp skip_no16bit_complement_r0
+
+no_16bit_complement_r0:
+
+
+
+        lda #$00
+        sta r0
+
+skip_no16bit_complement_r0:
+
+
+
+        lda #$00
+        sta real
+        sta real+1
+        sta im
+        sta im+1                ;clears out 16 bit real and imaginary parts
+
+
+
+;starts iterations
+
+iter_start:
+
+; checks if real is 8 bit or not
+
+;jmp skip_fast_real_square
+
+
+        lda real
+        beq fast_real_square
+        lda real
+        cmp #$ff
+        beq take_complement_real_1
+
+
+
+        jmp skip_fast_real_square
+
+take_complement_real_1:
+
+
+        lda real+1
+        eor #$ff
+        clc
+        adc #1
+        sta real_module_low
+        jmp skip_real_1_module
+
+fast_real_square:
+
+        lda real+1
+        sta real_module_low
+
+        
+
+skip_real_1_module:
+
+
+
+        ldx real_module_low
+
+        lda squares_low, x
+        sta sum+1
+        lda squares_high,x
+        sta sum
+
+;no offset divide, already in tables for squares
+
+        lda sum
+        sta r2
+
+        lda sum+1
+        sta r2+1
+
+
+
+        jmp skip_slow_square_real
+
+skip_fast_real_square:
+
+
+
+
+        lda real
+        sta multiplicand
+        lda real+1
+        sta multiplicand+1
+        lda real
+        sta multiplier
+        lda real+1
+        sta multiplier+1
+
+        jsr multiply_ab
+
+        lda sum
+        sta r2                  ;high byte
+
+        lda sum+1
+        sta r2+1                ;low byte
+
+;computes R2 = real * real (16 bit) !!test real*im
+skip_slow_square_real:
+
+
+
+; checks if imaginary is 8 bit or not
+
+;jmp skip_fast_im_square
+
+        lda im
+        beq fast_im_square
+        lda im
+        cmp #$ff
+        beq take_complement_im_1
+
+
+
+        jmp skip_fast_im_square
+
+take_complement_im_1:
+
+
+        lda im+1
+        eor #$ff
+        clc
+        adc #1
+        sta im_module_low
+        jmp skip_im_1_module
+
+fast_im_square:
+
+        lda im+1
+        sta im_module_low
+
+        
+
+skip_im_1_module:
+
+
+
+
+
+        ldx im_module_low
+
+        lda squares_low, x
+        sta sum+1
+        lda squares_high,x
+        sta sum
+
+; no offset divide, already in tables for squares
+
+        lda sum
+        sta i2
+
+        lda sum+1
+        sta i2+1
+
+
+
+
+        jmp skip_slow_square_im
+
+skip_fast_im_square:
+
+
+
+
+        lda im
+        sta multiplicand
+        lda im+1
+        sta multiplicand+1
+        lda im
+        sta multiplier
+        lda im+1
+        sta multiplier+1
+
+        jsr multiply_ab
+
+        lda sum
+        sta i2                  ;high byte
+
+        lda sum+1
+        sta i2+1                ;low byte
+
+;computes I2 = im * im (16 bit)
+
+skip_slow_square_im:
+
+
+
+
+
+        clc
+        lda r2+1
+        adc i2+1
+        sta r2_plus_i2+1
+
+        lda i2
+        adc r2
+        sta r2_plus_i2          ;computes I2 + R2
+
+
+
+
+
+        ;4 * offset is 4 * 64 = 256
+        ;if 256 < r2_plus_i2 then mf = 0:rn = k-1: goto ...
+        ;as we need greater than (NOT including equal), we must revert the condition
+        ;so that we can use BCC
+
+        lda #>256
+        cmp r2_plus_i2
+        bcc no_mandelbrot_set
+        bne skip_no_mandelbrot_set
+        lda #<256
+        cmp r2_plus_i2+1
+        bcc no_mandelbrot_set   ;16 bit comparison, mandelbrot set condition
+
+        jmp skip_no_mandelbrot_set
+
+no_mandelbrot_set:
+
+
+
+        lda x_real
+        asl
+        sta xp+1
+
+        lda #$00
+        sta xp
+
+        clc
+        lda xp+1
+        adc #34         ;must be even
+        sta xp+1
+        bcc skip_inc_hi_xp
+                                ;instead of "adc #$00"
+        inc xp
+
+skip_inc_hi_xp:
+        lda y_im
+        sta yp
+        sta yp_copy
+
+        sec
+        lda #199
+        sbc yp
+        sta yp_mirrored ;computes mirrored y coordinate for plotting
+
+        dec k
+
+        lda k
+        cmp #9
+        bcs no_adjust   ;don't set colors of very outer points
+
+        lda #2
+        sta k
+
+no_adjust:
+        ldx k
+        lda color_table1,x
+        beq skip_plot1
+
+        jsr plot        ;no mandelbrot set = plot first bit of multicolor point
+
+        lda yp_mirrored ;mirroring of first plot
+        sta yp
+
+        jsr plot        ;plots mirrored point
+        lda yp_copy
+        sta yp          ;restores old value of y
+
+
+skip_plot1:
+        ldx k
+
+        lda color_table2,x
+        beq skip_plot2
+
+        inc xp+1        ;only low byte is enough, since steps are 0 > 1... 254> 255
+                                ;255 + 1 does not take place
+
+        jsr plot        ;no mandelbrot set = plot second bit of multicolor point
+
+        lda yp_mirrored ;mirroring of second point (same mirroring as the first one)
+        sta yp
+
+        jsr plot        ;plots mirrored point
+
+;no need to restore old value of yp here, as yp value is determined before each plot
+skip_plot2:
+
+
+        jmp next_loop
+
+
+skip_no_mandelbrot_set:
+
+
+                                ; selects between 8 bit multiplication or 16 bit
+
+        lda real
+        beq check_other         ;if high byte of real is 0, then it is 8 bit, then check other factor
+
+        cmp #$ff
+        beq check_other         ;if high byte of real is $ff, it is 8 bit negative, then check other factor
+
+        jmp slow_multiply
+                                ;if it is not 0 nor $ff, then it is 16 bit so use 16 bit multiply
+check_other:
+        lda im
+        beq fast_multiply       ;if high byte of imaginary is 0, at this point both factors are 8 bit
+                                ;so 8 bit faster multiply can be performed
+
+        cmp #$ff
+        beq fast_multiply       ;if high byte of imaginary is $ff, then it is an 8 bit negative number
+                                ;at this point 8 bit faster multiply can be performed
+
+        jmp slow_multiply       ;if either one or both factors are not 8 bit, then perform 16 bit multiply
+
+
+; COMPUTES I = 2 * R * I using 8 bit multiplication (offset is 32 so it actually performs R * I)
+
+fast_multiply:
+        lda real+1
+        sta multiplicand8
+        lda im+1
+        sta multiplier8
+
+        jsr multiply_ab8
+
+        lda multiplier8
+        sta im
+        lda sum8
+        sta im+1                ;I = R * I
+
+
+        jmp skip_slow_multiply
+
+
+
+; COMPUTES I = ((R * I)*2) + I0(which is 2 * real * im + i0)
+
+
+slow_multiply:
+
+
+
+        lda real
+        sta multiplicand
+        lda real+1
+        sta multiplicand+1
+        lda im
+        sta multiplier
+        lda im+1
+        sta multiplier+1
+
+        jsr multiply_ab
+
+        lda sum
+        sta im
+        lda sum+1
+        sta im+1                ; I = R * I
+
+        asl im+1
+        rol im                  ; I = 2 * R * I         ;multiplies by two after R * I so that
+        ;factors for multiplication are smaller
+
+
+skip_slow_multiply:
+
+
+        clc
+
+        lda im+1
+        adc i0+1
+        sta im+1
+
+        lda im
+        adc i0
+        sta im                  ; I = I + i0 = (2 * R) * I + i0
+
+
+
+                                ; computes R = R2-I2 + r0
+
+        sec
+        lda r2+1
+        sbc i2+1
+        sta real+1
+
+        lda r2
+        sbc i2
+        sta real                ; R = R2 - I2
+
+
+        clc
+        lda real+1
+        adc r0+1
+        sta real+1
+
+        lda real
+        adc r0
+        sta real                ; R = R + r0 = R2-I2 +r0
+
+
+        inc k
+
+
+        lda k
+        cmp #21               ; number of iterations
+        bne jump_iter_start
+
+
+
+mandelbrot_set:
+
+        ; should plot mandelbrot set point = don't plot on hi-res bitmap
+
+
+
+
+        jmp next_loop
+
+jump_iter_start:
+        jmp iter_start
+
+
+next_loop:
+
+
+        inc x_real
+
+continue:
+        lda x_real
+        cmp #125
+        bne x_loop_jump              ;next x loop (x has been already incremented). replaced bne with bcc!
+
+        lda #$00
+        sta x_real                   ;resets x counter
+
+        inc y_im
+
+        lda y_im
+        cmp #100                     ;y is halved for mirroring!
+        bne y_loop_jump              ;next y loop
+
+end:
+        jmp end
+
+x_loop_jump:
+        jmp x_loop
+
+y_loop_jump:
+        jmp y_loop
+
+
+        ; routine: signed 16 bit multiply - "16 bit" result (lower byte of result discarded)
+
+        
+
+multiply_ab:
+	lda	#$00
+	sta	sum
+        sta     sum+1
+
+        sta     multiplicand_sign
+                                ;multiplicand sign positive
+        sta     multiplier_sign ;multiplier sign positive
+
+	ldx	#16		;number of bits
+
+        lda     multiplicand    ;checks sign on high byte
+        bpl     skip_multiplicand_comp
+
+        sec
+
+        lda     #<65536
+        sbc     multiplicand+1
+        sta     multiplicand+1  ;takes complement of multiplicand (low byte first)
+        lda     #>65536
+        sbc     multiplicand
+        sta     multiplicand    ;high byte
+
+
+        inc     multiplicand_sign
+        ;multiplicand sign set to negative
+
+
+skip_multiplicand_comp:
+
+
+        lda     multiplier
+        bpl     loop            ;checks sign on high byte
+
+        sec
+
+        lda     #<65536
+        sbc     multiplier+1
+        sta     multiplier+1    ;takes complement of multiplier (low byte first)
+        lda     #>65536
+        sbc     multiplier
+        sta     multiplier      ;high byte
+
+
+
+        inc     multiplier_sign
+        ;multiplier sign set to negative
+
+loop:
+
+	asl	sum+1
+        rol     sum
+	rol	multiplier+1
+        rol     multiplier
+	bcc	skip_add
+
+
+	clc
+	lda	sum+1
+	adc	multiplicand+1
+        sta     sum+1
+        lda     sum
+        adc     multiplicand
+        sta     sum
+
+
+skip_add:
+	dex
+	bne	loop
+
+        ;sum is high bite, sum+1 is lower byte
+        ;lower byte are simply discarded
+
+        ; divide by offset (64)
+
+        lsr sum
+        ror sum+1
+        lsr sum
+        ror sum+1
+        lsr sum
+        ror sum+1
+        lsr sum
+        ror sum+1
+        lsr sum
+        ror sum+1
+        lsr sum
+        ror sum+1
+
+
+        ; sign of product evaluation
+
+        lda multiplicand_sign
+        eor multiplier_sign
+
+
+        beq skip_product_complement
+        ;if product is positive, skip product complement
+
+        sec
+        lda #< 65536
+        sbc sum+1
+        sta sum+1
+        lda #> 65536
+        sbc sum
+        sta sum          ;takes 2 complement of product (16 bit)
+
+
+        
+skip_product_complement:
+
+	rts
+
+
+        
+;SUBROUTINE: computes 2 * R * I (R * I with offset 32) using 8 bit numbers when possible
+
+multiply_ab8:
+	lda	#$00
+	sta	sum8
+
+        sta     multiplicand_sign8
+                                ;multiplicand8 sign positive
+        sta     multiplier_sign8 ;multiplier8 sign positive
+
+	ldx	#8		;number of bits
+
+        lda     multiplicand8    ;checks sign on high byte
+        bpl     skip_multiplicand_comp8
+
+        sec
+
+        lda     #<256
+        sbc     multiplicand8
+        sta     multiplicand8  ;takes complement of multiplicand8
+
+        inc     multiplicand_sign8
+        ;multiplicand8 sign set to negative
+
+skip_multiplicand_comp8:
+
+
+        lda     multiplier8
+        bpl     loop8            ;checks sign on high byte
+
+        sec
+
+        lda     #<256
+        sbc     multiplier8
+        sta     multiplier8      ;takes complement of multiplier8
+
+
+        inc     multiplier_sign8
+        ;multiplier8 sign set to negative
+
+loop8:
+
+	asl	sum8
+	rol	multiplier8
+	bcc	skip_add8
+
+
+	clc
+	lda	sum8
+	adc	multiplicand8
+        sta     sum8
+        lda     multiplier8
+        bcc     skip_add8
+        inc     multiplier8
+
+
+skip_add8:
+	dex
+	bne	loop8
+
+;sum8 is high bite, sum8+1 is lower byte
+;lower byte are simply discarded
+
+; divide by offset (32, 2*R*I /64 = R*I/32)
+
+
+        lsr multiplier8
+        ror sum8
+        lsr multiplier8
+        ror sum8
+        lsr multiplier8
+        ror sum8
+        lsr multiplier8
+        ror sum8
+        lsr multiplier8
+        ror sum8                 ;/32
+
+
+                                ; sign of product evaluation
+
+        lda multiplicand_sign8
+        eor multiplier_sign8
+
+
+        beq skip_product_complement8
+                                ;if product is positive, skip product complement
+
+        sec
+        lda #< 65536
+        sbc sum8
+        sta sum8
+        lda #> 65536
+        sbc multiplier8
+        sta multiplier8         ;takes 2 complement of product (16 bit)
+
+
+        
+skip_product_complement8:
+
+	rts
+
+
+;storage locations for 16 bit multiply
+
+
+multiplicand_sign8:
+
+        .db    0
+multiplier_sign8:
+
+        .db    0
+
+multiplicand8:
+	.db	0
+multiplier8:
+	.db	0               ;high byte of product
+sum8:
+	.db	0               ;low byte of product
+
+
+;subroutine: plot a point (codebase64.org)
+
+plot:
+
+
+	
+;bmpscreen = start of bitmap screen
+;byteaddr = address of the byte where the point to plot lies
+
+
+        
+        ldy yp
+        ldx xp+1
+        lda #>xtablehigh
+        sta XTBmdf+2
+        lda xp
+        beq skipadj
+
+        lda #>(xtablehigh + $ff)		;added brackets, otherwise it won't work
+        sta XTBmdf+2
+skipadj:
+
+
+        lda ytablelow,y
+        clc
+        adc xtablelow,x
+        sta byteaddr
+
+        lda ytablehigh,y
+XTBmdf:
+
+        adc xtablehigh,x
+        sta byteaddr+1
+
+        lda byteaddr
+        clc
+        adc #<bmpscreen
+        sta byteaddr
+
+        lda byteaddr+1
+        adc #>bmpscreen
+        sta byteaddr+1
+
+        ldy #$00
+        lda (byteaddr),y
+        ora bitable,x
+        sta (byteaddr),y
+
+        
+	rts
+
+
+; clear bitmap screen
+
+clear_screen:
+
+	
+	ldy	#32
+
+loopbmp:
+	ldx	#$00
+	lda	#$00
+
+mod3:
+	sta	bmpscreen,x
+	inx
+	cpx	#250
+	bne	mod3
+
+	clc
+	lda	mod3+1
+	adc	#250
+	sta	mod3+1
+	lda	mod3+2
+	adc	#00
+	sta	mod3+2
+
+	dey
+	bne	loopbmp
+
+        lda     #<bmpscreen
+        sta     mod3+1
+        lda     #>bmpscreen
+        sta     mod3+2
+
+
+	rts
+
+
+;storage locations for plot routine
+
+
+xp:
+        .db	0,0
+yp:
+        .db	0
+bit_table:
+        .db	128,64,32,16,8,4,2,1
+temp:
+        .db	0
+;temp2:
+;.db	0,0
+byteaddr_y:
+        .db	0,0
+yp_old:
+        .db	0
+xp_old:
+        .db	0,0
+
+
+                                ;storage locations for 16 bit multiply
+
+multiplicand:
+	.db	0,0
+multiplier:
+	.db	0,0             ;high bytes of product ?
+sum:
+	.db	0,0             ;low bytes of product (unused)?
+multiplicand_sign:
+
+        .db    0
+multiplier_sign:
+        .db    0
+product_sign:
+        .db    0
+
+        
+        ;result on multiplier and sum
+
+        
+        
+        ;storage locations for main program
+
+
+
+        
+i0:
+        .db    0,0
+r0:
+        .db    0,0
+
+y_im:
+        .db    0
+x_real:
+        .db    0
+
+
+mf:
+        .db    0
+
+real:
+        .db    0,0
+im:
+        .db    0,0
+
+r2:
+        .db    0,0
+i2:
+        .db    0,0
+
+r2_plus_i2:
+        .db    0,0
+
+
+k:
+        .db    0
+
+        ;screen_count    .db    0
+
+temp1:
+        .db    0
+
+temp2:
+        .db    0,0
+
+to_square:
+        .db    0
+
+real_module_low:
+        .db    0
+im_module_low:
+        .db    0
+
+yp_copy:
+        .db    0
+yp_mirrored:
+        .db    0
+
+
+; tables
+
+; 01 = 8
+; 10 = 9
+; 11 = 7
+
+
+color_table1:
+        .db 0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0  ;first value unused (k starts from 1)
+color_table2:
+        .db 0,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1  ;first value unused (k starts from 1)
+
+
+; fractal input values tables should be 16 bit in two's complement form - they are 8 bit complement instead
+; so, 8 bit 2's complement numbers are converted to 16 bit 2's complement on the code
+
+i0_tab:
+        .db  185 , 186 , 187 , 187 , 188
+        .db  189 , 189 , 190 , 191 , 191
+        .db  192 , 193 , 194 , 194 , 195
+        .db  196 , 196 , 197 , 198 , 198
+        .db  199 , 200 , 201 , 201 , 202
+        .db  203 , 203 , 204 , 205 , 206
+        .db  206 , 207 , 208 , 208 , 209
+        .db  210 , 210 , 211 , 212 , 213
+        .db  213 , 214 , 215 , 215 , 216
+        .db  217 , 217 , 218 , 219 , 220
+        .db  220 , 221 , 222 , 222 , 223
+        .db  224 , 225 , 225 , 226 , 227
+        .db  227 , 228 , 229 , 229 , 230
+        .db  231 , 232 , 232 , 233 , 234
+        .db  234 , 235 , 236 , 236 , 237
+        .db  238 , 239 , 239 , 240 , 241
+        .db  241 , 242 , 243 , 244 , 244
+        .db  245 , 246 , 246 , 247 , 248
+        .db  248 , 249 , 250 , 251 , 251
+        .db  252 , 253 , 253 , 254 , 255
+        ;***************************
+
+;other values are now omitted as the fractal is mirrored
+
+
+r0_tab:
+
+
+
+        .db  129 , 131 , 132 , 133 , 134
+        .db  136 , 137 , 138 , 140 , 141
+        .db  142 , 143 , 145 , 146 , 147
+        .db  148 , 150 , 151 , 152 , 153
+        .db  155 , 156 , 157 , 159 , 160
+        .db  161 , 162 , 164 , 165 , 166
+        .db  167 , 169 , 170 , 171 , 172
+        .db  174 , 175 , 176 , 177 , 179
+        .db  180 , 181 , 183 , 184 , 185
+        .db  186 , 188 , 189 , 190 , 191
+        .db  193 , 194 , 195 , 196 , 198
+        .db  199 , 200 , 202 , 203 , 204
+        .db  205 , 207 , 208 , 209 , 210
+        .db  212 , 213 , 214 , 215 , 217
+        .db  218 , 219 , 220 , 222 , 223
+        .db  224 , 226 , 227 , 228 , 229
+        .db  231 , 232 , 233 , 234 , 236
+        .db  237 , 238 , 239 , 241 , 242
+        .db  243 , 245 , 246 , 247 , 248
+        .db  250 , 251 , 252 , 253 , 255
+        ;***************************
+
+        .db  0 , 1 , 2 , 4 , 5
+        .db  6 , 7 , 9 , 10 , 11
+        .db  13 , 14 , 15 , 16 , 18
+        .db  19 , 20 , 21 , 23 , 24
+        .db  25 , 26 , 28 , 29 , 30
+
+;******************** PLOT TABLE *********************
+
+ytablelow:
+
+        .db 0,1,2,3,4,5,6,7
+        .db 64,65,66,67,68,69,70,71
+        .db 128,129,130,131,132,133,134,135
+        .db 192,193,194,195,196,197,198,199
+        .db 0,1,2,3,4,5,6,7
+        .db 64,65,66,67,68,69,70,71
+        .db 128,129,130,131,132,133,134,135
+        .db 192,193,194,195,196,197,198,199
+        .db 0,1,2,3,4,5,6,7
+        .db 64,65,66,67,68,69,70,71
+        .db 128,129,130,131,132,133,134,135
+        .db 192,193,194,195,196,197,198,199
+        .db 0,1,2,3,4,5,6,7
+        .db 64,65,66,67,68,69,70,71
+        .db 128,129,130,131,132,133,134,135
+        .db 192,193,194,195,196,197,198,199
+        .db 0,1,2,3,4,5,6,7
+        .db 64,65,66,67,68,69,70,71
+        .db 128,129,130,131,132,133,134,135
+        .db 192,193,194,195,196,197,198,199
+        .db 0,1,2,3,4,5,6,7
+        .db 64,65,66,67,68,69,70,71
+        .db 128,129,130,131,132,133,134,135
+        ;*********************
+        .db 192,193,194,195,196,197,198,199
+        .db 0,1,2,3,4,5,6,7
+
+ytablehigh:
+
+        .db 0,0,0,0,0,0,0,0
+        .db 1,1,1,1,1,1,1,1
+        .db 2,2,2,2,2,2,2,2
+        .db 3,3,3,3,3,3,3,3
+        .db 5,5,5,5,5,5,5,5
+        .db 6,6,6,6,6,6,6,6
+        .db 7,7,7,7,7,7,7,7
+        .db 8,8,8,8,8,8,8,8
+        .db 10,10,10,10,10,10,10,10
+        .db 11,11,11,11,11,11,11,11
+        .db 12,12,12,12,12,12,12,12
+        .db 13,13,13,13,13,13,13,13
+        .db 15,15,15,15,15,15,15,15
+        .db 16,16,16,16,16,16,16,16
+        .db 17,17,17,17,17,17,17,17
+        .db 18,18,18,18,18,18,18,18
+        .db 20,20,20,20,20,20,20,20
+        .db 21,21,21,21,21,21,21,21
+        .db 22,22,22,22,22,22,22,22
+        ;*********************
+        .db 23,23,23,23,23,23,23,23
+        .db 25,25,25,25,25,25,25,25
+        .db 26,26,26,26,26,26,26,26
+        .db 27,27,27,27,27,27,27,27
+        .db 28,28,28,28,28,28,28,28
+        .db 30,30,30,30,30,30,30,30
+
+xtablelow:
+
+        .db 0,0,0,0,0,0,0,0
+        .db 8,8,8,8,8,8,8,8
+        .db 16,16,16,16,16,16,16,16
+        .db 24,24,24,24,24,24,24,24
+        .db 32,32,32,32,32,32,32,32
+        .db 40,40,40,40,40,40,40,40
+        .db 48,48,48,48,48,48,48,48
+        .db 56,56,56,56,56,56,56,56
+        .db 64,64,64,64,64,64,64,64
+        .db 72,72,72,72,72,72,72,72
+        .db 80,80,80,80,80,80,80,80
+        .db 88,88,88,88,88,88,88,88
+        .db 96,96,96,96,96,96,96,96
+        .db 104,104,104,104,104,104,104,104
+        .db 112,112,112,112,112,112,112,112
+        ;*********************
+        .db 120,120,120,120,120,120,120,120
+        .db 128,128,128,128,128,128,128,128
+        .db 136,136,136,136,136,136,136,136
+        .db 144,144,144,144,144,144,144,144
+        .db 152,152,152,152,152,152,152,152
+        .db 160,160,160,160,160,160,160,160
+        .db 168,168,168,168,168,168,168,168
+        .db 176,176,176,176,176,176,176,176
+        .db 184,184,184,184,184,184,184,184
+        .db 192,192,192,192,192,192,192,192
+        .db 200,200,200,200,200,200,200,200
+        .db 208,208,208,208,208,208,208,208
+        .db 216,216,216,216,216,216,216,216
+        .db 224,224,224,224,224,224,224,224
+        .db 232,232,232,232,232,232,232,232
+        .db 240,240,240,240,240,240,240,240
+        .db 248,248,248,248,248,248,248,248
+        .db 0,0,0,0,0,0,0,0
+        .db 8,8,8,8,8,8,8,8
+        .db 16,16,16,16,16,16,16,16
+        .db 24,24,24,24,24,24,24,24
+        .db 32,32,32,32,32,32,32,32
+        .db 40,40,40,40,40,40,40,40
+        ;*********************
+        .db 48,48,48,48,48,48,48,48
+        .db 56,56,56,56,56,56,56,56
+
+xtablehigh:
+
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        ;*********************
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 0,0,0,0,0,0,0,0
+        .db 1,1,1,1,1,1,1,1
+        .db 1,1,1,1,1,1,1,1
+        .db 1,1,1,1,1,1,1,1
+        .db 1,1,1,1,1,1,1,1
+        .db 1,1,1,1,1,1,1,1
+        .db 1,1,1,1,1,1,1,1
+        .db 1,1,1,1,1,1,1,1
+        .db 1,1,1,1,1,1,1,1
+
+bitable:
+
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        ;*********************
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+
+        .db 128,64,32,16,8,4,2,1	;those values from here should not be necessary, but leaved in place for safety
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+        .db 128,64,32,16,8,4,2,1
+
+
+;squares 0...255 high bytes
+
+squares_high:
+
+
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        ;***************************
+
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 1 , 1
+        .db  1 , 1 , 1 , 1 , 1
+        .db  1 , 1 , 1 , 1 , 1
+        .db  1 , 1 , 1 , 1 , 1
+        .db  1 , 1 , 1 , 1 , 1
+        .db  1 , 1 , 1 , 1 , 1
+        .db  1 , 1 , 1 , 1 , 1
+        .db  1 , 1 , 1 , 1 , 1
+        .db  1 , 1 , 1 , 1 , 1
+        .db  1 , 1 , 1 , 1 , 1
+        .db  1 , 1 , 1 , 1 , 1
+        .db  1 , 1 , 2 , 2 , 2
+        .db  2 , 2 , 2 , 2 , 2
+        .db  2 , 2 , 2 , 2 , 2
+        .db  2 , 2 , 2 , 2 , 2
+        ;***************************
+
+        .db  2 , 2 , 2 , 2 , 2
+        .db  2 , 2 , 2 , 2 , 2
+        .db  2 , 2 , 2 , 2 , 2
+        .db  2 , 2 , 2 , 2 , 2
+        .db  2 , 2 , 3 , 3 , 3
+        .db  3 , 3 , 3 , 3 , 3
+        .db  3 , 3 , 3 , 3 , 3
+        .db  3 , 3 , 3 , 3 , 3
+        .db  3 , 3 , 3 , 3 , 3
+        .db  3 , 3 , 3 , 3 , 3
+        .db  3 , 3 , 3 , 3 , 3
+        .db  3
+
+        ;***************************
+
+;squares 0...255 low bytes
+
+squares_low:
+
+
+        .db  0 , 0 , 0 , 0 , 0
+        .db  0 , 0 , 0 , 1 , 1
+        .db  1 , 1 , 2 , 2 , 3
+        .db  3 , 4 , 4 , 5 , 5
+        .db  6 , 6 , 7 , 8 , 9
+        .db  9 , 10 , 11 , 12 , 13
+        .db  14 , 15 , 16 , 17 , 18
+        .db  19 , 20 , 21 , 22 , 23
+        .db  25 , 26 , 27 , 28 , 30
+        .db  31 , 33 , 34 , 36 , 37
+        .db  39 , 40 , 42 , 43 , 45
+        .db  47 , 49 , 50 , 52 , 54
+        .db  56 , 58 , 60 , 62 , 64
+        .db  66 , 68 , 70 , 72 , 74
+        .db  76 , 78 , 81 , 83 , 85
+        .db  87 , 90 , 92 , 95 , 97
+        .db  100 , 102 , 105 , 107 , 110
+        .db  112 , 115 , 118 , 121 , 123
+        .db  126 , 129 , 132 , 135 , 138
+        .db  141 , 144 , 147 , 150 , 153
+        ;***************************
+
+
+        .db  156 , 159 , 162 , 165 , 169
+        .db  172 , 175 , 178 , 182 , 185
+        .db  189 , 192 , 196 , 199 , 203
+        .db  206 , 210 , 213 , 217 , 221
+        .db  225 , 228 , 232 , 236 , 240
+        .db  244 , 248 , 252 , 0 , 4
+        .db  8 , 12 , 16 , 20 , 24
+        .db  28 , 33 , 37 , 41 , 45
+        .db  50 , 54 , 59 , 63 , 68
+        .db  72 , 77 , 81 , 86 , 90
+        .db  95 , 100 , 105 , 109 , 114
+        .db  119 , 124 , 129 , 134 , 139
+        .db  144 , 149 , 154 , 159 , 164
+        .db  169 , 174 , 179 , 185 , 190
+        .db  195 , 200 , 206 , 211 , 217
+        .db  222 , 228 , 233 , 239 , 244
+        .db  250 , 255 , 5 , 11 , 17
+        .db  22 , 28 , 34 , 40 , 46
+        .db  52 , 58 , 64 , 70 , 76
+        .db  82 , 88 , 94 , 100 , 106
+        ;***************************
+
+        .db  113 , 119 , 125 , 131 , 138
+        .db  144 , 151 , 157 , 164 , 170
+        .db  177 , 183 , 190 , 196 , 203
+        .db  210 , 217 , 223 , 230 , 237
+        .db  244 , 251 , 2 , 9 , 16
+        .db  23 , 30 , 37 , 44 , 51
+        .db  58 , 65 , 73 , 80 , 87
+        .db  94 , 102 , 109 , 117 , 124
+        .db  132 , 139 , 147 , 154 , 162
+        .db  169 , 177 , 185 , 193 , 200
+        .db  208 , 216 , 224 , 232 , 240
+        .db  248
