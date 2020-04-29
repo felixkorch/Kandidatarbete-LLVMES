@@ -1,65 +1,256 @@
-#macro LIST_SIZE 0 #30 #endmacro
+#macro PAGE_COUNT 0 #5 #endmacro
 
 .org $8000
 
 list:
-.db 3, 2, 1, 7, 8, 4, 5, 6, 10, 9, 11, 15, 13, 14, 12, 3, 2, 1, 7, 8, 4, 5, 6, 10, 9, 11, 15, 13, 14, 12 ; List to be sorted
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
+.db 3, 2, 1, 7, 9, 4, 5, 10
 
 main:
-
-LDA #0
-STA $00
-
+    LDA #<list ; A = list_L
+    LDX #>list ; X = list_H
+    STA $00    ; List address will be on ZP $00
+    STX $01
 main_loop:
-
-LDA #1
-CMP $00  ; if ($00) = 1 then done
-BEQ done
-LDA #1   ; set done to true
-STA $00
-LDX #0 ; Reset iterator
-
+    LDA is_sorted
+    BNE done
+    LDA #1
+    STA is_sorted ; Before looping, set done to true (the algorithm will set it to false if it's not done)
+    LDA base_page
+    STA $01  ; Reset page
+    LDA #0
+    STA page_index ; Reset page index
+    LDY #0   ; Reset iterator
 pass:
-
-LDA list, X
-INX ;
-CMP list, X
-BEQ then
-BCS swap ; If A >= next, swap
-
-then:
-CPX LIST_SIZE
-BEQ main_loop
-JMP pass
-
-
+    LDA ($00), Y ; A = first element
+    CPY #$FF
+    BEQ inc_page
+    INY
+pass_cmp:
+    CMP ($00), Y ; Compare to next element
+    BEQ pass     ; If ==, goto next
+    BCS swap     ; If >, goto 'swap'. If < goto next
+    JMP pass
+inc_page:
+    INC $01        ; Increase page by 1
+    INC page_index       
+    LDY PAGE_COUNT
+    CPY page_index ; If == to page count, go to next main_loop
+    BEQ main_loop
+    ;LDY #0
+    JMP pass_cmp
 swap:
-LDY #0
-STY $00 ; if swap neccesary, store done = false
-LDY list, X
-STA list, X
-TXA
-SBC #1
-TAX
-TYA
-STA list, X
-INX
-JMP then
+    LDX #0
+    STX is_sorted ; Swap means done = false
+    STA tmp
+    LDA ($00), Y
+    DEY
+    STA ($00), Y
+    INY
+    LDA tmp
+    STA ($00), Y
+    JMP pass
 
 done:
-
-LDX #0
-
+    LDY #0  ; Reset iterator
+    LDA base_page
+    STA $01 ; Reset page
+    LDA #0
+    STA page_index ; Reset page index
 print_loop:
-LDA list, X
-STA $2009
-INX
-CPX LIST_SIZE
-BNE print_loop
-
+    LDA ($00), Y
+    STA $2009
+    INY
+    CPY #$FF
+    BEQ print_inc_page
+    JMP print_loop
+print_inc_page:
+    INC $01        ; Increase page by 1
+    INC page_index       
+    LDY PAGE_COUNT
+    CPY page_index ; If == to page count, go to next main_loop
+    BEQ exit
+    LDY #0         ; Else, clear Y and start on next page
+    JMP print_loop
 exit:
-LDA #0
-STA $200F ; Exit 0
+    LDA #0
+    STA $200F ; Exit 0
+
+is_sorted:
+.db 0
+
+tmp:
+.db 0
+
+base_page:
+.db $80
+
+page_index:
+.db 0
+
+
 
 .org $FFFC
 .dw main ; Reset routine
