@@ -1,5 +1,5 @@
-.org $0801
-.dw $0801
+.org $8000
+; .dw $0801
 
 ; Program: Fast Approximate Mandelbrot Set with Integer Math - Marcello of Retro64 Blog 2018
 ; Rewritten by some people to suit us
@@ -1422,4 +1422,4 @@ squares_low:
         .db  248
 
 .org $FFFC
-.dw $080F
+.dw $800C
