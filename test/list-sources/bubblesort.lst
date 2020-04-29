@@ -199,16 +199,29 @@ inc_page:
     LDY PAGE_COUNT
     CPY page_index ; If == to page count, go to next main_loop
     BEQ main_loop
-    ;LDY #0
+    LDY #0
     JMP pass_cmp
 swap:
     LDX #0
     STX is_sorted ; Swap means done = false
+    CPY #0
+    BEQ page_edge_swap
     STA tmp
     LDA ($00), Y
     DEY
     STA ($00), Y
     INY
+    LDA tmp
+    STA ($00), Y
+    JMP pass
+page_edge_swap:
+    STA tmp
+    LDA ($00), Y
+    DEY
+    DEC $01
+    STA ($00), Y
+    INY
+    INC $01
     LDA tmp
     STA ($00), Y
     JMP pass
