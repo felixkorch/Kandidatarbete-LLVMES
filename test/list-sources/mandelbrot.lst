@@ -1,4 +1,5 @@
-.org $801
+.org $0801
+.dw $0801
 
 ; Program: Fast Approximate Mandelbrot Set with Integer Math - Marcello of Retro64 Blog 2018
 ; Rewritten by some people to suit us
@@ -9,38 +10,38 @@ basic:
 
 ; time: 1 min 36 sec - with mirroring
 
-byteaddr:
-        .db $fc                ;fc, fd used
+;; byteaddr:
+        ;; .db $fc                ;fc, fd used
 
-color3:
-        .db 7
-color1:
-        .db 8
-color2:
-        .db 9              ;colors of non-mandelbrot set points
+; color3:
+        ; .db 7
+;color1:
+        ;.db 8
+;color2:
+        ;.db 9              ;colors of non-mandelbrot set points
 
-color0:
-        .db 0              ;color of mandelbrot points and side empty areas
+;color0:
+        ;.db 0              ;color of mandelbrot points and side empty areas
 
-bmpscreen:
-        .dw $2000        ;bmpscreen start
-dummy:
-        .db $0
+;bmpscreen:
+        ;.dw $2000        ;bmpscreen start
+;; dummy:
+        ;; .db $00
 
 
-        lda        #>bmpscreen        ;initialize self-mod code
+        lda        #$20        ;initialize self-mod code
         sta        mod3+2
-        lda        #<bmpscreen
+        lda        #$00
         sta        mod3+1
 
 
         lda        #0
         sta        $d020
 
-        lda     #color0         ;sets background color
+        lda     #0         ;sets background color
         sta        $d021
 
-        ldy        #187-16
+        ldy        #171
         sty        $d011                ;bitmap mode - blanks screen
 
         ldy     #24
@@ -54,26 +55,26 @@ dummy:
         jsr     clear_screen
 
         ldx        #$00
-        lda        #(16*color1+color2)       ;sets multicolor 01 and 10
+        lda        #137       ;sets multicolor 01 and 10
 loopcol:
-        sta        $400, x
-        sta        $500, x
-        sta        $600, x
-        sta        $700, x
+        sta        $0400,X
+        sta        $0500,X
+        sta        $0600,X
+        sta        $0700,X
         inx
         bne        loopcol
 
         ldx        #$00
-        lda        #color3                 ;sets multicolor 11
+        lda        #7                 ;sets multicolor 11
 loopcol2:
-        sta        55296, x
-        sta        55296+$100, x
-        sta        55296+$200, x
-        sta        55296+$300, x
+        sta        $D800,X
+        sta        $D900,X
+        sta        $DA00,X
+        sta        $DB00,X
         inx
         bne        loopcol2
 
-        ldy     #187            ;re-enables screen
+        ldy     #0187            ;re-enables screen
         sty     $d011
 
 
@@ -92,7 +93,7 @@ loopcol2:
 
 y_loop:
         ldy y_im        ;loads imaginary part of starting value
-        lda i0_tab, y
+        lda i0_tab,Y
         sta i0+1
 
 ; sign must be checked. If number is negative, 16 bit complement must be evaluated
@@ -107,7 +108,7 @@ y_loop:
 
 
 
-        jmp skip_no_16bit_complement_i0
+        jmp x_loop              ;skip_no_16bit_complement_i0:
 
 no_16bit_complement_i0:
 
@@ -119,17 +120,13 @@ no_16bit_complement_i0:
 
 
 
-skip_no_16bit_complement_i0:
-
-
-
 x_loop:
         lda #$01
 
-        sta k                   ;initializes counter for iterations
+        sta kk                   ;initializes counter for iterations
 
         ldx x_real              ;loads real part of starting value
-        lda r0_tab, x
+        lda r0_tab,X
         sta r0+1
 
         bpl no_16bit_complement_r0
@@ -204,9 +201,9 @@ skip_real_1_module:
 
         ldx real_module_low
 
-        lda squares_low, x
+        lda squares_low,X
         sta sum+1
-        lda squares_high,x
+        lda squares_high,X
         sta sum
 
 ;no offset divide, already in tables for squares
@@ -287,9 +284,9 @@ skip_im_1_module:
 
         ldx im_module_low
 
-        lda squares_low, x
+        lda squares_low,X
         sta sum+1
-        lda squares_high,x
+        lda squares_high,X
         sta sum
 
 ; no offset divide, already in tables for squares
@@ -353,11 +350,11 @@ skip_slow_square_im:
         ;as we need greater than (NOT including equal), we must revert the condition
         ;so that we can use BCC
 
-        lda #>256
+        lda #1
         cmp r2_plus_i2
         bcc no_mandelbrot_set
         bne skip_no_mandelbrot_set
-        lda #<256
+        lda #0
         cmp r2_plus_i2+1
         bcc no_mandelbrot_set   ;16 bit comparison, mandelbrot set condition
 
@@ -392,18 +389,18 @@ skip_inc_hi_xp:
         sbc yp
         sta yp_mirrored ;computes mirrored y coordinate for plotting
 
-        dec k
+        dec kk
 
-        lda k
+        lda kk
         cmp #9
         bcs no_adjust   ;don't set colors of very outer points
 
         lda #2
-        sta k
+        sta kk
 
 no_adjust:
-        ldx k
-        lda color_table1,x
+        ldx kk
+        lda color_table1,X
         beq skip_plot1
 
         jsr plot        ;no mandelbrot set = plot first bit of multicolor point
@@ -417,9 +414,9 @@ no_adjust:
 
 
 skip_plot1:
-        ldx k
+        ldx kk
 
-        lda color_table2,x
+        lda color_table2,X
         beq skip_plot2
 
         inc xp+1        ;only low byte is enough, since steps are 0 > 1... 254> 255
@@ -549,10 +546,10 @@ skip_slow_multiply:
         sta real                ; R = R + r0 = R2-I2 +r0
 
 
-        inc k
+        inc kk
 
 
-        lda k
+        lda kk
         cmp #21               ; number of iterations
         bne jump_iter_start
 
@@ -591,7 +588,7 @@ continue:
         bne y_loop_jump              ;next y loop
 
 end:
-        jmp end
+        sta $FF00
 
 x_loop_jump:
         jmp x_loop
@@ -620,10 +617,10 @@ multiply_ab:
 
         sec
 
-        lda     #<65536
+        lda     #0
         sbc     multiplicand+1
         sta     multiplicand+1  ;takes complement of multiplicand (low byte first)
-        lda     #>65536
+        lda     #0
         sbc     multiplicand
         sta     multiplicand    ;high byte
 
@@ -640,10 +637,10 @@ skip_multiplicand_comp:
 
         sec
 
-        lda     #<65536
+        lda     #0
         sbc     multiplier+1
         sta     multiplier+1    ;takes complement of multiplier (low byte first)
-        lda     #>65536
+        lda     #0
         sbc     multiplier
         sta     multiplier      ;high byte
 
@@ -703,10 +700,10 @@ skip_add:
         ;if product is positive, skip product complement
 
         sec
-        lda #<65536
+        lda #0
         sbc sum+1
         sta sum+1
-        lda #>65536
+        lda #0
         sbc sum
         sta sum          ;takes 2 complement of product (16 bit)
 
@@ -735,7 +732,7 @@ multiply_ab8:
 
         sec
 
-        lda     #<256
+        lda     #0
         sbc     multiplicand8
         sta     multiplicand8  ;takes complement of multiplicand8
 
@@ -750,7 +747,7 @@ skip_multiplicand_comp8:
 
         sec
 
-        lda     #<256
+        lda     #0
         sbc     multiplier8
         sta     multiplier8      ;takes complement of multiplier8
 
@@ -806,10 +803,10 @@ skip_add8:
                                 ;if product is positive, skip product complement
 
         sec
-        lda #<65536
+        lda #0
         sbc sum8
         sta sum8
-        lda #>65536
+        lda #0
         sbc multiplier8
         sta multiplier8         ;takes 2 complement of product (16 bit)
 
@@ -852,39 +849,39 @@ plot:
         ldy yp
         ldx xp+1
         lda #>xtablehigh
-        sta XTBmdf+2
+        sta xtbmdf+2
         lda xp
         beq skipadj
 
-        lda #>(xtablehigh + $ff)                ;added brackets, otherwise it won't work
-        sta XTBmdf+2
+        lda xtablehighff                ;added brackets, otherwise it won't work
+        sta xtbmdf+2
 skipadj:
 
 
-        lda ytablelow,y
+        lda ytablelow,Y
         clc
-        adc xtablelow,x
-        sta byteaddr
+        adc xtablelow,X
+        sta $fc
 
-        lda ytablehigh,y
-XTBmdf:
+        lda ytablehigh,Y
+xtbmdf:
 
-        adc xtablehigh,x
-        sta byteaddr+1
+        adc xtablehigh,X
+        sta $fd
 
-        lda byteaddr
+        lda $fc
         clc
-        adc #<bmpscreen
-        sta byteaddr
+        adc #$00
+        sta $fc
 
-        lda byteaddr+1
-        adc #>bmpscreen
-        sta byteaddr+1
+        lda $fd
+        adc #$20
+        sta $fd
 
         ldy #$00
-        lda (byteaddr),y
-        ora bitable,x
-        sta (byteaddr),y
+        lda ($fc),Y
+        ora bitable,X
+        sta ($fc),Y
 
         
         rts
@@ -902,7 +899,7 @@ loopbmp:
         lda        #$00
 
 mod3:
-        sta        bmpscreen,x
+        sta        $2000,X
         inx
         cpx        #250
         bne        mod3
@@ -918,9 +915,9 @@ mod3:
         dey
         bne        loopbmp
 
-        lda     #<bmpscreen
+        lda     #$00
         sta     mod3+1
-        lda     #>bmpscreen
+        lda     #$20
         sta     mod3+2
 
 
@@ -1002,7 +999,7 @@ r2_plus_i2:
         .db    0,0
 
 
-k:
+kk:
         .db    0
 
         ;screen_count    .db    0
@@ -1035,9 +1032,9 @@ yp_mirrored:
 
 
 color_table1:
-        .db 0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0  ;first value unused (k starts from 1)
+        .db 0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0  ;first value unused (kk starts from 1)
 color_table2:
-        .db 0,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1  ;first value unused (k starts from 1)
+        .db 0,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1  ;first value unused (kk starts from 1)
 
 
 ; fractal input values tables should be 16 bit in two's complement form - they are 8 bit complement instead
@@ -1241,6 +1238,7 @@ xtablehigh:
         .db 0,0,0,0,0,0,0,0
         .db 0,0,0,0,0,0,0,0
         .db 0,0,0,0,0,0,0,0
+xtablehighff:
         .db 1,1,1,1,1,1,1,1
         .db 1,1,1,1,1,1,1,1
         .db 1,1,1,1,1,1,1,1
@@ -1422,3 +1420,6 @@ squares_low:
         .db  169 , 177 , 185 , 193 , 200
         .db  208 , 216 , 224 , 232 , 240
         .db  248
+
+.org $FFFC
+.dw $080F
