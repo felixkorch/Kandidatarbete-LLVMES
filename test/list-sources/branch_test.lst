@@ -75,47 +75,47 @@ check_memory:
 check_memory_loop:
     LDA $3000,X
     CMP expected_result,X
-    BNE fail
+    BNE print_fail
     INX
-    CPX #14
+    CPX #14                     ; Length of expected_results
     BNE check_memory_loop
-complete:
-    JSR print_success
-    JMP success
-print_success:
     LDX #$00 ; Reset X register
 print_msg:
     LDA success_str,X
-    BEQ print_newline
+    BEQ success
     STA $2008
     INX
     JMP print_msg
-print_newline:
+success:
     LDA #10 ; Newline
     STA $2008 ; Print new line
-    RTS
-success_str:
-.db "Branch tests passed!", 0
+    LDA #0
+    STA $200F
 print_fail:
     LDX #$00 ; Reset X register
 print_msg2:
     LDA fail_str,X
-    BEQ print_newline
+    BEQ fail
     STA $2008
     INX
     JMP print_msg2
-fail_str:
-.db "Branch tests failed!", 0
 fail:
-    JSR print_fail
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
     LDA #1
     STA $200F
-success:
-    LDA #0
-    STA $200F
+success_str:
+.db "CMP tests passed!", 0
+fail_str:
+.db "CMP tests failed!", 0
 
 expected_result:
-.db $01, $00, $00, $FF, $80, $7F, $00, $FF, $1F, $40, $20, $7A, $84, $FA
+.db $01, $00, $00, $FF, $80, $7F, $00, $FF, $1F, $40
+.db $20, $7A, $84, $FA
+result_idx:
+.db 0
+tmp:
+.db 0
 
 .org $FFFC
 .dw start
