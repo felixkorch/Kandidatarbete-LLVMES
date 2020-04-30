@@ -26,9 +26,13 @@ void putchar(int8_t c)
 
 void putstatus(int8_t s)
 {
-    printf("[N: %d V: %d Z: %d C: %d] (%s)\n",
+    printf("[N: %d V: %d U: %d B: %d D: %d I: %d Z: %d C: %d] (%s)\n",
            (bool)(s & 0x80),                  // Negative Flag
            (bool)(s & 0x40),                  // Overflow flag
+           (bool)(s & 0x20),                  // U flag
+           (bool)(s & 0x10),                  // BRK flag
+           (bool)(s & 0x08),                  // Decimal flag
+           (bool)(s & 0x04),                  // Interrupt flag
            (bool)(s & 0x02),                  // Zero flag
            (bool)(s & 0x01),                  // Carry flag
            ToHexString((uint8_t)s).c_str());  // Complete status register
@@ -94,10 +98,11 @@ Compiler::Compiler(AST ast, const std::string& program_name)
     c->builder.CreateStore(GetConstant1(0), c->status_c);
     c->builder.CreateStore(GetConstant1(0), c->status_v);
     c->builder.CreateStore(GetConstant1(0), c->status_n);
-    c->builder.CreateStore(GetConstant1(0), c->status_b);
-    c->builder.CreateStore(GetConstant1(0), c->status_u);
+    c->builder.CreateStore(GetConstant1(1), c->status_b);
+    c->builder.CreateStore(GetConstant1(1), c->status_u);
     c->builder.CreateStore(GetConstant1(0), c->status_z);
-    c->builder.CreateStore(GetConstant1(0), c->status_i);
+    c->builder.CreateStore(GetConstant1(1), c->status_i);
+    c->builder.CreateStore(GetConstant1(0), c->status_d);
 }
 
 Compiler::~Compiler()
