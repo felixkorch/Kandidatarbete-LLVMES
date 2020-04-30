@@ -19,16 +19,63 @@ main:
     AND #$01
     STORE_RESULT_A ; $01
 ; Test AND Absolute
-    LDX #$55
-    STX $00
+    LDA #$55
+    STA $2000
     LDA #$AA
-    AND $00
+    AND $2000
     STORE_RESULT_A ; $00
 ; Test AND Absolute (and ROR Accumulator!)
     LDA #$AA
     ROR     ; #55
-    AND $00
+    AND $2000
     STORE_RESULT_A ; $55
+; Test AND Absolute,X
+    LDA #$55
+    STA $2002
+    LDX #$02
+    AND $2000,X
+    STORE_RESULT_A ; $55
+; Test AND Absolute,Y
+    LDA #$55
+    STA $2002
+    LDY #$02
+    AND $2000,Y
+    STORE_RESULT_A ; $55
+; Test AND Zero Page
+    LDA #$55
+    STA $02
+    AND $02
+    STORE_RESULT_A ; $55
+; Test AND Zero Page,X
+    LDA #$55
+    STA $02
+    LDX #$02
+    LDA #$55
+    AND $00,X
+    STORE_RESULT_A ; $55
+; Test AND Indirect,X
+    LDA #$55
+    STA $30
+    LDA #$30
+    STA $23
+    LDA #$00
+    STA $24
+    LDX #$03
+    LDA #$55
+    AND ($20),X
+    STORE_RESULT_A ; $55
+; Test AND Indirect,Y
+    LDA #$20
+    STA $02
+    LDA #$00
+    STA $03
+    LDA #$55
+    STA $22
+    LDA #$55
+    LDY #$02
+    AND ($02),Y
+    STORE_RESULT_A ; $55
+
 check_memory:
     LDX #$00
 check_memory_loop:
@@ -36,7 +83,7 @@ check_memory_loop:
     CMP expected_result,X
     BNE print_fail
     INX
-    CPX #4                     ; Length of expected_results
+    CPX #10                     ; Length of expected_results
     BNE check_memory_loop
     LDX #$00 ; Reset X register
 print_msg:
@@ -68,13 +115,12 @@ success_str:
 fail_str:
 .db "AND test failed!", 0
 expected_result:
-.db $A0, $01, $00, $55
+.db $A0, $01, $00, $55, $55, $55, $55, $55
+.db $55, $55
 result_idx:
 .db 0
 tmp:
 .db 0
-
-
 
 .org $FFFC
 .dw main ; Reset vector
