@@ -301,9 +301,7 @@ void Compiler::CodeGen(Instruction& instr)
         }
         case 0xA9: {  // LDA Immediate
             llvm::Value* load_value = AddressModeImmediate(i->arg);
-            c->builder.CreateStore(load_value, c->reg_a);
-            StaticTestZ(i->arg);
-            StaticTestN(i->arg);
+            OP_LDA(load_value);
             break;
         }
         case 0xA5: {  // LDA Zeropage
@@ -350,9 +348,7 @@ void Compiler::CodeGen(Instruction& instr)
         }
         case 0xA2: {  // LDX Immediate
             llvm::Value* load_value = AddressModeImmediate(i->arg);
-            c->builder.CreateStore(load_value, c->reg_x);
-            StaticTestZ(i->arg);
-            StaticTestN(i->arg);
+            OP_LDX(load_value);
             break;
         }
         case 0xA6: {  // LDX Zeropage
@@ -381,9 +377,7 @@ void Compiler::CodeGen(Instruction& instr)
         }
         case 0xA0: {  // LDY Immediate
             llvm::Value* load_value = AddressModeImmediate(i->arg);
-            c->builder.CreateStore(load_value, c->reg_y);
-            StaticTestZ(i->arg);
-            StaticTestN(i->arg);
+            OP_LDY(load_value);
             break;
         }
         case 0xA4: {  // LDY Zeropage
