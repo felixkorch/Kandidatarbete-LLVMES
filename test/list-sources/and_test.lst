@@ -1,60 +1,80 @@
-#macro PRINT_A 0
-STA $2009
-#endmacro
-#macro PRINT_MSG 2 ; This macro takes 2 arguments: first=string/message to print. second=value to print after it
-LDX #$00 ; Reset X register
-print_msg:
-LDA %1, X
-BEQ print_data
-STA $2008
-INX
-JMP print_msg
-; Print data associated with message
-print_data:
-LDA %2
-PRINT_A
-LDA #$10 ; Newline
-STA $2008 ; Print new line
-JMP final_test
+#macro STORE_RESULT_A 0
+    STX tmp
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    LDX tmp
 #endmacro
 
 .org $8000
 
-should_str:
-.db "should print: ", 0
-
 main:
 ; Test AND Immediate
-LDA #$AA ; Store #AA in accumulator
-AND #$A0 ; perform AND immediate on 0A
-PRINT_A ; Should print $A0
-
+    LDA #$AA
+    AND #$A0
+    STORE_RESULT_A ; $A0
 ; Test AND Immediate
-LDA #$FF ; Store #FF in accumulator
-AND #$01 ; perform AND immediate on 01
-PRINT_A ; Should print $01
-
+    LDA #$FF
+    AND #$01
+    STORE_RESULT_A ; $01
 ; Test AND Absolute
-; Store some value at $01. It will later be compared to #AA
-LDX #$55 ; $55 is $AA right-shifted once
-STX $00 ; Store at address $00
-LDA #$AA ; Load accumulator with #AA
-AND $00 ; Compare with value stored at $00 (#55)
-PRINT_A ; Should print $00
-
+    LDX #$55
+    STX $00
+    LDA #$AA
+    AND $00
+    STORE_RESULT_A ; $00
 ; Test AND Absolute (and ROR Accumulator!)
-PRINT_MSG should_str #$55 ; Just for fun!
-final_test:
-LDA #$AA ; Load accumulator with #AA
-ROR ;A ; Right shift accumulator once. Should result in #55
-AND $00 ; Compare with value stored at $00 (#55)
-PRINT_A ; Should print $55
-JMP exit ; Done, exit gracefully
+    LDA #$AA
+    ROR     ; #55
+    AND $00
+    STORE_RESULT_A ; $55
+check_memory:
+    LDX #$00
+check_memory_loop:
+    LDA $3000,X
+    CMP expected_result,X
+    BNE print_fail
+    INX
+    CPX #4                     ; Length of expected_results
+    BNE check_memory_loop
+    LDX #$00 ; Reset X register
+print_msg:
+    LDA success_str,X
+    BEQ success
+    STA $2008
+    INX
+    JMP print_msg
+success:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    LDA #0
+    STA $200F
+print_fail:
+    LDX #$00 ; Reset X register
+print_msg2:
+    LDA fail_str,X
+    BEQ fail
+    STA $2008
+    INX
+    JMP print_msg2
+fail:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    LDA #1
+    STA $200F
+success_str:
+.db "AND test passed!", 0
+fail_str:
+.db "AND test failed!", 0
+expected_result:
+.db $A0, $01, $00, $55
+result_idx:
+.db 0
+tmp:
+.db 0
 
 
-exit:
-LDA #0
-STA $200F ; Write 0 as exit code
 
 .org $FFFC
 .dw main ; Reset vector
