@@ -1,223 +1,252 @@
-#macro PRINT_A 0
-STA $2009
-#endmacro
-#macro PRINT_MSG 2 ; This macro takes 2 arguments: first=string/message to print. second=value to print after it
-LDX #$00 ; Reset X register
-print_msg:
-LDA %1, X
-BEQ print_data
-STA $2008
-INX
-JMP print_msg
-; Print data associated with message
-print_data:
-LDA %2
-PRINT_A
-LDA #$10 ; Newline
-STA $2008 ; Print new line
-JMP final_test
-#endmacro
-#macro PRINT_Y 0
-STA $200B
-#endmacro
-#macro PRINT_N 0
-STA$200C
-#endmacro
-#macro PRINT_C 0
-STA $200D
-#endmacro
-#macro PRINT_Z 0
-STA $200E
-#endmacro
-#macro PRINT_X 0
-STA $200A
+#macro STORE_RESULT 0
+    PHP
+    PLA
+    STX tmp
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    LDX tmp
 #endmacro
 
 .org $8000
 
-should_str:
-.db "should print: ", 0
-
 ; Flags: N V U B D I Z C
-
+; CMP sets N, Z and C so the idea is to test for equality, greater than, and
+; lesser than. It's important that at least one of the tests uses negative
+; numbers and at least one uses positive so that all flags are properly
+; tested.
 
 main:
+    LDX #0
 ; Test CMP Immediate
-LDA #$AA ; Load X with #AA
-CMP #$AA  ; Compare immediate with #AA
-LDA #$0B    ; Load X with #0B
-CMP #$AA  ; Compare immediate with #AA
-LDA #$02    ; Load X with #02
-CMP #$AA  ; Compare immediate with #AA
-PRINT_A     ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
-
+    LDA #$AA ; Load X with #AA
+    CMP #$AA  ; Compare immediate with #AA
+    STORE_RESULT
+    LDA #$AB    ; Load X with #02
+    CMP #$AA  ; Compare immediate with #AA
+    STORE_RESULT
+    LDA #$09    ; Load X with #0B
+    CMP #$0A  ; Compare immediate with #AA
+    STORE_RESULT
 
 ; Test CMP Zeropage
-LDA #$AA ; Store #AA in accumulator
-STA ($20)  ; Store A on address $20
-CMP ($20) ; Compare with the address $20
-LDA #$0B    ; Load X with #0B
-CMP ($20)  ; Compare with the address $20
-LDA #$02    ; Load X with #02
-CMP ($20)  ; Compare with the address $20
-PRINT_A     ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
+    LDA #$AA ; Store #AA in accumulator
+    STA $20  ; Store A on address $20
+    CMP $20 ; Compare with the address $20
+    STORE_RESULT
+    LDA #$AB    ; Load A with #0B
+    CMP $20  ; Compare with the address $20
+    STORE_RESULT
+    LDA #$0A    ; Load A with #02
+    STA $20  ; Store A on address $20
+    LDA #$09
+    CMP $20  ; Compare with the address $20
+    STORE_RESULT
 
 
 ; Test CMP ZeropageX
-LDA #$AA ; Store #AA in accumulator
-STA ($20)  ; Store A on address $20
-LDX #$02 ; Load X with #AA
-CMP ($20),X  ; Compare with the address $20+X
-LDA #$0B    ; Load X with #0B
-CMP ($20),X  ; Compare with the address $20+X
-LDA #$02    ; Load X with #02
-CMP ($20),X  ; Compare with the address $20+X
-PRINT_A     ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
+    LDA #$AA ; Store #AA in accumulator
+    STA $20  ; Store A on address $20
+    LDX #0 ; Load X with #0
+    CMP $20,X  ; Compare with the address $20+X
+    STORE_RESULT
+    LDA #$AB    ; Load X with #0B
+    CMP $20,X  ; Compare with the address $20+X
+    STORE_RESULT
+    LDA #$0A    ; Load A with #02
+    STA $20  ; Store A on address $20
+    LDA #$09
+    CMP $20,X  ; Compare with the address $20+X
+    STORE_RESULT
 
 
 ; Test CMP Absolute
-LDA #$AA ; Store #AA in accumulator
-STA $2002  ; Store A on address $2000
-CMP $2000  ; Compare with the address $2000
-LDA #$0B    ; Load A with #0B
-CMP $2000  ; Compare with the address $2000
-LDA #$02    ; Load A with #02
-CMP $2000  ; Compare with the address $2000
-PRINT_A    ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
+    LDA #$AA ; Store #AA in accumulator
+    STA $2000  ; Store A on address $2000
+    CMP $2000  ; Compare with the address $0000
+    STORE_RESULT
+    LDA #$AB    ; Load A with #0B
+    CMP $2000  ; Compare with the address $0000
+    STORE_RESULT
+    LDA #$0A    ; Load A with #02
+    STA $2000  ; Store A on address $0000
+    LDA #$09
+    CMP $2000  ; Compare with the address $2000
+    STORE_RESULT
 
 
 ; Test CMP AbsoluteX
-LDA #$AA ; Store #AA in accumulator
-LDX #$02 ; Load X with #02
-STA $2002  ; Store A on address $2002
-CMP $2000,X  ; Compare with the address $2000+X
-LDA #$0B    ; Load A with #0B
-CMP $2000,X  ; Compare with the address $2000+X
-LDA #$02    ; Load A with #02
-CMP $2000,X  ; Compare with the address $2000+X
-PRINT_A    ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
-
+    LDA #$AA ; Store #AA in accumulator
+    LDX #0 ; Load X with #0
+    STA $2000  ; Store A on address $2000
+    CMP $2000,X  ; Compare with the address $2000+X
+    STORE_RESULT
+    LDA #$AB    ; Load A with #0B
+    CMP $2000,X  ; Compare with the address $2000+X
+    STORE_RESULT
+    LDA #$0A    ; Load A with #02
+    STA $2000  ; Store A on address $0000
+    LDA #$09
+    CMP $2000,X  ; Compare with the address $2000+X
+    STORE_RESULT
 
 ; Test CMP AbsoluteY
-LDA #$AA ; Store #AA in accumulator
-LDY #$02 ; Load Y with #02
-STA $2002  ; Store A on address $2002
-CMP $2000,Y  ; Compare with the address $2000+Y
-LDA #$0B    ; Load A with #0B
-CMP $2000,Y  ; Compare with the address $2000+Y
-LDA #$02    ; Load A with #02
-CMP $2000,Y  ; Compare with the address $2000+Y
-PRINT_A    ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
+    LDA #$AA ; Store #AA in accumulator
+    LDY #0 ; Load Y with #0
+    STA $2000  ; Store A on address $2000
+    CMP $2000,Y  ; Compare with the address $2000+Y
+    STORE_RESULT
+    LDA #$AB    ; Load A with #0B
+    CMP $2000,Y  ; Compare with the address $2000+Y
+    STORE_RESULT
+    LDA #$0A    ; Load A with #02
+    STA $2000  ; Store A on address $0000
+    LDA #$09
+    CMP $2000,Y  ; Compare with the address $2000+Y
+    STORE_RESULT
 
 
 ; Test CPX Immediate
-LDX #$AA ; Load X with #AA
-CPX #$AA  ; Compare immediate with #AA
-LDX #$0B    ; Load X with #0B
-CPX #$AA  ; Compare immediate with #AA
-LDX #$02    ; Load X with #02
-CPX #$AA  ; Compare immediate with #AA
-PRINT_X     ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
+    LDX #$AA ; Load X with #AA
+    CPX #$AA  ; Compare immediate with #AA
+    STORE_RESULT
+    LDX #$AB    ; Load X with #0B
+    CPX #$AA  ; Compare immediate with #AA
+    STORE_RESULT
+    LDX #$09    ; Load X with #02
+    CPX #$0A  ; Compare immediate with #AA
+    STORE_RESULT
 
 
 ; Test CPX Zeropage
-LDA #$AA ; Store #AA in accumulator
-STA ($20)  ; Store A on address $20
-LDX #$AA ; Load X with #AA
-CPX ($20)  ; Compare with the address $20
-LDX #$0B    ; Load X with #0B
-CPX ($20)  ; Compare with the address $20
-LDX #$02    ; Load X with #02
-CPX ($20)  ; Compare with the address $20
-PRINT_X     ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
+    LDA #$AA ; Store #AA in accumulator
+    STA $20  ; Store A on address $20
+    LDX #$AA ; Load X with #AA
+    CPX $20  ; Compare with the address $20
+    STORE_RESULT
+    LDX #$AB    ; Load X with #0B
+    CPX $20  ; Compare with the address $20
+    STORE_RESULT
+    LDA #$0A    ; Load A with #02
+    STA $20  ; Store A on address $20
+    LDX #$09    ; Load X with #02
+    CPX $20  ; Compare with the address $20
+    STORE_RESULT
 
 
 ; Test CPX Absolute
-LDA #$AA ; Store #AA in accumulator
-STA $2000  ; Store A on address $20
-LDX #$AA ; Load X with #AA
-CPX $2000  ; Compare with the address $2000
-LDX #$0B    ; Load X with #0B
-CPX $2000  ; Compare with the address $2000
-LDX #$02    ; Load X with #02
-CPX $2000  ; Compare with the address $2000
-PRINT_X    ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
-
+    LDA #$AA ; Store #AA in accumulator
+    STA $2000  ; Store A on address $20
+    LDX #$AA ; Load X with #AA
+    CPX $2000  ; Compare with the address $2000
+    STORE_RESULT
+    LDX #$AB    ; Load X with #0B
+    CPX $2000  ; Compare with the address $2000
+    STORE_RESULT
+    LDA #$0A    ; Load A with #02
+    STA $2000  ; Store A on address $2000
+    LDX #$09    ; Load X with #02
+    CPX $2000  ; Compare with the address $2000
+    STORE_RESULT
 
 ; Test CPY Immediate
-LDY #$AA ; Load Y with #AA
-CPY #$AA  ; Compare immediate with #AA
-LDY #$0B    ; Load Y with #0B
-CPY #$AA  ; Compare immediate with #AA
-LDY #$02    ; Load Y with #02
-CPY #$AA  ; Compare immediate with #AA
-PRINT_Y     ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
-
+    LDY #$AA ; Load Y with #AA
+    CPY #$AA  ; Compare immediate with #AA
+    STORE_RESULT
+    LDY #$AB    ; Load Y with #0B
+    CPY #$AA  ; Compare immediate with #AA
+    STORE_RESULT
+    LDY #$09    ; Load Y with #02
+    CPY #$0A  ; Compare immediate with #AA
+    STORE_RESULT
 
 ; Test CPY Zeropage
-LDA #$AA ; Store #AA in accumulator
-STA ($20)  ; Store A on address $20
-LDY #$AA ; Load Y with #AA
-CPY ($20)  ; Compare with the address $20
-LDY #$0B    ; Load Y with #0B
-CPY ($20)  ; Compare with the address $20
-LDY #$02    ; Load Y with #02
-CPY ($20)  ; Compare with the address $20
-PRINT_Y     ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
+    LDA #$AA ; Store #AA in accumulator
+    STA $20  ; Store A on address $20
+    LDY #$AA ; Load Y with #AA
+    CPY $20  ; Compare with the address $20
+    STORE_RESULT
+    LDY #$AB    ; Load Y with #0B
+    CPY $20  ; Compare with the address $20
+    STORE_RESULT
+    LDA #$0A    ; Load A with #02
+    STA $20  ; Store A on address $20
+    LDY #$09    ; Load Y with #02
+    CPY $20  ; Compare with the address $20
+    STORE_RESULT
 
 
 ; Test CPY Absolute
-LDA #$AA ; Store #AA in accumulator
-STA $2000  ; Store A on address $20
-LDY #$AA ; Load Y with #AA
-CPY $2000  ; Compare with the address $2000
-LDY #$0B    ; Load Y with #0B
-CPY $2000  ; Compare with the address $2000
-LDY #$02    ; Load Y with #02
-CPY $2000  ; Compare with the address $2000
-PRINT_Y     ; should print 2
-PRINT_N     ; should print N as 01
-PRINT_C     ; should print C as 01
-PRINT_Z     ; should print Z as 00
-JMP exit ; Done, exit gracefully
+    LDA #$AA ; Store #AA in accumulator
+    STA $2000  ; Store A on address $20
+    LDY #$AA ; Load Y with #AA
+    CPY $2000  ; Compare with the address $2000
+    STORE_RESULT
+    LDY #$AB    ; Load Y with #0B
+    CPY $2000  ; Compare with the address $2000
+    STORE_RESULT
+    LDA #$0A    ; Load A with #02
+    STA $2000  ; Store A on address $2000
+    LDY #$09    ; Load Y with #02
+    CPY $2000  ; Compare with the address $2000
+    STORE_RESULT
 
+check_memory:
+    LDX #$00
+check_memory_loop:
+    LDA $3000,X
+    CMP expected_result,X
+    BNE fail
+    INX
+    CPX #14
+    BNE check_memory_loop
+complete:
+    JSR print_success
+    JMP success
+print_success:
+    LDX #$00 ; Reset X register
+print_msg:
+    LDA success_str,X
+    BEQ print_newline
+    STA $2008
+    INX
+    JMP print_msg
+print_newline:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    RTS
+success_str:
+.db "CMP tests passed!", 0
+print_fail:
+    LDX #$00 ; Reset X register
+print_msg2:
+    LDA fail_str,X
+    BEQ print_newline
+    STA $2008
+    INX
+    JMP print_msg2
+fail_str:
+.db "CMP tests failed!", 0
+fail:
+    JSR print_fail
+    LDA #1
+    STA $200F
+success:
+    LDA #0
+    STA $200F
 
-exit:
-LDA #0
-STA $200F ; Write 0 as exit code
+expected_result:
+.db $37, $35, $B4, $37, $35, $B4, $37, $35
+.db $B4, $37, $35, $B4, $37, $35, $B4, $37
+.db $35, $B4, $37, $35, $B4, $37, $35, $B4
+.db $37, $35, $B4, $37, $35, $B4, $37, $35
+.db $B4, $37, $35, $B4
+
+result_idx:
+.db 0
+tmp:
+.db 0
 
 .org $FFFC
 .dw main ; Reset vector
