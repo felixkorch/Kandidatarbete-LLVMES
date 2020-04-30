@@ -105,13 +105,10 @@ void Compiler::CodeGen(Instruction& instr)
             break;
         }
         case 0xFE: {  // INC AbsoluteX
-            llvm::Constant* addr = GetConstant16(i->arg);
-            llvm::Value* load_x = c->builder.CreateLoad(c->reg_x);
-            llvm::Value* target_addr_16 = c->builder.CreateZExt(load_x, int16);
-            llvm::Value* addr_x = c->builder.CreateAdd(addr, load_x);
-            llvm::Value* addr_x_value = c->builder.CreateLoad(addr_x);
+            llvm::Value* addr = AddressModeAbsoluteX(i->arg);
+            llvm::Value* addr_x_value = c->builder.CreateCall(c->read_fn, {addr});
             llvm::Value* incax = c->builder.CreateAdd(addr_x_value, GetConstant8(1));
-            c->builder.CreateCall(c->write_fn, {incax, addr_x});
+            c->builder.CreateCall(c->write_fn, {addr, incax});
             DynamicTestZ(incax);
             DynamicTestN(incax);
             break;
