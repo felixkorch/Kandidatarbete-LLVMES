@@ -1,0 +1,95 @@
+#macro STORE_STATUS 0
+    PHP
+    PLA
+    STX tmp
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    LDX tmp
+#endmacro
+
+.org $8000
+; This instructions is used to test if one or more bits are set in a target memory
+; location. The mask pattern in A is ANDed with the value in memory to set or
+; clear the zero flag, but the result is not kept. Bits 7 and 6 of the value
+; from memory are copied into the N and V flags.
+main:
+; Test BIT Absolute
+    LDA #$FA
+    STA $2000
+    BIT $2000                   ; $F4
+    STORE_STATUS
+    LDA #$7A
+    STA $2000
+    LDA #$80
+    BIT $2000                   ; $76
+    STORE_STATUS
+    LDA #$8A
+    STA $2000
+    LDA #$80
+    BIT $2000                   ; $B4
+    STORE_STATUS
+; Test BIT Zeropage
+    LDA #$FA
+    STA $20
+    BIT $20                     ; $F4
+    STORE_STATUS
+    LDA #$7A
+    STA $20
+    LDA #$80
+    BIT $20                     ; $76
+    STORE_STATUS
+    LDA #$8A
+    STA $20
+    LDA #$80
+    BIT $20                     ; $B4
+    STORE_STATUS
+
+check_memory:
+    LDX #$00
+check_memory_loop:
+    LDA $3000,X
+    CMP expected_result,X
+    BNE print_fail
+    INX
+    CPX #6                     ; Length of expected_results
+    BNE check_memory_loop
+    LDX #$00 ; Reset X register
+print_msg:
+    LDA success_str,X
+    BEQ success
+    STA $2008
+    INX
+    JMP print_msg
+success:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    LDA #0
+    STA $200F
+print_fail:
+    LDX #$00 ; Reset X register
+print_msg2:
+    LDA fail_str,X
+    BEQ fail
+    STA $2008
+    INX
+    JMP print_msg2
+fail:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    LDA #1
+    STA $200F
+success_str:
+.db "BIT test passed!", 0
+fail_str:
+.db "BIT test failed!", 0
+expected_result:
+.db $F4, $76, $B4, $F4, $76, $B4
+result_idx:
+.db 0
+tmp:
+.db 0
+
+.org $FFFC
+.dw main ; Reset vector
