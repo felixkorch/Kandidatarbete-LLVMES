@@ -1,0 +1,39 @@
+project(llvmes-gui CXX)
+set (CMAKE_CXX_STANDARD 11)
+cmake_minimum_required (VERSION 3.8)
+
+add_subdirectory(glad)
+add_subdirectory(glfw3)
+add_subdirectory(imgui)
+add_subdirectory(spdlog)
+
+add_library (${PROJECT_NAME}
+    src/llvmes-gui/application.cpp
+    src/llvmes-gui/application.h
+    src/llvmes-gui/event.h
+    src/llvmes-gui/window.cpp
+    src/llvmes-gui/window.h
+    src/llvmes-gui/log.h
+    src/llvmes-gui/log.cpp
+    src/llvmes-gui/imgui/imgui_layer.cpp
+    src/llvmes-gui/imgui/imgui_layer.h
+    src/llvmes-gui/imgui/imgui_renderer.h
+    src/llvmes-gui/imgui/imgui_renderer.cpp
+)
+
+option(GLFW_BUILD_TESTS OFF)
+option(GLFW_BUILD_EXAMPLES OFF)
+option(SPDLOG_BUILD_TESTS OFF)
+option(SPDLOG_BUILD_EXAMPLES OFF)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
+    ${glfw_INCLUDE_DIRS}
+)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    glad
+    glfw
+    imgui
+    spdlog
+)

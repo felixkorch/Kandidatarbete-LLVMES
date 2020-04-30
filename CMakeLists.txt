@@ -11,6 +11,8 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 find_package(LLVM REQUIRED CONFIG)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(LLVMES_BUILD_GUI OFF)
+
 if(VERBOSE)
     message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
     message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
@@ -36,11 +38,15 @@ set(SOURCE
     src/jitter/jitter.cpp
 )
 
+set(LLVMES_BUILD_GUI ON)
+
 add_library (${PROJECT_NAME} ${SOURCE})
+
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${LLVM_INCLUDE_DIRS}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
 )
+
 add_definitions(${LLVM_DEFINITIONS})
 
 if(WIN32)
@@ -63,6 +69,7 @@ endif()
 add_subdirectory ("test")
 add_subdirectory ("playground")
 
-if(LLVMES_BUILD_DEBUGGER)
+if(LLVMES_BUILD_GUI)
+add_subdirectory("llvmes-gui")
 add_subdirectory("debugger")
 endif()
