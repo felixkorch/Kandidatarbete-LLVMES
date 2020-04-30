@@ -1,145 +1,127 @@
-#macro PRINT_A 0
-STA $2009
-#endmacro
-#macro PRINT_MSG 2 ; This macro takes 2 arguments: first=string/message to print. second=value to print after it
-LDX #$00 ; Reset X register
-print_msg:
-LDA %1, X
-BEQ print_data
-STA $2008
-INX
-JMP print_msg
-; Print data associated with message
-print_data:
-LDA %2
-PRINT_A
-LDA #$10 ; Newline
-STA $2008 ; Print new line
-JMP final_test
-#endmacro
-#macro PRINT_Y 0
-STA $200B
-#endmacro
-#macro PRINT_N 0
-STA$200C
-#endmacro
-#macro PRINT_C 0
-STA $200D
-#endmacro
-#macro PRINT_Z 0
-STA $200E
-#endmacro
-#macro PRINT_X 0
-STA $200A
+#macro STORE_RESULT 0
+    STX tmp
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    LDX tmp
 #endmacro
 
 .org $8000
 
-should_str:
-.db "should print: ", 0
-
 ; Flags: N V U B D I Z C
 
-
-main:
 ; Test EOR Immediate
-LDA #$03    ; Load A with #03
-PRINT_A     ; Print A - should print 0x03
-EOR #$0C    ; EOR immediate 0x0C
-PRINT_A     ; should print 0x0F
+main:
+    LDA #$03
+    EOR #$0C                    
+    STORE_RESULT     ; should print 0x0F
 
-
-; Test EOR ZeropageX
-LDA #$03    ; Load A with #03
-PRINT_A     ; Print A - should print 0x03
-STA $0020   ; STA reg_a (=0x03) to 0x0020 in mem
-LDA #$0C    ; Load A with 0C
-PRINT_A     ; should print 0x0C
-EOR $20     ; EOR zeropage
-PRINT_A     ; should print 0x0F
-
+; Test EOR Zeropage
+    LDA #$03
+    STA $20
+    LDA #$0C
+    EOR $20
+    STORE_RESULT     ; should print 0x0F
 
 ; Test EOR ZeropageX
-LDA #$03    ; Load A with #03
-PRINT_A     ; Print A - should print 0x03
-LDX #$02    ; Load X with #02
-PRINT_X     ; should print 2
-STA $0022   ; STA reg_a (=0x03) to 0x0022 in mem
-LDA #$0C    ; Load A with 0C
-PRINT_A     ; should print 0x0C
-EOR $20,X   ; EOR zeropage X
-PRINT_A     ; should print 0x0F
-
+    LDA #$03
+    LDX #$02
+    STA $22
+    LDA #$0C
+    EOR $20,X
+    STORE_RESULT     ; should print 0x0F
 
 ; Test EOR Absolute
-LDA #$03    ; Load A with #03
-PRINT_A     ; Print A - should print 0x03
-STA $2000   ; STA reg_a (=0x03) to 0x2000 in mem
-LDA #$0C    ; Load A with 0C
-PRINT_A     ; should print 0x0C
-EOR $2000   ; EOR absolute 
-PRINT_A     ; should print 0x0F
-
+    LDA #$03
+    STA $2000
+    LDA #$0C
+    EOR $2000
+    STORE_RESULT     ; should print 0x0F
 
 ; Test EOR AbsoluteX
-LDA #$03    ; Load A with #03
-PRINT_A     ; Print A - should print 0x03
-LDX #$02    ; Load X with #02
-PRINT_X     ; should print 2
-STA $2002   ; STA reg_a (=0x03) to 0x2002 in mem
-LDA #$0C    ; Load A with 0C
-PRINT_A     ; should print 0x0C
-EOR $2000,X ; EOR absolute X
-PRINT_A     ; should print 0x0F
-
+    LDA #$03
+    STA $2002
+    LDA #$0C
+    LDX #$02
+    EOR $2000,X
+    STORE_RESULT     ; should print 0x0F
 
 ; Test EOR AbsoluteY
-LDA #$03    ; Load A with #03
-PRINT_A     ; Print A - should print 0x03
-LDY #$02    ; Load Y with #02
-PRINT_Y     ; should print 2
-STA $2002   ; STA reg_a (=0x03) to 0x2002 in mem
-LDA #$0C    ; Load A with 0C
-PRINT_A     ; should print 0x0C
-EOR $2000,Y ; EOR absolute Y 
-PRINT_A     ; should print 0x0F
-
+    LDA #$03
+    STA $2002
+    LDA #$0C
+    LDY #$02
+    EOR $2000,Y
+    STORE_RESULT     ; should print 0x0F
 
 ; Test EOR IndirectX
-LDA #$0A    ; Load A with #0A
-PRINT_A     ; Print A - should print 0x0A
-STA $0022   ; STA reg_a (=0x20) to 0x0022 in mem
-LDA #$00    ; LDA; # 0x00
-PRINT_A     ; Print Y - should print 0x02
-LDA #$03    ; LDA # 0x03
-PRINT_A     ; should print 0x03
-STA $000A   ; store in address 0x000A
-LDX #$02    ; LDX; # 0x02
-PRINT_X     ; should print 0x02
-LDA #$0C    ; load a with 0x0C
-PRINT_A     ; should print 0x0C
-EOR ($20, X) ; EOR indirectX
-PRINT_A     ; should print 0x0F
-
+    LDA #$03
+    STA $30
+    LDA #$30
+    STA $23
+    LDA #$00
+    STA $24
+    LDX #$03
+    LDA #$0C
+    EOR ($20),X
+    STORE_RESULT     ; should print 0x0F
 
 ; Test EOR IndirectY
-LDA #$20    ; Load A with #20
-PRINT_A     ; Print A - should print 0x20
-STA $0002   ; STA reg_a (=0x20) to 0x0002 in mem
-LDY #$02    ; LDY; # 0x02
-PRINT_Y     ; Print Y - should print 0x02
-LDA #$03    ; LDA # 0x03
-PRINT_A     ; should print 0x03
-STA $0022   ; store in address 0x0022
-LDA #$0C    ; load a with 0x0C
-EOR ($02),Y ; EOR indirectY
-PRINT_A     ; should print 0x0F
-JMP exit ; Done, exit gracefully
-
-
-exit:
-LDA #0
-STA $200F ; Write 0 as exit code
+    LDA #$20
+    STA $02
+    LDA #$00
+    STA $03
+    LDA #$03
+    STA $22
+    LDA #$0C
+    LDY #$02
+    EOR ($02),Y
+    STORE_RESULT     ; should print 0x0F
+check_memory:
+    LDX #$00
+check_memory_loop:
+    LDA $3000,X
+    CMP expected_result,X
+    BNE print_fail
+    INX
+    CPX #8                     ; Length of expected_results
+    BNE check_memory_loop
+    LDX #$00 ; Reset X register
+print_msg:
+    LDA success_str,X
+    BEQ success
+    STA $2008
+    INX
+    JMP print_msg
+success:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    LDA #0
+    STA $200F
+print_fail:
+    LDX #$00 ; Reset X register
+print_msg2:
+    LDA fail_str,X
+    BEQ fail
+    STA $2008
+    INX
+    JMP print_msg2
+fail:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    LDA #1
+    STA $200F
+success_str:
+.db "CMP tests passed!", 0
+fail_str:
+.db "CMP tests failed!", 0
+expected_result:
+.db $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F
+result_idx:
+.db 0
+tmp:
+.db 0
 
 .org $FFFC
 .dw main ; Reset vector
