@@ -1,0 +1,66 @@
+#macro PRINT_A 0
+STA $2009
+#endmacro
+#macro PRINT_MSG 2 ; This macro takes 2 arguments: first=string/message to print. second=value to print after it
+LDX #$00 ; Reset X register
+print_msg:
+LDA %1, X
+BEQ print_data
+STA $2008
+INX
+JMP print_msg
+; Print data associated with message
+print_data:
+LDA %2
+PRINT_A
+LDA #$10 ; Newline
+STA $2008 ; Print new line
+JMP final_test
+#endmacro
+#macro PRINT_Y 0
+STA $200B
+#endmacro
+#macro PRINT_N 0
+STA$200C
+#endmacro
+#macro PRINT_C 0
+STA $200D
+#endmacro
+#macro PRINT_Z 0
+STA $200E
+#endmacro
+#macro PRINT_X 0
+STA $200A
+#endmacro
+
+.org $8000
+
+should_str:
+.db "should print: ", 0
+
+; Flags: N V U B D I Z C
+
+main:
+; Test ORA Immediate
+LDA #$0A    ; Load A with #0A
+PRINT_A     ; Print A - should print 0x0A
+ORA #$A0    ; ORA immediate 0xA0
+PRINT_A     ; should print 0xAA
+
+
+; Test ORA Absolute
+LDA #$0A    ; Load A with #0A
+PRINT_A     ; Print A - should print 0x03
+LDX #$A0    ; load x with #A0
+STX $1234
+ORA $1234   ; ORA with 0xA0
+PRINT_A     ; should print 0xAA
+JMP exit ; Done, exit gracefully
+
+
+exit:
+LDA #0
+STA $200F ; Write 0 as exit code
+
+.org $FFFC
+.dw main ; Reset vector
