@@ -261,7 +261,7 @@ void Compiler::CodeGen(Instruction& instr)
         }
         case 0x45: {  // EOR Zeropage
             llvm::Value* addr = AddressModeZeropage(i->arg);
-            llvm::Value* operand = c->builder.CreateCall(c->read_fn, addr);
+            llvm::Value* operand = c->builder.CreateLoad(addr);
             OP_EOR(operand);
             break;
         }
