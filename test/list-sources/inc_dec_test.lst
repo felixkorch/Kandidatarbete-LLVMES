@@ -1,0 +1,143 @@
+#macro STORE_RESULT_A 0
+    STX tmp
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    LDX tmp
+#endmacro
+#macro STORE_RESULT_X 0
+    TXA
+    STX tmp
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    LDX tmp
+#endmacro
+#macro STORE_RESULT_Y 0
+    TYA
+    STX tmp
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    LDX tmp
+#endmacro
+
+.org $8000
+
+main:
+; Test INX at overflow
+    LDX #$FE
+    INX
+    INX
+    INX
+    STORE_RESULT_X              ; $01
+; Test DEX at overflow
+    DEX
+    DEX
+    DEX
+    STORE_RESULT_X              ; $FE
+; Test INX at overflow
+    LDY #$FE
+    INY
+    INY
+    INY
+    STORE_RESULT_Y              ; $01
+; Test DEX at overflow
+    DEY
+    DEY
+    DEY
+    STORE_RESULT_Y              ; $FE
+; Test INC at overflow
+    LDA #$FE
+    STA $00
+    STA $02
+    STA $2000
+    STA $2002
+    LDX #$02
+    INC $00
+    INC $00
+    INC $00
+    LDA $00
+    STORE_RESULT_A
+    INC $00,X
+    INC $00,X
+    INC $00,X
+    STORE_RESULT_A
+    INC $2000
+    INC $2000
+    INC $2000
+    STORE_RESULT_A
+    INC $2000,X
+    INC $2000,X
+    INC $2000,X
+    STORE_RESULT_A
+; Test DEC at overflow
+    DEC $00
+    DEC $00
+    DEC $00
+    LDA $00
+    STORE_RESULT_A
+    DEC $00,X
+    DEC $00,X
+    DEC $00,X
+    STORE_RESULT_A
+    DEC $2000
+    DEC $2000
+    DEC $2000
+    STORE_RESULT_A
+    DEC $2000,X
+    DEC $2000,X
+    DEC $2000,X
+    STORE_RESULT_A
+
+check_memory:
+    LDX #$00
+check_memory_loop:
+    LDA $3000,X
+    CMP expected_result,X
+    BNE print_fail
+    INX
+    CPX #12                     ; Length of expected_results
+    BNE check_memory_loop
+    LDX #$00 ; Reset X register
+print_msg:
+    LDA success_str,X
+    BEQ success
+    STA $2008
+    INX
+    JMP print_msg
+success:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    LDA #0
+    STA $200F
+print_fail:
+    LDX #$00 ; Reset X register
+print_msg2:
+    LDA fail_str,X
+    BEQ fail
+    STA $2008
+    INX
+    JMP print_msg2
+fail:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    LDA #1
+    STA $200F
+success_str:
+.db "Inc/dec tests passed!", 0
+fail_str:
+.db "Inc/dec tests failed!", 0
+expected_result:
+.db $01, $FE, $01, $FE, $01, $01, $01, $01
+.db $FE, $FE, $FE, $FE
+result_idx:
+.db 0
+tmp:
+.db 0
+
+.org $FFFC
+.dw main ; Reset vector
