@@ -113,9 +113,9 @@ fail:
     LDA #1
     STA $200F
 success_str:
-.db "CMP tests passed!", 0
+.db "EOR tests passed!", 0
 fail_str:
-.db "CMP tests failed!", 0
+.db "EOR tests failed!", 0
 expected_result:
 .db $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F
 result_idx:
