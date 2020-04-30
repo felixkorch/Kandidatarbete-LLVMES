@@ -1,0 +1,121 @@
+#macro STORE_RESULT 0
+STA $3000,X
+#endmacro
+#macro PRINT_A 0
+STA $2009
+#endmacro
+
+.org $8000
+
+start:
+    LDX #$FF
+    LDY #2
+testbne:
+    INX
+    DEY
+    STY $00
+    LDA $00
+    STORE_RESULT                     ; 01, 00
+    BNE testbne
+    LDY #1
+testbeq:
+    INX
+    DEY
+    STY $00
+    LDA $00
+    STORE_RESULT                     ; 00, FF
+    BEQ testbeq
+    LDY #$81
+testbmi:
+    INX
+    DEY
+    STY $00
+    LDA $00
+    STORE_RESULT                     ; 80, 7F
+    BMI testbmi
+    LDY #1
+testbpl:
+    INX
+    DEY
+    STY $00
+    LDA $00
+    STORE_RESULT                     ; 00, FF
+    BPL testbpl
+    LDA #$FF
+    CLC
+testbcs:
+    INX
+    ADC #$20
+    STORE_RESULT                     ; 1F
+    BCS testbcs
+    LDA #$FF
+    SEC
+testbcc:
+    INX
+    ADC #$20
+    STORE_RESULT                     ; 40, 20
+    BCC testbcc
+    CLV
+    CLC
+    LDA #$70
+testbvc:
+    INX
+    ADC #$0A
+    STORE_RESULT                     ; 7A, 84
+    BVC testbvc
+    LDA #$F0
+    CLC
+testbvs:
+    INX
+    ADC #$0A
+    STORE_RESULT                     ; FA
+    BVS testbvs
+check_memory:
+    LDX #$00
+check_memory_loop:
+    LDA $3000,X
+    CMP expected_result,X
+    BNE fail
+    INX
+    CPX #14
+    BNE check_memory_loop
+complete:
+    JSR print_success
+    JMP success
+print_success:
+    LDX #$00 ; Reset X register
+print_msg:
+    LDA success_str,X
+    BEQ print_newline
+    STA $2008
+    INX
+    JMP print_msg
+print_newline:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    RTS
+success_str:
+.db "Branch tests passed!", 0
+print_fail:
+    LDX #$00 ; Reset X register
+print_msg2:
+    LDA fail_str,X
+    BEQ print_newline
+    STA $2008
+    INX
+    JMP print_msg2
+fail_str:
+.db "Branch tests failed!", 0
+fail:
+    JSR print_fail
+    LDA #1
+    STA $200F
+success:
+    LDA #0
+    STA $200F
+
+expected_result:
+.db $01, $00, $00, $FF, $80, $7F, $00, $FF, $1F, $40, $20, $7A, $84, $FA
+
+.org $FFFC
+.dw start
