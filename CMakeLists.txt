@@ -38,8 +38,6 @@ set(SOURCE
     src/jitter/jitter.cpp
 )
 
-set(LLVMES_BUILD_GUI ON)
-
 add_library (${PROJECT_NAME} ${SOURCE})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
