@@ -1,0 +1,83 @@
+#macro STORE_RESULT 0
+    PHP
+    PLA
+    STX tmp
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    LDX tmp
+#endmacro
+
+.org $8000
+
+main:
+; Test Carry Flag
+    SEC
+    STORE_RESULT
+    CLC
+    STORE_RESULT
+; Test Decimal Flag
+    SED
+    STORE_RESULT
+    CLD
+    STORE_RESULT
+; Test Interrupt Flag
+    CLI
+    STORE_RESULT
+    SEI
+    STORE_RESULT
+; Test Overflow Flag
+    CLC
+    LDA #$7F ;   +127
+    ADC #$01 ; +   +1
+    STORE_RESULT
+    CLV
+    STORE_RESULT
+check_memory:
+    LDX #$00
+check_memory_loop:
+    LDA $3000,X
+    CMP expected_result,X
+    BNE print_fail
+    INX
+    CPX #8                     ; Length of expected_results
+    BNE check_memory_loop
+    LDX #$00 ; Reset X register
+print_msg:
+    LDA success_str,X
+    BEQ success
+    STA $2008
+    INX
+    JMP print_msg
+success:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    LDA #0
+    STA $200F
+print_fail:
+    LDX #$00 ; Reset X register
+print_msg2:
+    LDA fail_str,X
+    BEQ fail
+    STA $2008
+    INX
+    JMP print_msg2
+fail:
+    LDA #10 ; Newline
+    STA $2008 ; Print new line
+    LDA #1
+    STA $200F
+success_str:
+.db "Flag set/clear tests passed!", 0
+fail_str:
+.db "Flag set/clear tests failed!", 0
+expected_result:
+.db $35, $36, $3E, $36, $32, $36, $F4, $36
+result_idx:
+.db 0
+tmp:
+.db 0
+
+.org $FFFC
+.dw main ; Reset vector
