@@ -4,6 +4,13 @@
         #disassemble_test
         #compile_test
 )
+
+if(LLVMES_BUILD_GUI)
+set(PLAYGROUND_FILES ${PLAYGROUND_FILES}
+    gui_test
+)
+endif()
+
 set(LLVM_PLAYGROUND_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/playground)
 
 foreach (file ${PLAYGROUND_FILES})
@@ -12,6 +19,11 @@ foreach (file ${PLAYGROUND_FILES})
     target_link_libraries(${file} PUBLIC
         llvmes
     )
+    if(LLVMES_BUILD_GUI)
+    target_link_libraries(${file} PUBLIC
+        llvmes-gui
+    )
+    endif()
 
     set_target_properties(${file} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${LLVM_PLAYGROUND_OUTPUT_DIR}/${file}
