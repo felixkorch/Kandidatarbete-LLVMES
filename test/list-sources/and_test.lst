@@ -1,10 +1,24 @@
 #macro STORE_RESULT_A 0
     STX tmp
+    PHA
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    PLA
+    LDX tmp
+#endmacro
+#macro STORE_STATUS 0
+    PHA
+    PHP
+    PLA
+    STX tmp
     LDX result_idx
     STA $3000,X
     INX
     STX result_idx
     LDX tmp
+    PLA
 #endmacro
 
 .org $8000
@@ -13,11 +27,18 @@ main:
 ; Test AND Immediate
     LDA #$AA
     AND #$A0
+    STORE_STATUS
     STORE_RESULT_A ; $A0
 ; Test AND Immediate
     LDA #$FF
     AND #$01
+    STORE_STATUS
     STORE_RESULT_A ; $01
+; Test AND Immediate
+    LDA #$00
+    AND #$55
+    STORE_STATUS
+    STORE_RESULT_A ; $00
 ; Test AND Absolute
     LDA #$55
     STA $2000
@@ -83,7 +104,7 @@ check_memory_loop:
     CMP expected_result,X
     BNE print_fail
     INX
-    CPX #10                     ; Length of expected_results
+    CPX #14                     ; Length of expected_results
     BNE check_memory_loop
     LDX #$00 ; Reset X register
 print_msg:
@@ -115,8 +136,8 @@ success_str:
 fail_str:
 .db "AND test failed!", 0
 expected_result:
-.db $A0, $01, $00, $55, $55, $55, $55, $55
-.db $55, $55
+.db $B4, $A0, $34, $01, $36, $00, $00, $55
+.db $55, $55, $55, $55, $55, $55
 result_idx:
 .db 0
 tmp:
