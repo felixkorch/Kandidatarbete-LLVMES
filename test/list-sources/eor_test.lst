@@ -1,10 +1,24 @@
 #macro STORE_RESULT 0
     STX tmp
+    PHA
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    PLA
+    LDX tmp
+#endmacro
+#macro STORE_STATUS 0
+    PHA
+    PHP
+    PLA
+    STX tmp
     LDX result_idx
     STA $3000,X
     INX
     STX result_idx
     LDX tmp
+    PLA
 #endmacro
 
 .org $8000
@@ -13,50 +27,56 @@
 
 ; Test EOR Immediate
 main:
-    LDA #$03
-    EOR #$0C                    
-    STORE_RESULT     ; should print 0x0F
+    LDA #$00
+    EOR #$00
+    STORE_STATUS
+    STORE_RESULT
 
 ; Test EOR Zeropage
-    LDA #$03
+    LDA #$F3
     STA $20
     LDA #$0C
     EOR $20
-    STORE_RESULT     ; should print 0x0F
+    STORE_STATUS
+    STORE_RESULT
 
 ; Test EOR ZeropageX
-    LDA #$03
+    LDA #$00
     LDX #$02
     STA $22
-    LDA #$0C
+    LDA #$00
     EOR $20,X
-    STORE_RESULT     ; should print 0x0F
+    STORE_STATUS
+    STORE_RESULT
 
 ; Test EOR Absolute
-    LDA #$03
+    LDA #$F3
     STA $2000
-    LDA #$0C
+    LDA #$7C
     EOR $2000
-    STORE_RESULT     ; should print 0x0F
+    STORE_STATUS
+    STORE_RESULT
 
 ; Test EOR AbsoluteX
-    LDA #$03
+    LDA #$00
     STA $2002
-    LDA #$0C
+    LDA #$00
     LDX #$02
     EOR $2000,X
-    STORE_RESULT     ; should print 0x0F
+    STORE_STATUS
+    STORE_RESULT
 
 ; Test EOR AbsoluteY
-    LDA #$03
+    LDA #$83
     STA $2002
-    LDA #$0C
+    LDA #$7C
     LDY #$02
     EOR $2000,Y
-    STORE_RESULT     ; should print 0x0F
+    STORE_STATUS
+    STORE_RESULT
 
 ; Test EOR IndirectX
-    LDA #$03
+    LDA #$00
     STA $30
     LDA #$30
     STA $23
@@ -65,7 +85,8 @@ main:
     LDX #$03
     LDA #$0C
     EOR ($20),X
-    STORE_RESULT     ; should print 0x0F
+    STORE_STATUS
+    STORE_RESULT
 
 ; Test EOR IndirectY
     LDA #$20
@@ -77,7 +98,8 @@ main:
     LDA #$0C
     LDY #$02
     EOR ($02),Y
-    STORE_RESULT     ; should print 0x0F
+    STORE_STATUS
+    STORE_RESULT
 check_memory:
     LDX #$00
 check_memory_loop:
@@ -85,7 +107,7 @@ check_memory_loop:
     CMP expected_result,X
     BNE print_fail
     INX
-    CPX #8                     ; Length of expected_results
+    CPX #16                     ; Length of expected_results
     BNE check_memory_loop
     LDX #$00 ; Reset X register
 print_msg:
@@ -117,7 +139,8 @@ success_str:
 fail_str:
 .db "EOR tests failed!", 0
 expected_result:
-.db $0F, $0F, $0F, $0F, $0F, $0F, $0F, $0F
+.db $36, $00, $B4, $FF, $36, $00, $B4, $8F
+.db $36, $00, $B4, $FF, $34, $0C, $34, $0F
 result_idx:
 .db 0
 tmp:
