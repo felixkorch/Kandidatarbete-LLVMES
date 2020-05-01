@@ -16,6 +16,8 @@ add_library (${PROJECT_NAME}
     src/llvmes-gui/window.h
     src/llvmes-gui/log.h
     src/llvmes-gui/log.cpp
+    src/llvmes-gui/buffers.cpp
+    src/llvmes-gui/buffers.h
     src/llvmes-gui/shader.cpp
     src/llvmes-gui/shader.h
     src/llvmes-gui/imgui/imgui_layer.cpp
