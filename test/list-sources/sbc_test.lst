@@ -3,6 +3,28 @@ LDA %1
 SBC %2
 CMP %3
 #endmacro
+#macro STORE_RESULT_A 0
+    STX tmp
+    PHA
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    PLA
+    LDX tmp
+#endmacro
+#macro STORE_STATUS 0
+    PHA
+    PHP
+    PLA
+    STX tmp
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    LDX tmp
+    PLA
+#endmacro
 
 .org $8000
 
