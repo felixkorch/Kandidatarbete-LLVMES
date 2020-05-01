@@ -5,7 +5,7 @@
 
 #include "cxxopts.hpp"
 #include "llvmes/interpreter/cpu.h"
-#include "time.h"
+#include "llvmes/time.h"
 
 using namespace llvmes;
 using namespace std::chrono;

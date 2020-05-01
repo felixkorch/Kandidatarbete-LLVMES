@@ -4,7 +4,7 @@
 #include "cxxopts.hpp"
 #include "llvmes/dynarec/compiler.h"
 #include "llvmes/dynarec/parser.h"
-#include "time.h"
+#include "llvmes/time.h"
 
 using namespace llvmes;
 using namespace std::chrono;
