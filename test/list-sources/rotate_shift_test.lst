@@ -1,12 +1,15 @@
 #macro STORE_RESULT_A 0
     STX tmp
+    PHA
     LDX result_idx
     STA $3000,X
     INX
     STX result_idx
+    PLA
     LDX tmp
 #endmacro
 #macro STORE_STATUS 0
+    PHA
     PHP
     PLA
     STX tmp
@@ -15,141 +18,148 @@
     INX
     STX result_idx
     LDX tmp
+    PLA
 #endmacro
+
 .org $8000
+
+; Flags: N V U B D I Z C
 
 main:
     ;; TEST ROR ;;
 ; Test ROR Accumulator
-    LDA #$AA
+    LDA #$00
     ROR
-    STORE_RESULT_A   ; $55
     STORE_STATUS
+    STORE_RESULT_A   ; $55
 ; Test ROR Zeropage
-    LDA #$AA
+    LDA #$8F
     STA $00
     ROR $00
+    STORE_STATUS
     LDA $00
     STORE_RESULT_A   ; $55
-    STORE_STATUS
 ; Test ROR Zeropage,X
-    LDA #$AA
+    LDA #$7A
     STA $01
     LDX #1
+    SEC
     ROR $00,X
+    STORE_STATUS
     LDA $01
     STORE_RESULT_A   ; $55
-    STORE_STATUS
 ; Test ROR Absolute
     LDA #$AA
     STA $2000
     ROR $2000
+    STORE_STATUS
     LDA $2000
     STORE_RESULT_A   ; $55
-    STORE_STATUS
 ; Test ROR Absolute,X
     LDA #$AA
     STA $2001
     LDX #1
     ROR $2000,X
+    STORE_STATUS
     LDA $2001
     STORE_RESULT_A   ; $55
-    STORE_STATUS
 
     ;; TEST ROL ;;
 ; Test ROL Accumulator
-    LDA #$55
+    LDA #$00
     ROL
-    STORE_RESULT_A   ; $AA
     STORE_STATUS
+    STORE_RESULT_A   ; $AA
 ; Test ROL Zeropage
+    LDA #$FF
+    STA $00
     ROL $00
+    STORE_STATUS
     LDA $00
     STORE_RESULT_A   ; $AA
-    STORE_STATUS
 ; Test ROL Zeropage,X
     LDX #1
     ROL $00,X
+    STORE_STATUS
     LDA $01
     STORE_RESULT_A   ; $AA
-    STORE_STATUS
 ; Test ROL Absolute
     ROL $2000
+    STORE_STATUS
     LDA $2000
     STORE_RESULT_A   ; $AA
-    STORE_STATUS
 ; Test ROL Absolute,X
     LDX #1
     ROL $2000,X
+    STORE_STATUS
     LDA $2001
     STORE_RESULT_A   ; $AA
-    STORE_STATUS
 
     ;; TEST LSR ;;
 ; Test LSR Accumulator
-    LDA #$AA
+    LDA #$00
     LSR
-    STORE_RESULT_A   ; $55
     STORE_STATUS
+    STORE_RESULT_A   ; $55
 ; Test LSR Zeropage
-    LDA #$AA
+    LDA #$8F
     STA $00
     LSR $00
+    STORE_STATUS
     LDA $00
     STORE_RESULT_A   ; $55
-    STORE_STATUS
 ; Test LSR Zeropage,X
-    LDA #$AA
+    LDA #$7A
     STA $01
     LDX #1
     LSR $00,X
+    STORE_STATUS
     LDA $01
     STORE_RESULT_A   ; $55
-    STORE_STATUS
 ; Test LSR Absolute
     LDA #$AA
     STA $2000
     LSR $2000
+    STORE_STATUS
     LDA $2000
     STORE_RESULT_A   ; $55
-    STORE_STATUS
 ; Test LSR Absolute,X
     LDA #$AA
     STA $2001
     LDX #1
     LSR $2000,X
+    STORE_STATUS
     LDA $2001
     STORE_RESULT_A   ; $55
-    STORE_STATUS
 
     ;; TEST ASL ;;
 ; Test ASL Accumulator
     LDA #$55
     ASL
-    STORE_RESULT_A   ; $AA
     STORE_STATUS
+    STORE_RESULT_A   ; $AA
 ; Test ASL Zeropage
     ASL $00
+    STORE_STATUS
     LDA $00
     STORE_RESULT_A   ; $AA
-    STORE_STATUS
 ; Test ASL Zeropage,X
     LDX #1
     ASL $00,X
+    STORE_STATUS
     LDA $01
     STORE_RESULT_A   ; $AA
-    STORE_STATUS
 ; Test ASL Absolute
     ASL $2000
+    STORE_STATUS
     LDA $2000
     STORE_RESULT_A   ; $AA
-    STORE_STATUS
 ; Test ASL Absolute,X
     LDX #1
     ASL $2000,X
+    STORE_STATUS
     LDA $2001
     STORE_RESULT_A   ; $AA
-    STORE_STATUS
 
 check_memory:
     LDX #$00
@@ -190,11 +200,11 @@ success_str:
 fail_str:
 .db "Rotate/Shift test failed!", 0
 expected_result:
-.db $55, $36, $55, $36, $55, $34, $55, $34
-.db $55, $34, $AA, $34, $AA, $34, $AA, $34
-.db $AA, $34, $AA, $34, $55, $34, $55, $34
-.db $55, $34, $55, $34, $55, $34, $AA, $34
-.db $AA, $34, $AA, $34, $AA, $34, $AA, $34
+.db $36, $00, $35, $47, $B4, $BD, $34, $55
+.db $34, $55, $36, $00, $B5, $FE, $35, $7B
+.db $B4, $AB, $B4, $AA, $36, $00, $35, $47
+.db $34, $3D, $34, $55, $34, $55, $B4, $AA
+.db $B4, $8E, $34, $7A, $B4, $AA, $B4, $AA
 result_idx:
 .db 0
 tmp:
