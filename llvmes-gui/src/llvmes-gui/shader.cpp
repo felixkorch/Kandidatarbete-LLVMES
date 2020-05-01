@@ -52,7 +52,7 @@ ShaderProgramSource ParseShader(const char* program)
         }
         else {
             if (type == ShaderType::NONE) {
-                LLVMES_ERROR(
+                throw std::runtime_error(
                     "Invalid shader format. Needs to contain vertex / fragments "
                     "directives.");
                 return {};
@@ -67,12 +67,12 @@ ShaderProgramSource ParseShader(const char* program)
 Shader::Shader(const char* program)
 {
     if (program == nullptr)
-        LLVMES_ERROR("Shader program empty or NULL");
+        throw std::runtime_error("Shader program empty or NULL");
 
     unsigned int id = glCreateProgram();
 
     if (id == 0)
-        LLVMES_ERROR("OpenGL - Failed to create shader program");
+        throw std::runtime_error("OpenGL - Failed to create shader program");
 
     ShaderProgramSource source = ParseShader(program);
     const char* src_vertex = source.VertexSource.c_str();
@@ -109,12 +109,12 @@ Shader::~Shader()
         glDeleteProgram(unique_id);
 }
 
-void Shader::bind()
+void Shader::Bind()
 {
     glUseProgram(unique_id);
 }
 
-void Shader::unbind()
+void Shader::Unbind()
 {
     glUseProgram(0);
 }

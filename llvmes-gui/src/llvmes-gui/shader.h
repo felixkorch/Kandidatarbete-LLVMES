@@ -16,8 +16,8 @@ class Shader {
     Shader(const char* program);
     ~Shader();
 
-    void bind();
-    void unbind();
+    void Bind();
+    void Unbind();
 
     void SetUniform1i(const std::string& name, int v0);
     void SetUniform1iv(const std::string& name, int count, const int* value);
