@@ -3,9 +3,10 @@ set (CMAKE_CXX_STANDARD 11)
 cmake_minimum_required (VERSION 3.8)
 
 add_subdirectory(glad)
-add_subdirectory(glfw3)
+add_subdirectory(glfw)
 add_subdirectory(imgui)
 add_subdirectory(spdlog)
+add_subdirectory(glm)
 
 add_library (${PROJECT_NAME}
     src/llvmes-gui/application.cpp
@@ -15,6 +16,8 @@ add_library (${PROJECT_NAME}
     src/llvmes-gui/window.h
     src/llvmes-gui/log.h
     src/llvmes-gui/log.cpp
+    src/llvmes-gui/shader.cpp
+    src/llvmes-gui/shader.h
     src/llvmes-gui/imgui/imgui_layer.cpp
     src/llvmes-gui/imgui/imgui_layer.h
     src/llvmes-gui/imgui/imgui_renderer.h
@@ -31,4 +34,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     glfw
     imgui
     spdlog
+    glm
 )
