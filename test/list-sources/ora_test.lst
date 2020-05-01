@@ -1,10 +1,24 @@
 #macro STORE_RESULT_A 0
     STX tmp
+    PHA
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    PLA
+    LDX tmp
+#endmacro
+#macro STORE_STATUS 0
+    PHA
+    PHP
+    PLA
+    STX tmp
     LDX result_idx
     STA $3000,X
     INX
     STX result_idx
     LDX tmp
+    PLA
 #endmacro
 
 .org $8000
@@ -12,13 +26,25 @@
 main:
 ; Test ORA Immediate
     LDA #$0A    ; Load A with #0A
-    ORA #$A0    ; ORA immediate 0xA0
+    ORA #$F0    ; ORA immediate 0xA0
+    STORE_STATUS
+    STORE_RESULT_A   ; $AA
+    LDA #$00    ; Load A with #0A
+    ORA #$00    ; ORA immediate 0xA0
+    STORE_STATUS
     STORE_RESULT_A   ; $AA
 ; Test ORA Absolute
     LDA #$0A    ; Load A with #0A
-    LDX #$A0    ; load x with #A0
+    LDX #$80    ; load x with #A0
     STX $1234
     ORA $1234   ; ORA with 0xA0
+    STORE_STATUS
+    STORE_RESULT_A   ; $AA
+    LDA #$00    ; Load A with #0A
+    LDX #$00    ; load x with #A0
+    STX $1234
+    ORA $1234   ; ORA with 0xA0
+    STORE_STATUS
     STORE_RESULT_A   ; $AA
 
 check_memory:
@@ -60,7 +86,7 @@ success_str:
 fail_str:
 .db "ORA test failed!", 0
 expected_result:
-.db $AA, $AA
+.db $B4, $FA, $36, $00, $B4, $8A, $36, $00
 result_idx:
 .db 0
 tmp:
