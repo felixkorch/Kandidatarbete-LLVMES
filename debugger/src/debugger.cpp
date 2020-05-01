@@ -1,15 +1,15 @@
-#include <imgui.h>
 #include <llvmes-gui/application.h>
 #include <llvmes-gui/log.h>
 #include <llvmes/interpreter/cpu.h>
+#include <llvmes/time.h>
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 
 #include "cache.h"
+#include "basic_log.h"
 #include "imgui-filebrowser/imfilebrowser.h"
-#include "imgui_log.h"
 #include "imgui_memory_editor/imgui_memory_editor.h"
 
 using namespace llvmes;
@@ -17,6 +17,8 @@ using namespace llvmes;
 class Debugger : public gui::Application {
     volatile bool cpu_should_run = false;
     bool open_memory_editor = false;
+    bool open_register_view = true;
+    bool open_log_view = true;
 
     std::uint8_t x = 0, y = 0, a = 0, sp = 0;
     std::uint16_t pc = 0;
@@ -25,25 +27,84 @@ class Debugger : public gui::Application {
     std::vector<char> memory;
 
     BasicLog log;
-    llvmes::DisassemblyMap disassembly;
 
     ImGui::FileBrowser file_dialog;
     std::vector<std::string> cache;
     MemoryEditor mem_edit;
     std::string loaded_file_path;
 
+    ClockType start, stop;
+
    public:
-    Debugger() : gui::Application(1200, 800, "LLVMES - Debugger"), memory(0x10000)
+    Debugger() : gui::Application(1000, 700, "LLVMES - Debugger"), memory(0x10000)
     {
         cpu.Read = [this](std::uint16_t addr) { return memory[addr]; };
         cpu.Write = [this](std::uint16_t addr, std::uint8_t data) {
-            memory[addr] = data;
+            // Write to '0x2008' and 'A' will be written to stdout as char
+            if (addr == 0x2008) {
+                log.AddLog("%c", a);
+            }
+            // Write A to stdout
+            else if (addr == 0x2009) {
+                log.AddLog("%s\n", ToHexString(a).c_str());
+            }
+            // Write X to stdout
+            else if (addr == 0x200A) {
+                log.AddLog("%s\n", ToHexString(x).c_str());
+            }
+            // Write Y to stdout
+            else if (addr == 0x200B) {
+                log.AddLog("%s\n", ToHexString(y).c_str());
+            }
+            // Write status to stdout
+            else if (addr == 0x200C) {
+                log.AddLog("%s\n", ToHexString((uint8_t)cpu.reg_status).c_str());
+            }
+            // Exit program with exit code from reg A
+            else if (addr == 0x200F) {
+                stop = std::chrono::high_resolution_clock::now();
+                cpu_should_run = false;
+                LLVMES_TRACE("Program executed in: {}us", GetDuration(TimeFormat::Micro, start, stop));
+            }
+            else {
+                memory[addr] = data;
+            }
         };
         cpu.Reset();
 
         // Load the recently opened files
         cache = RecentlyOpened::GetCache();
     }
+
+    void OnEvent(gui::Event& e) override
+    {
+        if(e.GetEventType() == gui::EventType::KeyPressEvent) {
+            gui::KeyPressEvent& ke = (gui::KeyPressEvent&)e;
+            switch(ke.GetKeyCode()) {
+            case LLVMES_KEY_M: {
+                open_memory_editor = !open_memory_editor;
+                break;
+            }
+            case LLVMES_KEY_R: {
+                open_register_view = !open_register_view;
+                break;
+            }
+            case LLVMES_KEY_D: {
+                open_log_view = !open_log_view;
+                break;
+            }
+            case LLVMES_KEY_O: {
+                file_dialog.SetTypeFilters({ ".bin" });
+                file_dialog.SetTitle("Open a binary file");
+                file_dialog.Open();
+                break;
+            }
+            default:
+                break;
+            }
+        }
+    }
+
 
     void Stop() { cpu_should_run = false; }
 
@@ -64,11 +125,6 @@ class Debugger : public gui::Application {
         a = cpu.reg_a;
         sp = cpu.reg_sp;
         pc = cpu.reg_pc;
-
-        auto entry = disassembly.find(pc);
-        std::string str = (entry != disassembly.end()) ? entry->second : "Illegal OP";
-
-        log.AddLog("[%s]\t %s\n", ToHexString(pc).c_str(), str.c_str());
     }
 
     void Reset()
@@ -89,27 +145,8 @@ class Debugger : public gui::Application {
 
         cpu_should_run = true;
         std::thread worker([this]() {
+            start = std::chrono::high_resolution_clock::now();
             while (cpu_should_run) {
-                switch (cpu.reg_pc) {
-                    case 0x336D:
-                        LLVMES_TRACE("Skip decimal add/subtract test.");
-                        cpu.reg_pc = 0x3405;
-                        break;
-                    case 0x3411:
-                        LLVMES_TRACE("Skip decimal/binary switch test.");
-                        cpu.reg_pc = 0x345D;
-                        break;
-                    case 0x346F:
-                        LLVMES_TRACE("Skip decimal/binary switch test 2.");
-                        cpu.reg_pc = 0x35A1;
-                        break;
-                    case 0x3469:
-                        LLVMES_INFO("Test succeeded");
-                        return;
-                    default:
-                        break;
-                }
-
                 cpu.Step();
                 x = cpu.reg_x;
                 y = cpu.reg_y;
@@ -117,7 +154,6 @@ class Debugger : public gui::Application {
                 sp = cpu.reg_sp;
                 pc = cpu.reg_pc;
             }
-            LLVMES_TRACE("Worker thread done");
         });
         worker.detach();
     }
@@ -130,9 +166,8 @@ class Debugger : public gui::Application {
             throw std::runtime_error("Something went wrong with opening the file!");
 
         std::copy(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>(),
-                  memory.begin());
+                  memory.begin() + 0x8000);
 
-        disassembly = cpu.Disassemble(0x0000, 0xFFFF);
         RecentlyOpened::Write(path);
         loaded_file_path = path;
         LLVMES_INFO("Successfully loaded file");
@@ -158,8 +193,8 @@ class Debugger : public gui::Application {
     {
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem("Open", "Ctrl+O")) {
-                    file_dialog.SetTypeFilters({".bin", ".asm"});
+                if (ImGui::MenuItem("Open", "O")) {
+                    file_dialog.SetTypeFilters({".bin"});
                     file_dialog.SetTitle("Open a binary file");
                     file_dialog.Open();
                 }
@@ -184,17 +219,17 @@ class Debugger : public gui::Application {
                         ImGui::EndMenu();
                     }
                 }
-                if (ImGui::MenuItem("Save", "Ctrl-S")) {
+                if (ImGui::MenuItem("Save")) {
                     SaveBinary();
                 }
-                if (ImGui::MenuItem("Quit", "Alt+F4")) {
+                if (ImGui::MenuItem("Quit")) {
                     Terminate();
                 }
 
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("View")) {
-                if (ImGui::MenuItem("Memory Editor", "Ctrl+M")) {
+                if (ImGui::MenuItem("Memory Editor", "M")) {
                     open_memory_editor = !open_memory_editor;
                 }
                 ImGui::EndMenu();
@@ -205,14 +240,12 @@ class Debugger : public gui::Application {
 
     void ShowRegisterView()
     {
-        ImGui::SetNextWindowPos(ImVec2(50, 80));
-        ImGui::SetNextWindowSize(ImVec2(400, 350));
-        ImGui::Begin("Register View", nullptr,
-                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+        ImGui::SetNextWindowPos(ImVec2(50, 80), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Register View", nullptr, ImGuiWindowFlags_NoTitleBar);
         ImGui::Text("Register View");
 
         ImGui::Columns(2, "outer", false);
-        ImGui::Separator();
         ImGui::Dummy(ImVec2(0.0f, 20.0f));
         ImGui::Text("Reg A: %s", ToHexString(a).c_str());
         ImGui::Dummy(ImVec2(0.0f, 10.0f));
@@ -226,15 +259,15 @@ class Debugger : public gui::Application {
 
         ImGui::NextColumn();
 
-        ImGui::Dummy(ImVec2(0.0f, 20.0f));
-        if (ImGui::Button("Step", ImVec2(120, 50)))
+        ImGui::Dummy(ImVec2(0.0f, 30.0f));
+        if (ImGui::Button("Step", ImVec2(120, 0)))
             Step();
-        ImGui::Dummy(ImVec2(0.0f, 10.0f));
-        if (ImGui::Button(cpu_should_run ? "Stop" : "Run", ImVec2(120, 50))) {
+        ImGui::Dummy(ImVec2(0.0f, 20.0f));
+        if (ImGui::Button(cpu_should_run ? "Stop" : "Run", ImVec2(120, 0))) {
             cpu_should_run ? Stop() : RunCPU();
         }
-        ImGui::Dummy(ImVec2(0.0f, 10.0f));
-        if (ImGui::Button("Reset", ImVec2(120, 50)))
+        ImGui::Dummy(ImVec2(0.0f, 20.0f));
+        if (ImGui::Button("Reset", ImVec2(120, 0)))
             Reset();
 
         ImGui::End();
@@ -244,8 +277,11 @@ class Debugger : public gui::Application {
     {
         ShowFileDialog();
         ShowMenuBar();
-        ShowRegisterView();
-        log.Draw("Disassembly History");
+        if(open_register_view)
+            ShowRegisterView();
+
+        if(open_log_view)
+            log.Draw("Log");
 
         if (open_memory_editor)
             mem_edit.DrawWindow("Memory Editor", memory.data(), memory.size());

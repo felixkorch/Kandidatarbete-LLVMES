@@ -1,5 +1,7 @@
 #pragma once
 
+#include <imgui.h>
+
 struct BasicLog {
     ImGuiTextBuffer Buf;
     ImGuiTextFilter Filter;
@@ -35,17 +37,17 @@ struct BasicLog {
 
     void Draw(const char* title, bool* p_open = NULL)
     {
-        ImGui::SetNextWindowPos(ImVec2(500, 80));
-        ImGui::SetNextWindowSize(ImVec2(500, 600));
+        ImGui::SetNextWindowPos(ImVec2(400, 80), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(500, 600), ImGuiCond_FirstUseEver);
         if (!ImGui::Begin(
             title, p_open,
-            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+            ImGuiWindowFlags_NoTitleBar)) {
             ImGui::End();
             return;
         }
 
-        ImGui::Text("Dissasembly View");
-        ImGui::Separator();
+        ImGui::Text("Log");
+        ImGui::Spacing();
 
         // Options menu
         if (ImGui::BeginPopup("Options")) {
@@ -61,8 +63,9 @@ struct BasicLog {
         ImGui::SameLine();
         bool copy = ImGui::Button("Copy");
         ImGui::SameLine();
-        Filter.Draw("Filter", -100.0f);
+        Filter.Draw("");
 
+        ImGui::Spacing();
         ImGui::Separator();
         ImGui::BeginChild("scrolling", ImVec2(0, 0), false,
                           ImGuiWindowFlags_HorizontalScrollbar);

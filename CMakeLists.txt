@@ -31,6 +31,7 @@ set(SOURCE
     src/llvmes/dynarec/parser.cpp
     src/llvmes/dynarec/6502_opcode.h
     src/llvmes/common.h
+    src/llvmes/time.h
     src/llvmes/dynarec/compiler.h
     src/llvmes/dynarec/codegen.cpp
     src/llvmes/dynarec/compiler.cpp
@@ -68,6 +69,11 @@ add_subdirectory ("test")
 add_subdirectory ("playground")
 
 if(LLVMES_BUILD_GUI)
-add_subdirectory("llvmes-gui")
-add_subdirectory("debugger")
+    option(GLFW_BUILD_TESTS OFF)
+    option(GLFW_BUILD_DOCS OFF)
+    option(GLFW_BUILD_EXAMPLES OFF)
+    option(SPDLOG_BUILD_TESTS OFF)
+    option(SPDLOG_BUILD_EXAMPLES OFF)
+    add_subdirectory("llvmes-gui")
+    add_subdirectory("debugger")
 endif()

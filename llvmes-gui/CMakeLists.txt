@@ -21,11 +21,6 @@ add_library (${PROJECT_NAME}
     src/llvmes-gui/imgui/imgui_renderer.cpp
 )
 
-option(GLFW_BUILD_TESTS OFF)
-option(GLFW_BUILD_EXAMPLES OFF)
-option(SPDLOG_BUILD_TESTS OFF)
-option(SPDLOG_BUILD_EXAMPLES OFF)
-
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
     ${glfw_INCLUDE_DIRS}
