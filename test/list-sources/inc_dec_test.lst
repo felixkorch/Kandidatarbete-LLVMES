@@ -1,12 +1,15 @@
 #macro STORE_RESULT_A 0
     STX tmp
+    PHA
     LDX result_idx
     STA $3000,X
     INX
     STX result_idx
+    PLA
     LDX tmp
 #endmacro
 #macro STORE_RESULT_X 0
+    PHA
     TXA
     STX tmp
     LDX result_idx
@@ -14,8 +17,10 @@
     INX
     STX result_idx
     LDX tmp
+    PLA
 #endmacro
 #macro STORE_RESULT_Y 0
+    PHA
     TYA
     STX tmp
     LDX result_idx
@@ -23,6 +28,19 @@
     INX
     STX result_idx
     LDX tmp
+    PLA
+#endmacro
+#macro STORE_STATUS 0
+    PHA
+    PHP
+    PLA
+    STX tmp
+    LDX result_idx
+    STA $3000,X
+    INX
+    STX result_idx
+    LDX tmp
+    PLA
 #endmacro
 
 .org $8000
@@ -31,23 +49,31 @@ main:
 ; Test INX at overflow
     LDX #$FE
     INX
+    STORE_STATUS                ; X = FF
     INX
+    STORE_STATUS                ; X = 00
     INX
     STORE_RESULT_X              ; $01
 ; Test DEX at overflow
     DEX
+    STORE_STATUS                ; X = 00
     DEX
+    STORE_STATUS                ; X = FF
     DEX
     STORE_RESULT_X              ; $FE
 ; Test INX at overflow
     LDY #$FE
     INY
+    STORE_STATUS                ; Y = FF
     INY
+    STORE_STATUS                ; Y = 00
     INY
     STORE_RESULT_Y              ; $01
 ; Test DEX at overflow
     DEY
+    STORE_STATUS                ; Y = 00
     DEY
+    STORE_STATUS                ; Y = FF
     DEY
     STORE_RESULT_Y              ; $FE
 ; Test INC at overflow
@@ -58,38 +84,54 @@ main:
     STA $2002
     LDX #$02
     INC $00
+    STORE_STATUS                ; X = FF
     INC $00
+    STORE_STATUS                ; X = 00
     INC $00
     LDA $00
     STORE_RESULT_A
     INC $00,X
+    STORE_STATUS                ; X = FF
     INC $00,X
+    STORE_STATUS                ; X = 00
     INC $00,X
     STORE_RESULT_A
     INC $2000
+    STORE_STATUS                ; X = FF
     INC $2000
+    STORE_STATUS                ; X = 00
     INC $2000
     STORE_RESULT_A
     INC $2000,X
+    STORE_STATUS                ; X = FF
     INC $2000,X
+    STORE_STATUS                ; X = 00
     INC $2000,X
     STORE_RESULT_A
 ; Test DEC at overflow
     DEC $00
+    STORE_STATUS                ; X = 00
     DEC $00
+    STORE_STATUS                ; X = FF
     DEC $00
     LDA $00
     STORE_RESULT_A
     DEC $00,X
+    STORE_STATUS                ; X = 00
     DEC $00,X
+    STORE_STATUS                ; X = FF
     DEC $00,X
     STORE_RESULT_A
     DEC $2000
+    STORE_STATUS                ; X = 00
     DEC $2000
+    STORE_STATUS                ; X = FF
     DEC $2000
     STORE_RESULT_A
     DEC $2000,X
+    STORE_STATUS                ; X = 00
     DEC $2000,X
+    STORE_STATUS                ; X = FF
     DEC $2000,X
     STORE_RESULT_A
 
@@ -100,7 +142,7 @@ check_memory_loop:
     CMP expected_result,X
     BNE print_fail
     INX
-    CPX #12                     ; Length of expected_results
+    CPX #36                     ; Length of expected_results
     BNE check_memory_loop
     LDX #$00 ; Reset X register
 print_msg:
@@ -132,8 +174,12 @@ success_str:
 fail_str:
 .db "Inc/dec tests failed!", 0
 expected_result:
-.db $01, $FE, $01, $FE, $01, $01, $01, $01
-.db $FE, $FE, $FE, $FE
+
+.db $B4, $36, $01, $36, $B4, $FE, $B4, $36
+.db $01, $36, $B4, $FE, $B4, $36, $01, $B4
+.db $36, $01, $B4, $36, $01, $B4, $36, $01
+.db $36, $B4, $FE, $36, $B4, $FE, $36, $B4
+.db $FE, $36, $B4, $FE
 result_idx:
 .db 0
 tmp:
