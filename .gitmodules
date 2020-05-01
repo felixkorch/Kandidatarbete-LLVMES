@@ -1,0 +1,12 @@
+[submodule "llvmes-gui/glfw"]
+	path = llvmes-gui/glfw
+	url = https://github.com/felixkorch/glfw.git
+[submodule "llvmes-gui/glm"]
+	path = llvmes-gui/glm
+	url = https://github.com/felixkorch/glm.git
+[submodule "llvmes-gui/spdlog"]
+	path = llvmes-gui/spdlog
+	url = https://github.com/felixkorch/spdlog.git
+[submodule "llvmes-gui/imgui"]
+	path = llvmes-gui/imgui
+	url = https://github.com/felixkorch/imgui.git
