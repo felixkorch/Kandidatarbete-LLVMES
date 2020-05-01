@@ -14,7 +14,7 @@ class Debugger : public gui::Application {
 
     void OnImGui() override
     {
-        // ImGui::ShowDemoWindow();
+        ImGui::ShowDemoWindow();
     }
 
     void OnEvent(gui::Event& e) override

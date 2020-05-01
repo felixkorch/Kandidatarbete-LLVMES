@@ -59,7 +59,7 @@ void ImGuiLayer::Create()
     pixel_ratio_x = (float)w / (float)window_size_x;
     pixel_ratio_y = (float)h / (float)window_size_y;
 
-    io.Fonts->AddFontFromFileTTF("verdana.ttf", 18.0f * pixel_ratio_x, nullptr, nullptr);
+    io.Fonts->AddFontFromFileTTF("verdana.ttf", 17.0f * pixel_ratio_x, nullptr, nullptr);
 
     io.FontGlobalScale = 1.0f / pixel_ratio_x;
     ImGui::GetStyle().ScaleAllSizes(pixel_ratio_x);
@@ -117,20 +117,18 @@ void ImGuiLayer::SetStyle(ImGuiStyle& style)
     style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 
     style.WindowPadding = ImVec2(8, 6);
-    style.WindowRounding = 0.0f;
     style.FramePadding = ImVec2(5, 7);
-    // style.FrameRounding            = 0.0f;
     style.ItemSpacing = ImVec2(5, 5);
-    // style.ItemInnerSpacing         = ImVec2(1, 1);
-    // style.TouchExtraPadding        = ImVec2(0, 0);
-    // style.IndentSpacing            = 6.0f;
-    // style.ScrollbarSize            = 12.0f;
-    // style.ScrollbarRounding        = 16.0f;
-    // style.GrabMinSize              = 20.0f;
-    // style.GrabRounding             = 2.0f;
-    // style.WindowTitleAlign.x = 0.50f;
-    // style.FrameBorderSize = 0.0f;
-    // style.WindowBorderSize = 1.0f;
+    style.ItemInnerSpacing         = ImVec2(1, 1);
+    style.TouchExtraPadding        = ImVec2(0, 0);
+    style.IndentSpacing            = 6.0f;
+    style.ScrollbarSize            = 12.0f;
+    style.ScrollbarRounding        = 16.0f;
+    style.GrabMinSize              = 20.0f;
+    style.GrabRounding             = 2.0f;
+    style.WindowTitleAlign.x = 0.50f;
+    style.FrameBorderSize = 0.0f;
+    style.WindowBorderSize = 1.0f;
 }
 void ImGuiLayer::Begin()
 {
