@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "llvmes-gui/draw.h"
 #include "llvmes-gui/imgui/imgui_layer.h"
 #include "llvmes-gui/log.h"
 
@@ -21,6 +22,9 @@ Application::Application(int width, int height, const std::string& program_name)
 
     // Init the log library
     Log::Init();
+
+    // Init draw module
+    Draw::Init();
 
     // The window was successfully created, proceed to init the rest
     //
@@ -43,6 +47,7 @@ Application::~Application()
     }
     s_application = nullptr;
     ImGuiLayer::Destroy();
+    Draw::DeInit();
 }
 
 void Application::OnImGui()
