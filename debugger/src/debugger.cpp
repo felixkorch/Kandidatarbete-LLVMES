@@ -7,8 +7,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "cache.h"
 #include "basic_log.h"
+#include "cache.h"
 #include "imgui-filebrowser/imfilebrowser.h"
 #include "imgui_memory_editor/imgui_memory_editor.h"
 
@@ -64,7 +64,8 @@ class Debugger : public gui::Application {
             else if (addr == 0x200F) {
                 stop = std::chrono::high_resolution_clock::now();
                 cpu_should_run = false;
-                LLVMES_TRACE("Program executed in: {}us", GetDuration(TimeFormat::Micro, start, stop));
+                LLVMES_TRACE("Program executed in: {}us",
+                             GetDuration(TimeFormat::Micro, start, stop));
             }
             else {
                 memory[addr] = data;
@@ -78,33 +79,32 @@ class Debugger : public gui::Application {
 
     void OnEvent(gui::Event& e) override
     {
-        if(e.GetEventType() == gui::EventType::KeyPressEvent) {
+        if (e.GetEventType() == gui::EventType::KeyPressEvent) {
             gui::KeyPressEvent& ke = (gui::KeyPressEvent&)e;
-            switch(ke.GetKeyCode()) {
-            case LLVMES_KEY_M: {
-                open_memory_editor = !open_memory_editor;
-                break;
-            }
-            case LLVMES_KEY_R: {
-                open_register_view = !open_register_view;
-                break;
-            }
-            case LLVMES_KEY_D: {
-                open_log_view = !open_log_view;
-                break;
-            }
-            case LLVMES_KEY_O: {
-                file_dialog.SetTypeFilters({ ".bin" });
-                file_dialog.SetTitle("Open a binary file");
-                file_dialog.Open();
-                break;
-            }
-            default:
-                break;
+            switch (ke.GetKeyCode()) {
+                case LLVMES_KEY_M: {
+                    open_memory_editor = !open_memory_editor;
+                    break;
+                }
+                case LLVMES_KEY_R: {
+                    open_register_view = !open_register_view;
+                    break;
+                }
+                case LLVMES_KEY_L: {
+                    open_log_view = !open_log_view;
+                    break;
+                }
+                case LLVMES_KEY_O: {
+                    file_dialog.SetTypeFilters({".bin"});
+                    file_dialog.SetTitle("Open a binary file");
+                    file_dialog.Open();
+                    break;
+                }
+                default:
+                    break;
             }
         }
     }
-
 
     void Stop() { cpu_should_run = false; }
 
@@ -277,10 +277,10 @@ class Debugger : public gui::Application {
     {
         ShowFileDialog();
         ShowMenuBar();
-        if(open_register_view)
+        if (open_register_view)
             ShowRegisterView();
 
-        if(open_log_view)
+        if (open_log_view)
             log.Draw("Log");
 
         if (open_memory_editor)
