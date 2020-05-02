@@ -16,6 +16,10 @@ class Shader {
     Shader(const char* program);
     ~Shader();
 
+    // Non-copyable
+    Shader(const Shader& other) = delete;
+    Shader& operator=(const Shader& other) = delete;
+
     void Bind();
     void Unbind();
 
