@@ -70,8 +70,8 @@ void main() {
 }
 )";
 
-static constexpr glm::vec2 default_uv[] = {glm::vec2(0, 0), glm::vec2(1, 0),
-                                           glm::vec2(1, 1), glm::vec2(0, 1)};
+static glm::vec2 default_uv[] = {glm::vec2(0, 0), glm::vec2(1, 0), glm::vec2(1, 1),
+                                 glm::vec2(0, 1)};
 
 VertexArray* Draw::vao = nullptr;
 IndexBuffer* Draw::ibo = nullptr;
