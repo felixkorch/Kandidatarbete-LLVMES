@@ -8,6 +8,7 @@
 if(LLVMES_BUILD_GUI)
 set(PLAYGROUND_FILES ${PLAYGROUND_FILES}
     gui_test
+    bubblesort_vis
 )
 endif()
 
