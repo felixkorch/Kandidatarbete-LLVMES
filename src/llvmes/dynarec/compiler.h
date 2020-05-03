@@ -8,6 +8,7 @@
 #include "llvmes/dynarec/parser.h"
 
 namespace llvmes {
+namespace dynarec {
 
 struct Compilation {
     JITTIR::Jitter jitter;
@@ -41,17 +42,17 @@ struct Compilation {
 
     std::unordered_map<uint16_t, llvm::BasicBlock*> basicblocks;
 
-    Compilation(const std::string& program_name)
+    Compilation(const std::string& program_name, std::vector<uint8_t>&& mem)
         : jitter(),
           m(jitter.create_module(program_name)),
           builder(m->getContext()),
-          ram(0x10000)
+          ram(mem)
     {
     }
 };
 
 class Compiler {
-    AST ast;
+    ParseResult parse_result;
     std::unique_ptr<Compilation> c;
 
     // Common used types and constants
@@ -66,12 +67,11 @@ class Compiler {
     uint16_t current_block_address = 0;
 
    public:
-    Compiler(AST ast, const std::string& program_name);
+    Compiler(ParseResult ast, const std::string& program_name);
     ~Compiler();
 
     std::function<int()> Compile(bool optimize);
-    std::vector<uint8_t>& GetRAMRef();
-    void SetRAM(std::vector<uint8_t>&& data);
+    std::vector<uint8_t>& GetMemory();
     void SetDumpDir(const std::string& path);
 
    private:
@@ -198,4 +198,5 @@ class Compiler {
     void OP_CPX(llvm::Value* v);
     void OP_CPY(llvm::Value* v);
 };
+}  // namespace dynarec
 }  // namespace llvmes

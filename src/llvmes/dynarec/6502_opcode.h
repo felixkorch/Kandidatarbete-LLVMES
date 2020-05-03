@@ -1,6 +1,7 @@
 #pragma once
 
 namespace llvmes {
+namespace dynarec {
 namespace MOS6502 {
 
 enum class Op {
@@ -753,6 +754,6 @@ inline Instruction DecodeInstruction(uint8_t opcode)
 
     return instr;
 }
-
 }  // namespace MOS6502
+}  // namespace dynarec
 }  // namespace llvmes

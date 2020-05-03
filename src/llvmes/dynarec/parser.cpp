@@ -3,6 +3,7 @@
 #include "llvmes/dynarec/6502_opcode.h"
 
 namespace llvmes {
+namespace dynarec {
 
 Parser::Parser(std::vector<uint8_t>&& data_in, uint16_t start_location)
     : data(0x10000), program_size(data_in.size()), start_location(start_location)
@@ -133,7 +134,7 @@ uint16_t Parser::ParseArgument(Instruction* instruction)
 {
     assert(instruction->size == 1 || instruction->size == 2 || instruction->size == 3);
 
-    uint16_t argument;
+    uint16_t argument = 0;
     if (instruction->size == 2) {
         if (index + 1 >= data.size())
             throw ParseException("Machine code has illegal format");
@@ -150,7 +151,7 @@ uint16_t Parser::ParseArgument(Instruction* instruction)
     return argument;
 }
 
-AST Parser::Parse()
+ParseResult Parser::Parse()
 {
     uint16_t reset = data[0xFFFC] | (data[0xFFFD] << 8);
     reset_address = reset;
@@ -163,7 +164,7 @@ AST Parser::Parse()
         branches.pop();
     } while (!branches.empty());
 
-    return {labels, instructions};
+    return {labels, instructions, std::move(data)};
 }
-
+}  // namespace dynarec
 }  // namespace llvmes

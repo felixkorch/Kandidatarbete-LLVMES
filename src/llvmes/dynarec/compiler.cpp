@@ -1,6 +1,7 @@
 #include "llvmes/dynarec/compiler.h"
 
 namespace llvmes {
+namespace dynarec {
 
 static Compiler* s_compiler = nullptr;
 
@@ -38,8 +39,9 @@ void putstatus(int8_t s)
            ToHexString((uint8_t)s).c_str());  // Complete status register
 }
 
-Compiler::Compiler(AST ast, const std::string& program_name)
-    : ast(ast), c(llvmes::make_unique<Compilation>(program_name))
+Compiler::Compiler(ParseResult parse_result, const std::string& program_name)
+    : parse_result(parse_result),
+      c(llvmes::make_unique<Compilation>(program_name, std::move(parse_result.memory)))
 {
     assert(s_compiler == nullptr);  // Only one compiler can exist in a program
     s_compiler = this;
@@ -107,16 +109,11 @@ Compiler::Compiler(AST ast, const std::string& program_name)
 
 Compiler::~Compiler()
 {
-    for (auto& i : ast.instructions)
+    for (auto& i : parse_result.instructions)
         delete i.second;
 }
 
-void Compiler::SetRAM(std::vector<uint8_t>&& data)
-{
-    c->ram = std::move(data);
-}
-
-std::vector<uint8_t>& Compiler::GetRAMRef()
+std::vector<uint8_t>& Compiler::GetMemory()
 {
     return c->ram;
 }
@@ -391,7 +388,7 @@ std::function<int()> Compiler::Compile(bool optimize)
 
 void Compiler::PassOne()
 {
-    for (auto& pair : ast.labels) {
+    for (auto& pair : parse_result.labels) {
         llvm::BasicBlock* bb = llvm::BasicBlock::Create(
             c->m->getContext(), pair.second.name, (llvm::Function*)c->main_fn);
         c->basicblocks[pair.second.address] = bb;
@@ -400,11 +397,11 @@ void Compiler::PassOne()
 
 void Compiler::PassTwo()
 {
-    std::pair<uint16_t, Instruction*> prev = *ast.instructions.begin();
+    std::pair<uint16_t, Instruction*> prev = *parse_result.instructions.begin();
 
-    for (auto& instr : ast.instructions) {
+    for (auto& instr : parse_result.instructions) {
         uint16_t index = instr.first;
-        bool label_exists = ast.labels.count(index);
+        bool label_exists = parse_result.labels.count(index);
 
         if (label_exists && prev.second->op_type != MOS6502::Op::JMP &&
             prev.second->op_type != MOS6502::Op::RTS) {
@@ -413,7 +410,7 @@ void Compiler::PassTwo()
 
         if (label_exists) {
             c->builder.SetInsertPoint(c->basicblocks[index]);
-            current_block_address = ast.labels[index].address;
+            current_block_address = parse_result.labels[index].address;
         }
 
         CodeGen(*instr.second);
@@ -454,5 +451,6 @@ void Compiler::AddDynJumpTable()
     }
     c->builder.SetInsertPoint(originalInsertPoint);
 };
+}  // namespace dynarec
 
 }  // namespace llvmes

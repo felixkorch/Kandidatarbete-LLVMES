@@ -6,7 +6,7 @@
 #include "llvmes/dynarec/parser.h"
 #include "llvmes/time.h"
 
-using namespace llvmes;
+using namespace llvmes::dynarec;
 using namespace std::chrono;
 
 int main(int argc, char** argv)
@@ -70,15 +70,12 @@ try {
     ClockType stop, exec_start, parse_start, parse_stop, compile_start, compile_stop;
 
     Parser parser(std::move(in_file), 0x8000);
-
-    AST ast;
-    std::vector<uint8_t> ram;
+    ParseResult parse_result;
 
     try {
         parse_start = high_resolution_clock::now();
-        ast = parser.Parse();
+        parse_result = parser.Parse();
         parse_stop = high_resolution_clock::now();
-        ram = parser.GetRAM();
     }
     catch (ParseException& e) {
         std::cerr << e.what() << std::endl;
@@ -89,11 +86,10 @@ try {
         return 1;
     }
 
-    auto c = llvmes::make_unique<Compiler>(ast, input);
+    auto c = llvmes::make_unique<Compiler>(parse_result, input);
     if (write_ir)
         c->SetDumpDir(".");
 
-    c->SetRAM(std::move(ram));
     compile_start = high_resolution_clock::now();
     auto main = c->Compile(optimize);
     compile_stop = high_resolution_clock::now();
@@ -122,7 +118,7 @@ try {
         ss << input << ".mem";
         if (out.empty())
             out = ss.str();
-        auto ram_ref = c->GetRAMRef();
+        auto ram_ref = c->GetMemory();
         auto fstream = std::fstream(out, std::ios::out | std::ios::binary);
         fstream.write((char*)ram_ref.data(), ram_ref.size());
         fstream.close();

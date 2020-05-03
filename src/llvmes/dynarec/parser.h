@@ -16,6 +16,7 @@
 #include "time.h"
 
 namespace llvmes {
+namespace dynarec {
 
 struct Label {
     uint16_t address;
@@ -49,9 +50,10 @@ class ParseException : public std::exception {
     std::string msg;
 };
 
-struct AST {
+struct ParseResult {
     std::map<uint16_t, Label> labels;
     std::map<uint16_t, Instruction*> instructions;
+    std::vector<uint8_t> memory;
 };
 
 class Parser {
@@ -71,7 +73,7 @@ class Parser {
 
    public:
     Parser(std::vector<uint8_t>&& data_in, uint16_t start_location);
-    std::vector<uint8_t> GetRAM() { return data; }
-    AST Parse();
+    ParseResult Parse();
 };
+}  // namespace dynarec
 }  // namespace llvmes

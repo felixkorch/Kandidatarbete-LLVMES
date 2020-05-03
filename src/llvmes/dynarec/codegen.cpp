@@ -3,6 +3,7 @@
 #include "llvmes/dynarec/compiler.h"
 
 namespace llvmes {
+namespace dynarec {
 
 static std::unordered_map<uint16_t, uint16_t> return_map;
 
@@ -1464,5 +1465,5 @@ void Compiler::OP_CPY(llvm::Value* operand)
     DynamicTestN16(result);
     DynamicTestCCmp(result);
 }
-
+}  // namespace dynarec
 }  // namespace llvmes
