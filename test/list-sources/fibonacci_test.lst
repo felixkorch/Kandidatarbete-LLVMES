@@ -1,4 +1,6 @@
+.org $8000
 
+main:
        LDA  #0
        STA  $F0     ; LOWER NUMBER
        LDA  #1
@@ -16,3 +18,6 @@ loop:  LDA  $F1
        BMI  loop
 exit:
        STA $200F
+
+.org $FFFC
+.dw main ; Reset vector
