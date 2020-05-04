@@ -7,7 +7,7 @@ STA $2009
 
 
 ;eratos:
-main:   LDA  #$1A   ; n
+main:   LDA  #$64   ; n
         STA  $D0    ; value of n
         LDA  #$00
         LDX  #$00
@@ -42,7 +42,7 @@ copy:   INX
         LDA  $1000,X
         CMP  #$00
         BEQ  copy
-        STA  $2000,Y
+        STA  $3000,Y
         INY
         JMP  copy
 copied: TYA           ; how many found
