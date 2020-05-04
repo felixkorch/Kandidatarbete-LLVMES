@@ -2,21 +2,37 @@
 
 main:
        LDA  #0
-       STA  $F0     ; LOWER NUMBER
+       STA  $F0
+       STA  $F1
        LDA  #1
-       STA  $F1     ; HIGHER NUMBER
+       STA  $F2
+       LDA  #0
+       STA  $F3
        LDX  #0
-loop:  LDA  $F1
+loop:  LDA  $F2
        STA  $0F1B,X
-       STA  $F2     ; OLD HIGHER NUMBER
-       ADC  $F0
-       STA  $F1     ; NEW HIGHER NUMBER
-       LDA  $F2
-       STA  $F0     ; NEW LOWER NUMBER
        INX
-       CPX  #$0A    ; STOP AT FIB(10)
+       PHA
+       LDA  $F3
+       STA  $0F1B,X
+       STA  $F5
+       PLA
+       STA  $F4
+       ADC  $F0
+       STA  $F2
+       LDA  $F5
+       ADC  $F1
+       STA  $F3
+
+       LDA  $F4
+       STA  $F0
+       LDA  $F5
+       STA  $F1
+       INX
+       CPX  #48 ; FIB(24) max that 16 bit can hold
        BMI  loop
 exit:
+       LDA #0
        STA $200F
 
 .org $FFFC
