@@ -1,0 +1,55 @@
+; Macro definitions
+#macro PRINT_A 0
+STA $2009
+#endmacro
+
+.org $8000
+
+
+;eratos:
+main:   LDA  #$1A   ; n
+        STA  $D0    ; value of n
+        LDA  #$00
+        LDX  #$00
+setup:  STA  $1000,X    ; populate array
+        ADC  #$01
+        INX
+        CPX  $D0    ; read value of n from memory
+        BPL  set
+        JMP  setup
+set:    LDX  #$02
+sieve:  LDA  $1000,X    ; find non-zero
+        INX
+        CPX  $D0
+        BPL  sieved
+        CMP  #$00
+        BEQ  sieve
+        STA  $D1    ; current prime
+mark:   CLC
+        ADC  $D1
+        TAY
+        LDA  #$00
+        STA  $1000,Y
+        TYA
+        CMP  $D0
+        BPL  sieve
+        JMP  mark
+sieved: LDX  #$01
+        LDY  #$00
+copy:   INX
+        CPX  $D0
+        BPL  copied
+        LDA  $1000,X
+        CMP  #$00
+        BEQ  copy
+        STA  $2000,Y
+        INY
+        JMP  copy
+copied: TYA           ; how many found
+        ;PRINT_A
+        ;RTS
+        LDA #0
+        STA $200F ; exit 0
+
+.org $FFFC
+.dw main ; Reset vector
