@@ -1,9 +1,10 @@
 ﻿if (POLICY CMP0048)
 cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version")
 
 project (llvmes)
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 cmake_minimum_required (VERSION 3.8)
 
 
