@@ -44,7 +44,7 @@ void main() {
 #shader fragment
 #version 330 core
 
-const int MAX_TEXTURES = 16;
+const int MAX_TEXTURES = 10;
 
 uniform sampler2D u_sampler[MAX_TEXTURES];
 
@@ -64,7 +64,41 @@ void main() {
     // Has a texture
     if(fs_in.tid > 0) {
         int tid = int(fs_in.tid - 0.5);
-        tex_color = fs_in.color * texture(u_sampler[tid], fs_in.uv);
+        switch(tid) {
+            case 0:
+                tex_color = fs_in.color * texture(u_sampler[0], fs_in.uv);
+                break;
+            case 1:
+                tex_color = fs_in.color * texture(u_sampler[1], fs_in.uv);
+                break;
+            case 2:
+                tex_color = fs_in.color * texture(u_sampler[2], fs_in.uv);
+                break;
+            case 3:
+                tex_color = fs_in.color * texture(u_sampler[3], fs_in.uv);
+                break;
+            case 4:
+                tex_color = fs_in.color * texture(u_sampler[4], fs_in.uv);
+                break;
+            case 5:
+                tex_color = fs_in.color * texture(u_sampler[5], fs_in.uv);
+                break;
+            case 6:
+                tex_color = fs_in.color * texture(u_sampler[6], fs_in.uv);
+                break;
+            case 7:
+                tex_color = fs_in.color * texture(u_sampler[7], fs_in.uv);
+                break;
+            case 8:
+                tex_color = fs_in.color * texture(u_sampler[8], fs_in.uv);
+                break;
+            case 9:
+                tex_color = fs_in.color * texture(u_sampler[9], fs_in.uv);
+                break;
+            default:
+                tex_color = fs_in.color * texture(u_sampler[0], fs_in.uv);
+                break;
+        }
     }
 	color = tex_color;
 }
