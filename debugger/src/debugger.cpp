@@ -172,6 +172,8 @@ class Debugger : public gui::Application {
         RecentlyOpened::Write(path);
         loaded_file_path = path;
         LLVMES_INFO("Successfully loaded file");
+        cpu.Reset();                         // Reset CPU and load reset-vector
+        cache = RecentlyOpened::GetCache();  // Update cache
     }
 
     void ShowFileDialog()
