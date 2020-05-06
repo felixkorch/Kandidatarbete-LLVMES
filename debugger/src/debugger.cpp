@@ -216,6 +216,7 @@ class Debugger : public gui::Application {
                                 }
                                 catch (std::runtime_error& e) {
                                     LLVMES_ERROR(e.what());
+                                    cache = RecentlyOpened::GetCache();
                                 }
                             }
                         }
