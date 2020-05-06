@@ -16,9 +16,9 @@ using namespace llvmes;
 
 class Debugger : public gui::Application {
     volatile bool cpu_should_run = false;
-    bool open_memory_editor = false;
-    bool open_register_view = true;
-    bool open_log_view = true;
+    bool show_memory_editor = false;
+    bool show_register_view = true;
+    bool show_log_view = true;
 
     std::uint8_t x = 0, y = 0, a = 0, sp = 0;
     std::uint16_t pc = 0;
@@ -83,15 +83,15 @@ class Debugger : public gui::Application {
             gui::KeyPressEvent& ke = (gui::KeyPressEvent&)e;
             switch (ke.GetKeyCode()) {
                 case LLVMES_KEY_M: {
-                    open_memory_editor = !open_memory_editor;
+                    show_memory_editor = !show_memory_editor;
                     break;
                 }
                 case LLVMES_KEY_R: {
-                    open_register_view = !open_register_view;
+                    show_register_view = !show_register_view;
                     break;
                 }
                 case LLVMES_KEY_L: {
-                    open_log_view = !open_log_view;
+                    show_log_view = !show_log_view;
                     break;
                 }
                 case LLVMES_KEY_O: {
@@ -171,7 +171,8 @@ class Debugger : public gui::Application {
 
         RecentlyOpened::Write(path);
         loaded_file_path = path;
-        LLVMES_INFO("Successfully loaded file");
+        LLVMES_INFO("Successfully loaded '{}'", loaded_file_path);
+
         cpu.Reset();                         // Reset CPU and load reset-vector
         cache = RecentlyOpened::GetCache();  // Update cache
     }
@@ -234,7 +235,7 @@ class Debugger : public gui::Application {
             }
             if (ImGui::BeginMenu("View")) {
                 if (ImGui::MenuItem("Memory Editor", "M")) {
-                    open_memory_editor = !open_memory_editor;
+                    show_memory_editor = !show_memory_editor;
                 }
                 ImGui::EndMenu();
             }
@@ -281,13 +282,13 @@ class Debugger : public gui::Application {
     {
         ShowFileDialog();
         ShowMenuBar();
-        if (open_register_view)
+        if (show_register_view)
             ShowRegisterView();
 
-        if (open_log_view)
+        if (show_log_view)
             log.Draw("Log");
 
-        if (open_memory_editor)
+        if (show_memory_editor)
             mem_edit.DrawWindow("Memory Editor", memory.data(), memory.size());
     }
 };
