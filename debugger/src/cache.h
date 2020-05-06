@@ -55,6 +55,6 @@ class RecentlyOpened {
                 continue;
             lines.push_back(line);
         }
-        return std::move(lines);
+        return lines;
     }
 };
