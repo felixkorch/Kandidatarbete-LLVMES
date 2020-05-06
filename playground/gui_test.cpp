@@ -15,7 +15,7 @@ class TestGUI : public Application {
    public:
     TestGUI() : Application(1200, 800, "Test UI")
     {
-        texture = llvmes::make_unique<Texture>(256, 240);
+        texture = std::make_unique<Texture>(256, 240);
         auto data = std::vector<uint8_t>(256 * 240 * 4);
         int i, j;
         for (i = 0; i < 256; i++) {

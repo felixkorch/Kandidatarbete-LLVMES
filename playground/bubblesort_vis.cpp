@@ -48,12 +48,12 @@ class BubbleSort : public Application {
         dynarec::Parser parser(std::move(program), BASE_ADDR);
         dynarec::ParseResult result;
         result = parser.Parse();
-        compiler = llvmes::make_unique<dynarec::Compiler>(result, PROGRAM_NAME);
+        compiler = std::make_unique<dynarec::Compiler>(result, PROGRAM_NAME);
         main = compiler->Compile(true);
         backup = compiler->GetMemory();
 
         // Interpreter Setup
-        cpu = llvmes::make_unique<CPU>();
+        cpu = std::make_unique<CPU>();
         cpu->Read = [this](uint16_t addr) { return compiler->GetMemory()[addr]; };
         cpu->Write = [this](uint16_t addr, uint8_t data) {
             compiler->GetMemory()[addr] = data;

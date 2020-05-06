@@ -7,6 +7,7 @@
 
 namespace llvmes {
 
+// Keeping it here in case we change back to std 11
 template <typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args&&... args)
 {
@@ -17,8 +18,8 @@ template <typename T>
 inline std::string ToHexString(T i)
 {
     std::stringstream stream;
-    stream << "$" << std::uppercase << std::setfill('0')
-           << std::setw(sizeof(T) * 2) << std::hex << (unsigned)i;
+    stream << "$" << std::uppercase << std::setfill('0') << std::setw(sizeof(T) * 2)
+           << std::hex << (unsigned)i;
     return stream.str();
 }
 
@@ -41,7 +42,7 @@ inline int HexStringToInt(const std::string& in)
     auto strip_zeroes = [](std::string temp) {
         while (temp.at(0) == '0')
             temp = temp.substr(1);
-        return std::move(temp);
+        return temp;
     };
 
     std::string out;

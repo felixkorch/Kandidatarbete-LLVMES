@@ -86,7 +86,7 @@ try {
         return 1;
     }
 
-    auto c = llvmes::make_unique<Compiler>(parse_result, input);
+    auto c = std::make_unique<Compiler>(parse_result, input);
     if (write_ir)
         c->SetDumpDir(".");
 

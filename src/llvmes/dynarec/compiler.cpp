@@ -41,7 +41,7 @@ void putstatus(int8_t s)
 
 Compiler::Compiler(ParseResult parse_result, const std::string& program_name)
     : parse_result(parse_result),
-      c(llvmes::make_unique<Compilation>(program_name, std::move(parse_result.memory)))
+      c(std::make_unique<Compilation>(program_name, std::move(parse_result.memory)))
 {
     assert(s_compiler == nullptr);  // Only one compiler can exist in a program
     s_compiler = this;
