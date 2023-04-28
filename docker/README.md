@@ -15,7 +15,7 @@ The Docker container is generated from a template in the top of this directory.
 2. When the above step is done, one can execute commands from within the Docker
    container by prefixing them with `docker-compose exec llvmes`. 
 
-   E.g. to build the project, execute `docker-compose exec llvmes ./autobuild`
+   E.g. to build the project, execute `docker-compose exec llvmes python3 ./autobuild`
    from the project root.
 
 The working directory with LLVMES (this project) will automatically be mounted under the same
@@ -26,6 +26,9 @@ reflected inside of the Docker container.
 or files created from within the Docker container is owned by the root user. To
 fix this, consult a guide for your own distribution/init system on how to run
 root-less Docker containers.
+
+:warning: Not working in git-bash on Windows. Use powershell and add the following environment variable:
+`$env:PWD="/mnt/path_to_root_dir"`
 
 ## About the templates
 
