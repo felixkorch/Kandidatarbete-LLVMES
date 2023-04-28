@@ -76,37 +76,37 @@ argument_parser.add_argument(
 
 
 def print_logo():
-    project_logo = """ 
-          _____                    _____                    _____          
-         /\    \                  /\    \                  /\    \         
-        /::\____\                /::\    \                /::\    \        
-       /::::|   |               /::::\    \              /::::\    \       
-      /:::::|   |              /::::::\    \            /::::::\    \      
-     /::::::|   |             /:::/\:::\    \          /:::/\:::\    \     
-    /:::/|::|   |            /:::/__\:::\    \        /:::/__\:::\    \    
-   /:::/ |::|   |           /::::\   \:::\    \       \:::\   \:::\    \   
-  /:::/  |::|   | _____    /::::::\   \:::\    \    ___\:::\   \:::\    \  
- /:::/   |::|   |/\    \  /:::/\:::\   \:::\    \  /\   \:::\   \:::\    \ 
+    project_logo = """
+          _____                    _____                    _____
+         /\    \                  /\    \                  /\    \
+        /::\____\                /::\    \                /::\    \
+       /::::|   |               /::::\    \              /::::\    \
+      /:::::|   |              /::::::\    \            /::::::\    \
+     /::::::|   |             /:::/\:::\    \          /:::/\:::\    \
+    /:::/|::|   |            /:::/__\:::\    \        /:::/__\:::\    \
+   /:::/ |::|   |           /::::\   \:::\    \       \:::\   \:::\    \
+  /:::/  |::|   | _____    /::::::\   \:::\    \    ___\:::\   \:::\    \
+ /:::/   |::|   |/\    \  /:::/\:::\   \:::\    \  /\   \:::\   \:::\    \
 /:: /    |::|   /::\____\/:::/__\:::\   \:::\____\/::\   \:::\   \:::\____
 \::/    /|::|  /:::/    /\:::\   \:::\   \::/    /\:::\   \:::\   \::/    /
- \/____/ |::| /:::/    /  \:::\   \:::\   \/____/  \:::\   \:::\   \/____/ 
-         |::|/:::/    /    \:::\   \:::\    \       \:::\   \:::\    \     
-         |::::::/    /      \:::\   \:::\____\       \:::\   \:::\____\    
-         |:::::/    /        \:::\   \::/    /        \:::\  /:::/    /    
-         |::::/    /          \:::\   \/____/          \:::\/:::/    /     
-         /:::/    /            \:::\    \               \::::::/    /      
-        /:::/    /              \:::\____\               \::::/    /       
-        \::/    /                \::/    /                \::/    /        
-         \/____/                  \/____/                  \/____/     
+ \/____/ |::| /:::/    /  \:::\   \:::\   \/____/  \:::\   \:::\   \/____/
+         |::|/:::/    /    \:::\   \:::\    \       \:::\   \:::\    \
+         |::::::/    /      \:::\   \:::\____\       \:::\   \:::\____\
+         |:::::/    /        \:::\   \::/    /        \:::\  /:::/    /
+         |::::/    /          \:::\   \/____/          \:::\/:::/    /
+         /:::/    /            \:::\    \               \::::::/    /
+        /:::/    /              \:::\____\               \::::/    /
+        \::/    /                \::/    /                \::/    /
+         \/____/                  \/____/                  \/____/
 
-         
 
-                _              _         _              _   
-                | |            | |       | |            | |  
-            ___| | ___ __ _ __| |_   ___| | ___ __ _ __| |_ 
+
+                _              _         _              _
+                | |            | |       | |            | |
+            ___| | ___ __ _ __| |_   ___| | ___ __ _ __| |_
             / __| |/ / '__| '__| __| / __| |/ / '__| '__| __|
-            \__ \   <| |  | |  | |_  \__ \   <| |  | |  | |_ 
-            |___/_|\_\_|  |_|   \__| |___/_|\_\_|  |_|   \__|   
+            \__ \   <| |  | |  | |_  \__ \   <| |  | |  | |_
+            |___/_|\_\_|  |_|   \__| |___/_|\_\_|  |_|   \__|
 """
 
     print(project_logo)
@@ -150,22 +150,15 @@ def generate_build_system(
 def build(type=DEFAULT_BUILD_TYPE, dir=DEFAULT_BUILD_DIR, verbose=DEFAULT_VERBOSE):
     create_build_dir(dir)
     generate_build_system(type, dir, verbose)
-    cmake_flags = "--build ."
+    cmake_flags = ["-S", ".", "-B", dir]
     if verbose:
-        cmake_flags += " --verbose"
+        cmake_flags.append(" --verbose")
 
-    # TODO: Switch to subprocess, https://stackoverflow.com/questions/89228/calling-an-external-command-from-python
-    build_status = os.system(
-        """
-            cd {build_dir} &&
-            cmake {flags}
-            """.format(
-            build_dir=dir, flags=cmake_flags
-        )
-    )
-
-    if build_status != 0:
-        sys.exit(build_status)
+    try:
+        subprocess.run(["cmake", *cmake_flags], shell=True)
+        subprocess.run(["ninja", "-j4"], cwd=f"./{dir}", shell=True)
+    except:
+        sys.exit(-1)
 
 
 LUA_TYPE = DEFAULT_TEST_TYPE
@@ -208,7 +201,8 @@ def assemble(test_directory):
         bin_file_path = os.path.join(
             list_sources_path, filename + ".bin"
         )  # Adds rootname + .bin
-        bin_out_path = os.path.join(list_bins_path, os.path.basename(bin_file_path))
+        bin_out_path = os.path.join(
+            list_bins_path, os.path.basename(bin_file_path))
         t = assembleThread(
             source_file_path, bin_file_path, bin_out_path, assembler_path,
         )
