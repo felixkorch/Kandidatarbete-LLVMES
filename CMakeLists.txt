@@ -25,7 +25,6 @@ if(VERBOSE)
 endif()
 
 set(SOURCE
-    src/llvmes/nes/rom.cpp
     src/llvmes/interpreter/cpu.cpp
     src/llvmes/interpreter/cpu.h
     src/llvmes/dynarec/parser.h
